@@ -117,6 +117,26 @@ window.filterByType = function () {
 }
 
 
+window.filterByDay = function () {
+
+    const val = document.getElementById("dayFilter").value;
+
+    const currentDayId = localStorage.getItem("currentDayId");
+
+    if (val === "all") {
+        return renderExpenses(expensesList);
+    }
+
+    if (val === "current") {
+
+        const filtered = expensesList.filter(x =>
+            x.day_id && String(x.day_id) === String(currentDayId)
+        );
+
+        return renderExpenses(filtered);
+    }
+}
+
 // ==========================
 // 📦 POPUPS (FIXED)
 // ==========================
@@ -171,9 +191,9 @@ window.saveExpense = async function () {
         document.getElementById("newAmount").value = "";
 
         // 🔥 FORCE CLOSE AFTER SMALL DELAY
-        setTimeout(() => {
-            closeAddPopup();
-        }, 100);
+        alert("Expense saved successfully ✅");
+
+        closeAddPopup();
 
     } catch (err) {
         console.error("SAVE ERROR:", err);
@@ -193,9 +213,9 @@ window.updateExpense = async function () {
             expense_type: document.getElementById("editType").value
         });
 
-        setTimeout(() => {
-            closeEditPopup();
-        }, 100);
+        alert("Expense updated successfully ✏️");
+
+        closeEditPopup();
 
     } catch (err) {
         console.error("UPDATE ERROR:", err);

@@ -1,8 +1,5 @@
-
-
-import { collection, onSnapshot, getDocs, query, where } 
+import { collection, onSnapshot } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboardRealtime();
@@ -23,227 +20,498 @@ function loadDashboardRealtime() {
     let tablesData=[], sessionsData=[], canteenData=[], expenseData=[];
 
     onSnapshot(collection(window.db, "tables"), snap => {
-        tablesData=[]; snap.forEach(d=>{
-            let t=d.data(); if(t.branch===branch) tablesData.push(t);
-        }); updateDashboard();
+        tablesData=[];
+        snap.forEach(d=>{
+            let t=d.data();
+            if(t.branch===branch) tablesData.push(t);
+        });
+        updateDashboard();
     });
 
     onSnapshot(collection(window.db, "sessions"), snap => {
-        sessionsData=[]; snap.forEach(d=>{
-            let s=d.data(); if(s.branch===branch) sessionsData.push(s);
-        }); updateDashboard();
+        sessionsData=[];
+        snap.forEach(d=>{
+            let s=d.data();
+            if(s.branch===branch) sessionsData.push(s);
+        });
+        updateDashboard();
     });
 
     onSnapshot(collection(window.db, "canteen_logs"), snap => {
-        canteenData=[]; snap.forEach(d=>{
-            let c=d.data(); if(c.branch===branch) canteenData.push(c);
-        }); updateDashboard();
+        canteenData=[];
+        snap.forEach(d=>{
+            let c=d.data();
+            if(c.branch===branch) canteenData.push(c);
+        });
+        updateDashboard();
     });
 
     onSnapshot(collection(window.db, "expenses"), snap => {
-        expenseData=[]; snap.forEach(d=>{
-            let e=d.data(); if(e.branch===branch) expenseData.push(e);
-        }); updateDashboard();
+        expenseData=[];
+        snap.forEach(d=>{
+            let e=d.data();
+            if(e.branch===branch) expenseData.push(e);
+        });
+        updateDashboard();
+        
+
     });
 
-    function updateDashboard() {
+function updateDashboard() {
 
-        let today_game_total=0, today_paid=0, today_unpaid=0;
-        let today_sessions=0, completed_sessions=0;
+    let now = new Date();
+    const currentDayId = localStorage.getItem("currentDayId");
+    let todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
 
-        let hourly=new Array(24).fill(0);
-        let tableEarnings={}, itemSales={};
+    let today_game_total=0, today_paid=0, today_unpaid=0;
+    let today_sessions=0, completed_sessions=0;
+    let today_canteen_total=0;
+    let today_expense=0;
 
-        sessionsData.forEach(s=>{
-            let date=new Date(s.start_time);
-            if(date<todayStart) return;
+    let monthly_income=0;
+    let monthly_canteen=0;
+    let monthly_expense=0;
+    let shift1Monthly = 0;
+    let shift2Monthly = 0;
+    // ================= SESSIONS =================
+    sessionsData.forEach(s=>{
 
-            let amount=Number(s.total_amount||0);
+    let date = new Date(s.start_time || s.startTime || s.created_at);
+    let amount = Number(s.final_amount || 0);
 
+    // 🔥 CURRENT DAY ONLY
+    if(String(s.day_id) === String(currentDayId)){
+        if(date>=todayStart){
             today_sessions++;
             today_game_total+=amount;
 
-            hourly[date.getHours()]+=amount;
-
-            let table=s.table_id||"Unknown";
-            tableEarnings[table]=(tableEarnings[table]||0)+amount;
-
             if(s.paid) today_paid++; else today_unpaid++;
             if(s.end_time) completed_sessions++;
-        });
-
-        let today_canteen_total=0;
-        canteenData.forEach(c=>{
-            let time=new Date(c.time);
-            if(time>=todayStart){
-                today_canteen_total+=Number(c.total||0);
-
-                (c.items||[]).forEach(item=>{
-                    let name=item.name||"Item";
-                    itemSales[name]=(itemSales[name]||0)+(item.qty||1);
-                });
-            }
-        });
-
-        let today_expense=0;
-        expenseData.forEach(e=>{
-            let time=new Date(e.created_at);
-            if(time>=todayStart)
-                today_expense+=Number(e.amount||0);
-        });
-
-        let monthly_income=0;
-        sessionsData.forEach(s=>{
-            let d=new Date(s.start_time);
-            if(d.getMonth()===new Date().getMonth())
-                monthly_income+=Number(s.total_amount||0);
-        });
-
-        // UI SET
-        setText("totalTables", tablesData.length);
-        setText("activeTables", tablesData.filter(t=>t.isRunning).length);
-        setText("freeTables", tablesData.length - tablesData.filter(t=>t.isRunning).length);
-
-        setText("todaySessions", today_sessions);
-        setText("completedSessions", completed_sessions);
-
-        setText("timeIncome", today_game_total);
-        setText("canteenIncome", today_canteen_total);
-        setText("totalIncome", today_game_total+today_canteen_total);
-
-        setText("paidBills", today_paid);
-        setText("unpaidBills", today_unpaid);
-
-        setText("monthlyIncome", monthly_income);
-        setText("monthlyExpense", today_expense);
-        setText("netProfit", monthly_income - today_expense);
-
-        // CHARTS
-        renderCharts(today_game_total, today_canteen_total, today_paid, today_unpaid);
-        renderHourlyChart(hourly);
-
-        // TOP TABLES
-        let topTables=Object.entries(tableEarnings).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        document.getElementById("topTablesList").innerHTML =
-            topTables.map((t,i)=>`${i+1}. ${t[0]} → Rs ${t[1]}`).join("<br>");
-
-        // TOP ITEMS
-        let topItems=Object.entries(itemSales).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        document.getElementById("topItemsList").innerHTML =
-            topItems.map((t,i)=>`${i+1}. ${t[0]} → ${t[1]} qty`).join("<br>");
-
-        if(role==="staff"){
-            document.querySelectorAll(".admin-only").forEach(el=>el.style.display="none");
         }
+    }
+
+    // 🔥 MONTHLY (NO DAY FILTER)
+    if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+        monthly_income += amount;
+
+        let hour = date.getHours();
+        if(hour < 18){
+            shift1Monthly += amount;
+        } else {
+            shift2Monthly += amount;
+        }
+    }
+
+});
+
+    // ================= CANTEEN =================
+
+// 🔥 FROM CANTEEN LOGS
+canteenData.forEach(c=>{
+    let date = new Date(c.time || c.created_at || c.date);
+let amount = Number(c.total || c.amount || 0);
+
+// 🔥 CURRENT DAY
+if(String(c.day_id) === String(currentDayId)){
+    if(date>=todayStart){
+        today_canteen_total+=amount;
     }
 }
 
+// 🔥 MONTHLY (NO FILTER)
+if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+    monthly_canteen+=amount;
+}
+});
+
+// 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
+    // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
+sessionsData.forEach(s=>{
+
+    let date = new Date(s.start_time || s.startTime || s.created_at);
+    let canteen = Number(s.canteen_total || 0);
+
+    // 🔥 CURRENT DAY
+    if(String(s.day_id) === String(currentDayId)){
+        if(date>=todayStart){
+            today_canteen_total += canteen;
+        }
+    }
+
+    // 🔥 MONTHLY (NO DAY FILTER)
+    if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+        monthly_canteen += canteen;
+    }
+});
+
+    // ================= EXPENSE =================
+    expenseData.forEach(e=>{
+        let date=new Date(e.created_at);
+let amount=Number(e.amount||0);
+
+// 🔥 CURRENT DAY
+if(String(e.day_id) === String(currentDayId)){
+    if(date>=todayStart){
+        today_expense+=amount;
+    }
+}
+
+// 🔥 MONTHLY
+if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+    monthly_expense+=amount;
+}
+    });
+
+    // ================= UI =================
+    setText("totalTables", tablesData.length);
+    setText("activeTables", tablesData.filter(t=>t.isRunning).length);
+    setText("freeTables", tablesData.length - tablesData.filter(t=>t.isRunning).length);
+
+    setText("todaySessions", today_sessions);
+    setText("completedSessions", completed_sessions);
+
+    setText("todayIncome", today_game_total);
+    setText("todayCanteen", today_canteen_total);
+    setText("todayExpenses", today_expense);
+
+    setText("netIncome", (today_game_total + today_canteen_total) - today_expense);
+
+    setText("paidBills", today_paid);
+    setText("unpaidBills", today_unpaid);
+
+    setText("monthlyIncome", monthly_income);
+    setText("monthlycanteen", monthly_canteen);
+    setText("monthlyExpenses", monthly_expense);
+
+    setText("netProfit", (monthly_income + monthly_canteen) - monthly_expense);
+    setText("shift1Monthly", shift1Monthly);
+    setText("shift2Monthly", shift2Monthly);
+
+    let daysPassed = new Date().getDate();
+    let monthlyAvg = monthly_income / daysPassed;
+    setText("monthlyAverage", Math.round(monthlyAvg));
+
+    // 🔥 REALTIME CHARTS
+    renderMonthlyCharts(sessionsData, canteenData, expenseData);
+
+    // 🔥 ROLE CONTROL
+    if(role==="staff"){
+        document.querySelectorAll(".admin-only")
+            .forEach(el=>el.style.display="none");
+    }
+
+            console.log({
+        today_canteen_total,
+        monthly_canteen,
+        shift1Monthly,
+        shift2Monthly
+        });
+}
+
+}
+// ================= CHARTS =================
 
 function renderCharts(g,c,p,u){
     if(incomeChart) incomeChart.destroy();
     if(billsChart) billsChart.destroy();
 
-    const commonOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                labels: {
-                    color: "#00ffcc",
-                    font: {
-                        size: 14,
-                        weight: "bold"
-                    }
-                }
-            }
-        }
-    };
-
-    // INCOME CHART
     incomeChart = new Chart(document.getElementById("incomeChart"), {
         type: "doughnut",
         data: {
             labels: ["Game", "Canteen"],
             datasets: [{
                 data: [g, c],
-                backgroundColor: ["#00ffcc", "#ff4d6d"],
-                borderWidth: 2,
-                borderColor: "#000"
+                backgroundColor: ["#00ffcc", "#ff4d6d"]
             }]
-        },
-        options: commonOptions
+        }
     });
 
-    // BILLS CHART
     billsChart = new Chart(document.getElementById("billsChart"), {
         type: "pie",
         data: {
             labels: ["Paid", "Unpaid"],
             datasets: [{
                 data: [p, u],
-                backgroundColor: ["#00ffaa", "#ff3b3b"],
-                borderWidth: 2,
-                borderColor: "#000"
+                backgroundColor: ["#00ffaa", "#ff3b3b"]
             }]
-        },
-        options: commonOptions
-    });
-}
-
-
-
-// =======================
-// HOURLY CHART FUNCTION
-// =======================
-function renderHourlyChart(data){
-    if(hourlyChart) hourlyChart.destroy();
-
-    hourlyChart = new Chart(document.getElementById("hourlyChart"), {
-        type: "line",
-        data: {
-            labels: [...Array(24).keys()],
-            datasets: [{
-                label: "Hourly Income",
-                data: data,
-                borderColor: "#00ffcc",
-                backgroundColor: "rgba(0,255,204,0.2)",
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: "#00ffaa",
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: "#00ffcc",
-                        font: { size: 14 }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: { color: "#00ffcc" },
-                    grid: { color: "rgba(0,255,204,0.1)" }
-                },
-                y: {
-                    ticks: { color: "#00ffcc" },
-                    grid: { color: "rgba(0,255,204,0.1)" }
-                }
-            }
         }
     });
 }
 
+// ================= SAFE TEXT =================
 
-
-// =========================
-// SAFE TEXT FUNCTION (FIX)
-// =========================
 function setText(id, value) {
     const el = document.getElementById(id);
     if (el) {
         el.innerText = value ?? 0;
     }
+}
+
+function renderMonthlyCharts(sessionsData, canteenData, expenseData){
+
+    let now = new Date();
+    let daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+
+    let labels = [];
+    let incomeArr = new Array(daysInMonth).fill(0);
+    let canteenArr = new Array(daysInMonth).fill(0);
+    let expenseArr = new Array(daysInMonth).fill(0);
+    let profitArr = new Array(daysInMonth).fill(0);
+
+    let shift1Arr = new Array(daysInMonth).fill(0);
+    let shift2Arr = new Array(daysInMonth).fill(0);
+
+    for(let i=1;i<=daysInMonth;i++){
+        labels.push(i);
+    }
+
+    // 🔥 SESSIONS
+    sessionsData.forEach(s=>{
+        let d = new Date(s.start_time || s.startTime || s.created_at);
+        if(d.getMonth() !== now.getMonth()) return;
+
+        let day = d.getDate()-1;
+        let amount = Number(s.final_amount || 0);
+        let canteen = Number(s.canteen_total || 0);
+
+        incomeArr[day] += amount;
+        
+
+        // SHIFT LOGIC (simple split)
+        let hour = d.getHours();
+        if(hour < 18){
+            shift1Arr[day] += amount;
+        } else {
+            shift2Arr[day] += amount;
+        }
+    });
+
+    // 🔥 CANTEEN
+    // 🔥 CANTEEN (logs)
+canteenData.forEach(c=>{
+    let d = new Date(c.time || c.created_at || c.date);
+    if(d.getMonth() !== now.getMonth()) return;
+
+    let day = d.getDate()-1;
+    canteenArr[day] += Number(c.total || c.amount || 0);
+});
+
+// 🔥 CANTEEN FROM SESSIONS (SEPARATE LOOP)
+sessionsData.forEach(s=>{
+    let d = new Date(s.start_time || s.startTime || s.created_at);
+    if(d.getMonth() !== now.getMonth()) return;
+
+    let day = d.getDate()-1;
+    canteenArr[day] += Number(s.canteen_total || 0);
+});
+
+    // 🔥 EXPENSE
+    expenseData.forEach(e=>{
+        let d = new Date(e.created_at);
+        if(d.getMonth() !== now.getMonth()) return;
+
+        let day = d.getDate()-1;
+        expenseArr[day] += Number(e.amount||0);
+    });
+
+    // 🔥 PROFIT
+    for(let i=0;i<daysInMonth;i++){
+        profitArr[i] = (incomeArr[i] + canteenArr[i]) - expenseArr[i];
+    }
+
+    // 🔥 CREATE CHARTS
+    createChart("monthlyIncomeChart", "Income", labels, incomeArr);
+    createChart("monthlyCanteenChart", "Canteen", labels, canteenArr);
+    createChart("monthlyExpenseChart", "Expenses", labels, expenseArr);
+    createChart("monthlyProfitChart", "Profit", labels, profitArr);
+
+    // 🔥 SHIFT CHART
+    // 🔥 SHIFT CHART (FIXED)
+let ctx = document.getElementById("shiftChart");
+
+if(window.shiftChartInstance){
+    window.shiftChartInstance.destroy();
+}
+
+window.shiftChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: labels,
+        datasets: [
+    {
+        label: "Shift 1",
+        data: shift1Arr,
+        borderColor: "#00ffcc",
+        tension: 0.5,
+        fill: false
+    },
+    {
+        label: "Shift 2",
+        data: shift2Arr,
+        borderColor: "#ff4d6d",
+        tension: 0.5,
+        fill: false
+    }
+]
+    },
+    options: {
+        responsive: true,
+        animation: {
+            duration: 1200,
+            easing: "easeOutBounce"
+        },
+        plugins: {
+            legend: {
+                labels: { color: "#00ffcc" }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: "#aaa" },
+                grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+                ticks: { color: "#aaa" },
+                grid: { color: "rgba(255,255,255,0.05)" }
+            }
+        }
+    }
+});
+}
+
+function createChart(id, label, labels, data){
+
+    let ctx = document.getElementById(id);
+    if(!ctx) return;
+
+    if(!window.chartStore){
+        window.chartStore = {};
+    }
+
+    if(window.chartStore[id]){
+        window.chartStore[id].destroy();
+    }
+
+    const context = ctx.getContext("2d");
+
+    // 🔥 ANIMATED GRADIENT
+    let gradient = context.createLinearGradient(0,0,0,350);
+    gradient.addColorStop(0, "rgba(0,255,204,0.5)");
+    gradient.addColorStop(0.5, "rgba(0,255,204,0.2)");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+    let chart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+
+                borderColor: "#00ffcc",
+                backgroundColor: gradient,
+
+                borderWidth: 2,
+
+                pointBackgroundColor: "#00ffcc",
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+
+                pointRadius: 3,
+                pointHoverRadius: 10,
+
+                tension: 0.45,
+                fill: true,
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            animation: {
+                duration: 1500,
+                easing: "easeOutExpo"
+            },
+
+            interaction: {
+                mode: "nearest",
+                intersect: false
+            },
+
+            plugins: {
+                legend: { display: false },
+
+                tooltip: {
+                    backgroundColor: "rgba(0,0,0,0.85)",
+                    borderColor: "#00ffcc",
+                    borderWidth: 1,
+                    titleColor: "#00ffcc",
+                    bodyColor: "#fff",
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(ctx){
+                            return "Rs " + ctx.raw;
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                x: {
+                    ticks: { color: "#888" },
+                    grid: { color: "rgba(255,255,255,0.04)" }
+                },
+                y: {
+                    ticks: { color: "#888" },
+                    grid: { color: "rgba(255,255,255,0.04)" }
+                }
+            },
+
+            hover: {
+                mode: "nearest",
+                intersect: false
+            }
+        },
+
+        plugins: [
+
+            // 🔥 GLOW LINE
+            {
+                id: "glow",
+                beforeDatasetDraw(chart){
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.shadowColor = "#00ffcc";
+                    ctx.shadowBlur = 25;
+                },
+                afterDatasetDraw(chart){
+                    chart.ctx.restore();
+                }
+            },
+
+            // 🔥 PULSE DOT ANIMATION
+            {
+                id: "pulseDot",
+                afterDatasetsDraw(chart){
+                    const ctx = chart.ctx;
+                    const dataset = chart.data.datasets[0];
+                    const meta = chart.getDatasetMeta(0);
+
+                    meta.data.forEach(point => {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(0,255,204,0.2)";
+                        ctx.fill();
+                        ctx.restore();
+                    });
+                }
+            }
+        ]
+    });
+
+    window.chartStore[id] = chart;
 }

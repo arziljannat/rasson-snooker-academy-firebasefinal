@@ -23,57 +23,54 @@
     <!-- STATS -->
     <div class="stats-container">
 
+    <!-- ROW 1 (3 boxes) -->
+    <div class="stats-row">
         <div class="stat-box"><h3>Total Tables</h3><p id="totalTables">0</p></div>
-        <div class="stat-box"><h3>Active</h3><p id="activeTables">0</p></div>
-        <div class="stat-box"><h3>Free</h3><p id="freeTables">0</p></div>
+        <div class="stat-box"><h3>Active Tables</h3><p id="activeTables">0</p></div>
+        <div class="stat-box"><h3>Free Tables</h3><p id="freeTables">0</p></div>
+    </div>
 
+    <!-- ROW 2 (4 boxes) -->
+    <div class="stats-row">
         <div class="stat-box"><h3>Today Sessions</h3><p id="todaySessions">0</p></div>
-        <div class="stat-box"><h3>Completed</h3><p id="completedSessions">0</p></div>
-
-        <div class="stat-box"><h3>Time Income</h3><p id="timeIncome">0</p></div>
-        <div class="stat-box"><h3>Canteen</h3><p id="canteenIncome">0</p></div>
-        <div class="stat-box"><h3>Total Income</h3><p id="totalIncome">0</p></div>
-
+        <div class="stat-box"><h3>Completed Sessions</h3><p id="completedSessions">0</p></div>
         <div class="stat-box"><h3>Unpaid Bills</h3><p id="unpaidBills">0</p></div>
         <div class="stat-box"><h3>Paid Bills</h3><p id="paidBills">0</p></div>
-
-        <div class="stat-box admin-only"><h3>Monthly Income</h3><p id="monthlyIncome">0</p></div>
-        <div class="stat-box admin-only"><h3>Session Avg</h3><p id="sessionAverage">0</p></div>
-        <div class="stat-box admin-only"><h3>Monthly Expense</h3><p id="monthlyExpense">0</p></div>
-        <div class="stat-box admin-only"><h3>Net Profit</h3><p id="netProfit">0</p></div>
-
     </div>
 
-    <!-- CHARTS -->
-    <div class="charts-container">
-
-        <div class="chart-box admin-only">
-            <h3>Income Summary</h3>
-            <canvas id="incomeChart"></canvas>
-        </div>
-
-        <div class="chart-box admin-only">
-            <h3>Bills Summary</h3>
-            <canvas id="billsChart"></canvas>
-        </div>
-
-        <div class="chart-box admin-only">
-            <h3>Hourly Income</h3>
-            <canvas id="hourlyChart"></canvas>
-        </div>
-
-        <div class="chart-box admin-only">
-            <h3>Top Tables</h3>
-            <div id="topTablesList"></div>
-        </div>
-
-        <div class="chart-box admin-only">
-            <h3>Top Items</h3>
-            <div id="topItemsList"></div>
-        </div>
-        
-
+    <!-- ROW 3 (4 boxes) -->
+    <div class="stats-row">
+        <div class="stat-box"><h3>Today Income</h3><p id="todayIncome">0</p></div>
+        <div class="stat-box"><h3>Today Canteen</h3><p id="todayCanteen">0</p></div>
+        <div class="stat-box"><h3>Today Expenses</h3><p id="todayExpenses">0</p></div>
+        <div class="stat-box"><h3>Net Income</h3><p id="netIncome">0</p></div>
     </div>
+
+    <!-- ROW 4 (4 boxes ADMIN) -->
+    <div class="stats-row admin-only">
+        <div class="stat-box"><h3>Monthly Income</h3><p id="monthlyIncome">0</p></div>
+        <div class="stat-box"><h3>Monthly Canteen</h3><p id="monthlycanteen">0</p></div>
+        <div class="stat-box"><h3>Monthly Expenses</h3><p id="monthlyExpenses">0</p></div>
+        <div class="stat-box"><h3>Net Profit</h3><p id="netProfit">0</p></div>
+    </div>
+
+    <!-- ROW 5 (3 boxes ADMIN) -->
+    <div class="stats-row admin-only">
+        <div class="stat-box"><h3>Monthly Average</h3><p id="monthlyAverage">0</p></div>
+        <div class="stat-box"><h3>Shift1 Monthly</h3><p id="shift1Monthly">0</p></div>
+        <div class="stat-box"><h3>Shift2 Monthly</h3><p id="shift2Monthly">0</p></div>
+    </div>
+
+</div>
+    <div class="charts-container admin-only">
+
+    <div class="chart-box"><h3>Monthly Income</h3><canvas id="monthlyIncomeChart"></canvas></div>
+    <div class="chart-box"><h3>Monthly Canteen</h3><canvas id="monthlyCanteenChart"></canvas></div>
+    <div class="chart-box"><h3>Monthly Expenses</h3><canvas id="monthlyExpenseChart"></canvas></div>
+    <div class="chart-box"><h3>Monthly Profit</h3><canvas id="monthlyProfitChart"></canvas></div>
+    <div class="chart-box"><h3>Shift Summary</h3><canvas id="shiftChart"></canvas></div>
+
+</div>
 
     <script type="module" src="../scripts/dashboard.js"></script>
 

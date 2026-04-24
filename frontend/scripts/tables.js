@@ -16,7 +16,7 @@ let firebaseExpenses = [];
 
 
 const BRANCH = localStorage.getItem("branch");
-
+const ROLE = localStorage.getItem("role"); // admin / staff
 let inventoryItems = [];
 
 // 🔥 HELPER FUNCTIONS (ADD AT TOP)
@@ -42,6 +42,7 @@ let shift1 = null;   // ✅ ADD
 let shift2 = null;   // ✅ ADD
 
 let editTargetId = null;
+let deleteTargetId = null;
 let afterCheckoutMap = JSON.parse(localStorage.getItem("afterCheckoutMap") || "{}");
 
 function saveAfterCheckout() {
@@ -264,9 +265,17 @@ function listenExpensesRealtime() {
  ******************************************************/
 function bindAddTablePopup() {
 
-    document.getElementById("addTableBtn").onclick = () => {
+    const addBtn = document.getElementById("addTableBtn");
+
+if (ROLE !== "admin") {
+    addBtn.disabled = true;
+    addBtn.style.opacity = "0.4";
+    addBtn.style.cursor = "not-allowed";
+} else {
+    addBtn.onclick = () => {
         document.getElementById("addTablePopup").classList.remove("hidden");
     };
+}
 
     document.getElementById("cancelAddBtn").onclick = () => {
         document.getElementById("addTablePopup").classList.add("hidden");
@@ -410,6 +419,25 @@ Century (${t.centuryRate})
         `;
 
         box.appendChild(div);
+
+        // 🔥 ROLE CONTROL (IMPORTANT)
+if (ROLE !== "admin") {
+
+    let editBtn = document.getElementById(`editBtn-${t.id}`);
+    let delBtn = document.getElementById(`deleteBtn-${t.id}`);
+
+    if (editBtn) {
+        editBtn.disabled = true;
+        editBtn.style.opacity = "0.4";
+        editBtn.style.cursor = "not-allowed";
+    }
+
+    if (delBtn) {
+        delBtn.disabled = true;
+        delBtn.style.opacity = "0.4";
+        delBtn.style.cursor = "not-allowed";
+    }
+}
         // 🔥 AFTER RENDER → APPLY STATE
 setTimeout(() => {
 
@@ -1041,6 +1069,10 @@ async function removeItem(tableId, itemId, price, name) {
  * EDIT TABLE POPUP
  ******************************************************/
 function editTable(id) {
+    if (ROLE !== "admin") {
+        alert("Only admin can edit ❌");
+        return;
+    }
     let t = tables.find(x => String(x.id) === String(id));
     editTargetId = id;
 
@@ -1080,6 +1112,10 @@ async function updateTable() {
  * DELETE TABLE POPUP
  ******************************************************/
 function deleteTableOpen(id) {
+    if (ROLE !== "admin") {
+        alert("Only admin can delete ❌");
+        return;
+    }
     deleteTargetId = id;
     document.getElementById("deletePopup").classList.remove("hidden");
 
@@ -1860,23 +1896,45 @@ function bindHistoryButtons() {
 
     // DAY HISTORY
     document.getElementById("dayHistoryBtn").onclick = openDayHistory;
+
+    // 🔥 ADD THIS LINE (MAIN FIX)
+    document.getElementById("tableHistoryBtn").onclick = openTableHistory;
+
     document.getElementById("cancelDayHistoryBtn").onclick =
         () => hidePopup("dayHistoryPopup");
-
-    document.getElementById("printDayHistoryBtn").onclick = () => {
-    let index = document.getElementById("dayHistoryDateSelect").selectedIndex;
-    let d = window._daysData[index];
-    if (d) printDayHistoryThermal(d);
-};
-
-    // TABLE HISTORY
-    document.getElementById("tableHistoryBtn").onclick = openTableHistory;
     document.getElementById("cancelTableHistoryBtn").onclick =
         () => hidePopup("tableHistoryPopup");
 
-    document.getElementById("printTableHistoryBtn").onclick = printTableHistoryThermal;
-}
+    document.addEventListener("click", function(e) {
 
+        if (e.target && e.target.id === "printDayHistoryBtn") {
+
+            let index = document.getElementById("dayHistoryDateSelect").selectedIndex;
+            let d = window._daysData[index];
+
+            if (!d) {
+                alert("No data found ❌");
+                return;
+            }
+
+            printDayHistoryThermal(d);
+        }
+
+        if (e.target && e.target.id === "printTableHistoryBtn") {
+
+            let tableId = document.getElementById("tableHistoryTableSelect").value;
+            let dayIndex = document.getElementById("tableHistoryDateSelect").selectedIndex;
+
+            if (!tableId || dayIndex < 0) {
+                alert("Select table & date first ❌");
+                return;
+            }
+
+            printTableHistoryThermal();
+        }
+
+    });
+}
 /******************************************************
  * 🟢 OPEN DAY HISTORY POPUP
  ******************************************************/
@@ -2733,29 +2791,31 @@ function printDayHistoryThermal(d) {
         ? new Date(s2.endMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
         : "-";
 
-    let win = window.open("", "", "width=300,height=600");
+    let win = window.open("", "_blank", "width=300,height=600");
 
-    win.document.write(`
+    let html = `
     <html>
     <head>
         <style>
-            body { font-family: monospace; width: 250px; margin:auto; }
-            .center { text-align:center; }
+            body { 
+                font-family: monospace; 
+                width: 250px; 
+                margin:auto; 
+                text-align:center;
+            }
             .row { display:flex; justify-content:space-between; }
             hr { border:1px dashed #000; }
         </style>
     </head>
     <body>
 
-    <div class="center">
-        <h3>Day History</h3>
-        <small>${BRANCH}</small>
-    </div>
+    <h3>Day History</h3>
+    <small>${BRANCH}</small>
 
     <hr>
 
-    <div class="center">
-        ${d.date} <br>
+    <div>
+        ${d.date}<br>
         (${openTime} → ${closeTime})
     </div>
 
@@ -2786,15 +2846,20 @@ function printDayHistoryThermal(d) {
 
     <hr>
 
-    <div class="center">
-        ${new Date().toLocaleString()}
-    </div>
+    <div>${new Date().toLocaleString()}</div>
 
     </body>
     </html>
-    `);
+    `;
 
+    win.document.open();
+    win.document.write(html);
     win.document.close();
+
+    setTimeout(() => {
+        win.print();
+        win.close();
+    }, 300);
 }
 
 /// table history thermal print
@@ -2823,28 +2888,30 @@ function printTableHistoryThermal() {
         time += h.playSeconds || 0;
     });
 
-    let win = window.open("", "", "width=300,height=600");
+    let win = window.open("", "_blank", "width=300,height=600");
 
-    win.document.write(`
+    let html = `
     <html>
     <head>
         <style>
-            body { font-family: monospace; width: 250px; margin:auto; }
-            .center { text-align:center; }
+            body { 
+                font-family: monospace; 
+                width: 250px; 
+                margin:auto; 
+                text-align:center;
+            }
             .row { display:flex; justify-content:space-between; }
             hr { border:1px dashed #000; }
         </style>
     </head>
     <body>
 
-    <div class="center">
-        <h3>Table History</h3>
-        <small>${BRANCH}</small>
-    </div>
+    <h3>Table History</h3>
+    <small>${BRANCH}</small>
 
     <hr>
 
-    <div class="center">
+    <div>
         ${t.name}<br>
         ${d.date}
     </div>
@@ -2861,17 +2928,20 @@ function printTableHistoryThermal() {
 
     <hr>
 
-    <div class="center">
-        ${new Date().toLocaleString()}
-    </div>
-
-    
+    <div>${new Date().toLocaleString()}</div>
 
     </body>
     </html>
-    `);
+    `;
 
+    win.document.open();
+    win.document.write(html);
     win.document.close();
+
+    setTimeout(() => {
+        win.print();
+        win.close();
+    }, 300);
 }
 
 async function rebuildHistoryFromSessions() {
@@ -2907,7 +2977,13 @@ let startOfToday = new Date(
         // ✅ ONLY CURRENT DAY (REAL FIX)
         const currentDayId = localStorage.getItem("currentDayId");
 
-if (!s.day_id || String(s.day_id) !== String(currentDayId)) return;
+// 🔥 TEMP FIX: allow today sessions even if day_id mismatch
+// ✅ PERFECT TODAY FILTER (TIME SAFE)
+// ✅ ONLY CURRENT ACTIVE DAY (REAL FIX)
+
+if (String(s.day_id) !== String(currentDayId)) {
+    return;
+}
 
         let t = tables.find(x => x.name === s.table_id);
         if (!t) return;

@@ -79,14 +79,18 @@ body {
     border-color: #00ffaa;
 }
 
-.chart-box canvas {
-    transition: 0.25s ease-in-out;
+.chart-box {
+    transition: 0.35s ease;
 }
 
-.chart-box:hover canvas {
-    transform: scale(1.03);
-    filter: drop-shadow(0 0 20px #00ffcc);
-    transition: 0.25s ease-in-out;
+.chart-box:hover {
+    transform: scale(1.08);
+    z-index: 10;
+    box-shadow: 0 0 35px #00ffcc;
+}
+
+.chart-box canvas {
+    transition: 0.35s ease;
 }
 
 
@@ -131,4 +135,30 @@ body {
     color: #00ffcc;
     font-weight: bold;
     letter-spacing: 1px;
+}
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.stat-box {
+    flex: 1;
+    min-width: 200px;
+}
+
+.chart-box {
+    transition: 0.3s ease;
+}
+
+.chart-box:hover {
+    transform: scale(1.08);
+    z-index: 5;
+    box-shadow: 0 0 30px #00ffcc;
 }
