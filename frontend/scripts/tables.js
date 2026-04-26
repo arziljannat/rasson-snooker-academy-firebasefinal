@@ -1883,10 +1883,6 @@ if (h.paid && paymentTime && paymentTime >= startTime && paymentTime <= endTime)
 else if (!h.paid && h.checkout <= endTime) {
     gameBalance += g;
     canteenBalance += c;
-}{
-    // ✅ JIS SHIFT ME PAYMENT HUA → usme collection
-    gameCollection += g;
-    canteenCollection += c;
 }
 else if (!h.paid && h.checkout <= endTime) {
     // ❌ unpaid → balance
