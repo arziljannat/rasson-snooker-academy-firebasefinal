@@ -915,6 +915,7 @@ async function completePayment(id) {
     let last = t.history[t.history.length - 1];
 
     last.paid = true;
+  last.paidTime = Date.now();
 
 // 🔥 FIREBASE UPDATE (MAIN FIX)
 // 🔥 GET ONLY LAST CLOSED SESSION
@@ -1861,13 +1862,23 @@ function calculateShiftSnapshot(startTime, endTime) {
                 gameTotal += g;
                 canteenTotal += c;
 
-                if (h.paid) {
-                    gameCollection += g;
-                    canteenCollection += c;
-                } else {
-                    gameBalance += g;
-                    canteenBalance += c;
-                }
+                // 🔥 PAYMENT TIME BASED LOGIC (ADVANCED FIX)
+
+let paymentTime = h.paidTime || h.checkout;
+
+// 🔥 SHIFT RANGE CHECK
+let isInShift = (paymentTime >= startTime && paymentTime <= endTime);
+
+if (h.paid && isInShift) {
+    // ✅ JIS SHIFT ME PAYMENT HUA → usme collection
+    gameCollection += g;
+    canteenCollection += c;
+}
+else if (!h.paid && h.checkout <= endTime) {
+    // ❌ unpaid → balance
+    gameBalance += g;
+    canteenBalance += c;
+}
             }
         });
     });
@@ -2828,28 +2839,38 @@ function printDayHistoryThermal(d) {
 
     <hr>
 
-    <b>Shift 1</b>
-    <div class="row"><span>Game</span><span>${s1.gameTotal || 0}</span></div>
-    <div class="row"><span>Canteen</span><span>${s1.canteenTotal || 0}</span></div>
-    <div class="row"><span>Cash</span><span>${s1.closingCash || 0}</span></div>
+<b>Shift 1</b>
+<div class="row"><span>Game</span><span>${s1.gameTotal || 0}</span></div>
+<div class="row"><span>Canteen</span><span>${s1.canteenTotal || 0}</span></div>
+<div class="row"><span>Game Collection</span><span>${s1.gameCollection || 0}</span></div>
+<div class="row"><span>Canteen Collection</span><span>${s1.canteenCollection || 0}</span></div>
+<div class="row"><span>Balance</span><span>${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</span></div>
+<div class="row"><span>Expenses</span><span>${s1.expenses || 0}</span></div>
+<div class="row"><b>Cash</b><b>${s1.closingCash || 0}</b></div>
 
-    <hr>
+<hr>
 
-    <b>Shift 2</b>
-    <div class="row"><span>Game</span><span>${s2.gameTotal || 0}</span></div>
-    <div class="row"><span>Canteen</span><span>${s2.canteenTotal || 0}</span></div>
-    <div class="row"><span>Cash</span><span>${s2.closingCash || 0}</span></div>
+<b>Shift 2</b>
+<div class="row"><span>Game</span><span>${s2.gameTotal || 0}</span></div>
+<div class="row"><span>Canteen</span><span>${s2.canteenTotal || 0}</span></div>
+<div class="row"><span>Game Collection</span><span>${s2.gameCollection || 0}</span></div>
+<div class="row"><span>Canteen Collection</span><span>${s2.canteenCollection || 0}</span></div>
+<div class="row"><span>Balance</span><span>${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</span></div>
+<div class="row"><span>Expenses</span><span>${s2.expenses || 0}</span></div>
+<div class="row"><b>Cash</b><b>${s2.closingCash || 0}</b></div>
 
-    <hr>
+<hr>
 
-    <b>Combined</b>
-    <div class="row"><span>Game</span><span>${c.gameTotal || 0}</span></div>
-    <div class="row"><span>Canteen</span><span>${c.canteenTotal || 0}</span></div>
-    <div class="row"><span>Expenses</span><span>${c.expenses || 0}</span></div>
+<b>Combined</b>
+<div class="row"><span>Game</span><span>${c.gameTotal || 0}</span></div>
+<div class="row"><span>Canteen</span><span>${c.canteenTotal || 0}</span></div>
+<div class="row"><span>Collection</span><span>${(c.gameCollection||0)+(c.canteenCollection||0)}</span></div>
+<div class="row"><span>Balance</span><span>${(c.gameBalance||0)+(c.canteenBalance||0)}</span></div>
+<div class="row"><span>Expenses</span><span>${c.expenses || 0}</span></div>
 
-    <hr>
+<hr>
 
-    <div class="row"><b>Final Cash</b><b>${c.closingCash || 0}</b></div>
+<div class="row"><b>Final Cash</b><b>${c.closingCash || 0}</b></div>
 
     <hr>
 
