@@ -1875,27 +1875,6 @@ if (h.checkout >= startTime && h.checkout <= endTime) {
 
                 gameTotal += g;
                 canteenTotal += c;
-
-                // 🔥 PAYMENT TIME BASED LOGIC (ADVANCED FIX)
-
-// ✅ SIMPLE + RELIABLE LOGIC
-
-if (h.paid) {
-
-    // agar paid hai → jis shift me checkout hua usme count karo
-    if (h.checkout >= startTime && h.checkout <= endTime) {
-        gameCollection += g;
-        canteenCollection += c;
-    }
-
-} else {
-
-    // unpaid → balance
-    if (h.checkout <= endTime) {
-        gameBalance += g;
-        canteenBalance += c;
-    }
-
 }
             }
         });
