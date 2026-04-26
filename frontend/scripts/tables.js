@@ -946,6 +946,7 @@ snap.forEach(d => {
 if (latestSession) {
     await updateDoc(doc(window.db, "sessions", latestSession.id), {
         paid: true
+      paid_time: new Date().toISOString()
     });
 }
 
@@ -1210,6 +1211,7 @@ document.getElementById("paidBtn").onclick = () => {
 
     // ✅ MARK PAID
     h.paid = true;
+  h.paidTime = Date.now();
 
     saveState();
 
@@ -3024,6 +3026,7 @@ if (String(s.day_id) !== String(currentDayId)) {
             canteenAmount: s.canteen_total || 0,
             total: (s.final_amount || 0) + (s.canteen_total || 0),
             paid: s.paid === true,
+          paidTime: s.paid_time ? new Date(s.paid_time).getTime() : null,
             rate: s.play_type === "century" ? s.century_rate : s.frame_rate,
             canteenItems: {}
         });
