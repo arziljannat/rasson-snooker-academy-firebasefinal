@@ -945,7 +945,7 @@ snap.forEach(d => {
 
 if (latestSession) {
     await updateDoc(doc(window.db, "sessions", latestSession.id), {
-        paid: true
+        paid: true,
       paid_time: new Date().toISOString()
     });
 }
