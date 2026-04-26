@@ -3011,19 +3011,10 @@ let startOfToday = new Date(
         // ✅ ONLY CURRENT DAY (REAL FIX)
         const currentDayId = localStorage.getItem("currentDayId");
 
-// 🔥 TEMP FIX: allow today sessions even if day_id mismatch
-// ✅ PERFECT TODAY FILTER (TIME SAFE)
-// ✅ ONLY CURRENT ACTIVE DAY (REAL FIX)
+const currentDayId = localStorage.getItem("currentDayId");
 
-const todayStart = new Date();
-todayStart.setHours(0,0,0,0);
-
-const todayEnd = new Date();
-todayEnd.setHours(23,59,59,999);
-
-const endTime = new Date(s.end_time).getTime();
-
-if (endTime < todayStart.getTime() || endTime > todayEnd.getTime()) {
+// ✅ ONLY CURRENT ACTIVE DAY
+if (s.day_id != currentDayId) {
     return;
 }
 
