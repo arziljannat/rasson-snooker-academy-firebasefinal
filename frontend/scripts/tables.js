@@ -922,8 +922,7 @@ async function completePayment(id) {
 const q = query(
     collection(window.db, "sessions"),
     where("table_id", "==", t.name),
-    where("branch", "==", BRANCH),
-    where("end_time", "!=", null)
+    where("branch", "==", BRANCH)
 );
 
 // 🔥 ONLY LAST SESSION KO PAID KARO
@@ -934,6 +933,7 @@ let latestTime = 0;
 
 snap.forEach(d => {
     const data = d.data();
+   if (!data.end_time) return;
 
     let time = new Date(data.end_time).getTime();
 
