@@ -1868,8 +1868,7 @@ if (h.checkout >= startTime && h.checkout <= endTime) {
         gameBalance += g;
         canteenBalance += c;
     }
-}
-            }
+} 
         });
     });
 
