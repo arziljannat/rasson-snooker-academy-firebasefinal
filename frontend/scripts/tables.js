@@ -1866,24 +1866,24 @@ function calculateShiftSnapshot(startTime, endTime) {
 
                 // 🔥 PAYMENT TIME BASED LOGIC (ADVANCED FIX)
 
-let paymentTime = null;
+// ✅ SIMPLE + RELIABLE LOGIC
 
-// ✅ ONLY paidTime use karo
-if (h.paid && h.paidTime) {
-    paymentTime = h.paidTime;
-}
+if (h.paid) {
 
-// ✅ FIXED LOGIC (FINAL)
+    // agar paid hai → jis shift me checkout hua usme count karo
+    if (h.checkout >= startTime && h.checkout <= endTime) {
+        gameCollection += g;
+        canteenCollection += c;
+    }
 
-if (h.paid && h.paidTime && paymentTime >= startTime && paymentTime <= endTime) {
-    // ✅ PAID → COLLECTION
-    gameCollection += g;
-    canteenCollection += c;
-}
-else if (!h.paid && h.checkout <= endTime) {
-    // ❌ UNPAID → BALANCE
-    gameBalance += g;
-    canteenBalance += c;
+} else {
+
+    // unpaid → balance
+    if (h.checkout <= endTime) {
+        gameBalance += g;
+        canteenBalance += c;
+    }
+
 }
             }
         });
