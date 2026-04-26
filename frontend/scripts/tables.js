@@ -1868,24 +1868,19 @@ function calculateShiftSnapshot(startTime, endTime) {
 
 let paymentTime = null;
 
-// ✅ ONLY paid_time use karo (NO fallback)
+// ✅ ONLY paidTime use karo
 if (h.paid && h.paidTime) {
     paymentTime = h.paidTime;
 }
 
-// 🔥 SHIFT RANGE CHECK
-let isInShift = (paymentTime >= startTime && paymentTime <= endTime);
-
-if (h.paid && paymentTime && paymentTime >= startTime && paymentTime <= endTime) {
+// ✅ FIXED LOGIC (FINAL)
+if (h.paid && paymentTime >= startTime && paymentTime <= endTime) {
+    // ✅ PAID → COLLECTION
     gameCollection += g;
     canteenCollection += c;
 }
 else if (!h.paid && h.checkout <= endTime) {
-    gameBalance += g;
-    canteenBalance += c;
-}
-else if (!h.paid && h.checkout <= endTime) {
-    // ❌ unpaid → balance
+    // ❌ UNPAID → BALANCE
     gameBalance += g;
     canteenBalance += c;
 }
