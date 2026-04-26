@@ -1855,7 +1855,7 @@ function calculateShiftSnapshot(startTime, endTime) {
             // ✅ ONLY CHECKOUT BASED (FINAL FIX)
 if (h.checkout >= startTime && h.checkout <= endTime) {
 
-    
+    let g = Number(h.amount || 0);
     let c = Number(h.canteenAmount || 0);
 
     gameTotal += g;
