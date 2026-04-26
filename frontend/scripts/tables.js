@@ -1852,11 +1852,23 @@ function calculateShiftSnapshot(startTime, endTime) {
     tables.forEach(t => {
         t.history.forEach(h => {
 
-            if (
-    (h.checkin >= startTime && h.checkin <= endTime) ||
-    (h.checkout >= startTime && h.checkout <= endTime) ||
-    (h.checkin <= startTime && h.checkout >= endTime)
-) {
+            // ✅ ONLY CHECKOUT BASED (FINAL FIX)
+if (h.checkout >= startTime && h.checkout <= endTime) {
+
+    let g = Number(h.amount || 0);
+    let c = Number(h.canteenAmount || 0);
+
+    gameTotal += g;
+    canteenTotal += c;
+
+    if (h.paid) {
+        gameCollection += g;
+        canteenCollection += c;
+    } else {
+        gameBalance += g;
+        canteenBalance += c;
+    }
+} {
 
                 let g = Number(h.amount || 0);
                 let c = Number(h.canteenAmount || 0);
