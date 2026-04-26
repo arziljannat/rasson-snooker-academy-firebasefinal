@@ -3008,8 +3008,7 @@ let startOfToday = new Date(
         // ❌ ignore running
         if (!s.end_time) return;
 
-        // ✅ ONLY CURRENT DAY (REAL FIX)
-        const currentDayId = localStorage.getItem("currentDayId");
+  
 
 const currentDayId = localStorage.getItem("currentDayId");
 
