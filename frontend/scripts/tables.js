@@ -1874,7 +1874,7 @@ if (h.paid && h.paidTime) {
 }
 
 // ✅ FIXED LOGIC (FINAL)
-if (h.paid && paymentTime >= startTime && paymentTime <= endTime) {
+if (h.paid && h.paidTime && paymentTime >= startTime && paymentTime <= endTime) {
     // ✅ PAID → COLLECTION
     gameCollection += g;
     canteenCollection += c;
@@ -3014,7 +3014,15 @@ let startOfToday = new Date(
 // ✅ PERFECT TODAY FILTER (TIME SAFE)
 // ✅ ONLY CURRENT ACTIVE DAY (REAL FIX)
 
-if (String(s.day_id) !== String(currentDayId)) {
+const todayStart = new Date();
+todayStart.setHours(0,0,0,0);
+
+const todayEnd = new Date();
+todayEnd.setHours(23,59,59,999);
+
+const endTime = new Date(s.end_time).getTime();
+
+if (endTime < todayStart.getTime() || endTime > todayEnd.getTime()) {
     return;
 }
 
