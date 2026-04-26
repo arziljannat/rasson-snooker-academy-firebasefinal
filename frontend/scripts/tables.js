@@ -13,7 +13,11 @@ import {
 import { increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let firebaseExpenses = [];
-
+// 🔥 AUTO REFRESH FUNCTION
+function autoRefreshUI() {
+    console.log("🔄 Auto Refresh Triggered");
+    location.reload();
+}
 
 const BRANCH = localStorage.getItem("branch");
 const ROLE = localStorage.getItem("role"); // admin / staff
@@ -1614,6 +1618,7 @@ await addDoc(collection(window.db, "shifts"), {
     created_at: new Date().toISOString()
 });
 alert("Shift 1 closed successfully ✅");
+  setTimeout(autoRefreshUI, 800);
 // ✅ CORRECT SAVE
 localStorage.setItem("shift1Data", JSON.stringify(shift1));
 }
@@ -1684,6 +1689,7 @@ await addDoc(collection(window.db, "shifts"), {
 });
 
 alert("Shift 2 closed successfully ✅");
+  setTimeout(autoRefreshUI, 800);
 localStorage.setItem("shift2Data", JSON.stringify(shift2));
 
 }
@@ -1812,6 +1818,7 @@ printShiftThermal("Day Summary", printData, shift1, shift2);
     shift2 = null;
 
     alert("Day Closed Successfully & Saved in Day History!");
+  setTimeout(autoRefreshUI, 1200);
     localStorage.removeItem("shift1Start");
     localStorage.removeItem("shift1Data");
 localStorage.removeItem("shift2Data");
