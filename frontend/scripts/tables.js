@@ -1874,7 +1874,8 @@ if (h.paid && h.paidTime) {
 }
 
 // ✅ FIXED LOGIC (FINAL)
-if (h.paid && h.paidTime && paymentTime >= startTime && paymentTime <= endTime) {
+
+if (h.paid && paymentTime >= startTime && paymentTime <= endTime) {
     // ✅ PAID → COLLECTION
     gameCollection += g;
     canteenCollection += c;
