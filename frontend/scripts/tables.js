@@ -1853,6 +1853,7 @@ function calculateShiftSnapshot(startTime, endTime) {
         t.history.forEach(h => {
 
             // ✅ ONLY CHECKOUT BASED (FINAL FIX)
+// 🔥 GAME TOTAL → checkout base
 if (h.checkout >= startTime && h.checkout <= endTime) {
 
     let g = Number(h.amount || 0);
@@ -1861,14 +1862,25 @@ if (h.checkout >= startTime && h.checkout <= endTime) {
     gameTotal += g;
     canteenTotal += c;
 
-    if (h.paid) {
-        gameCollection += g;
-        canteenCollection += c;
-    } else {
+    // 🔥 UNPAID → same shift (checkout)
+    if (!h.paid) {
         gameBalance += g;
         canteenBalance += c;
     }
-} 
+}
+
+// 🔥 COLLECTION → paidTime base (MAIN FIX)
+if (h.paid && h.paidTime) {
+
+    if (h.paidTime >= startTime && h.paidTime <= endTime) {
+
+        let g = Number(h.amount || 0);
+        let c = Number(h.canteenAmount || 0);
+
+        gameCollection += g;
+        canteenCollection += c;
+    }
+}
         });
     });
 
