@@ -1505,12 +1505,20 @@ let s2 = shift2 || {};
 let combined = {
     gameTotal: (s1.gameTotal || 0) + (s2.gameTotal || 0),
     canteenTotal: (s1.canteenTotal || 0) + (s2.canteenTotal || 0),
+
     gameCollection: (s1.gameCollection || 0) + (s2.gameCollection || 0),
     canteenCollection: (s1.canteenCollection || 0) + (s2.canteenCollection || 0),
-    gameBalance: (s1.gameBalance || 0) + (s2.gameBalance || 0),
-    canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
+
+    // 🔥 MAIN FIX (NO DOUBLE CONFUSION)
+    gameBalance: 0,
+    canteenBalance: 0,
+
     expenses: (s1.expenses || 0) + (s2.expenses || 0)
 };
+
+// 🔥 FINAL BALANCE CALCULATION
+combined.gameBalance = combined.gameTotal - combined.gameCollection;
+combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
 
 combined.closingCash = 
     (combined.gameCollection + combined.canteenCollection) - combined.expenses;
