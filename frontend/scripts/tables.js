@@ -386,8 +386,8 @@ if (name.toLowerCase().startsWith("room")) return 2;
     if (typeA !== typeB) return typeA - typeB;
 
     // 🔹 number sort (Table 1, Table 2...)
-    const numA = parseInt((a.name.match(/\d+/) || [0])[0]);
-    const numB = parseInt((b.name.match(/\d+/) || [0])[0]);
+  const numA = parseInt(((a.name || "").match(/\d+/) || [0])[0]);
+  const numB = parseInt(((b.name || "").match(/\d+/) || [0])[0]);
 
     return numA - numB;
 });
@@ -1333,19 +1333,22 @@ function openTableShift(id) {
     // ✅ SORT SAME LIKE UI (Tables first, then Rooms)
 const sortedTables = [...tables].sort((a, b) => {
 
-    const getType = (name) => {
-        if (name.toLowerCase().startsWith("table")) return 1;
-        if (name.toLowerCase().startsWith("room")) return 2;
-        return 3;
-    };
+    const getType = (name = "") => {
+    name = String(name).toLowerCase();
+
+    if (name.startsWith("table")) return 1;
+    if (name.startsWith("room")) return 2;
+
+    return 3;
+};
 
     const typeA = getType(a.name);
     const typeB = getType(b.name);
 
     if (typeA !== typeB) return typeA - typeB;
 
-    const numA = parseInt((a.name.match(/\d+/) || [0])[0]);
-    const numB = parseInt((b.name.match(/\d+/) || [0])[0]);
+    const numA = parseInt(((a.name || "").match(/\d+/) || [0])[0]);
+    const numB = parseInt(((b.name || "").match(/\d+/) || [0])[0]);
 
     return numA - numB;
 });
