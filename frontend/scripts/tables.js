@@ -1533,7 +1533,6 @@ if (s1 && s2) {
         expenses: s1.expenses + s2.expenses
     };
 
-    // ✅ SAFE CALCULATION (INSIDE IF)
     combined.gameBalance = combined.gameTotal - combined.gameCollection;
     combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
 
