@@ -1577,20 +1577,21 @@ summaryBody.innerHTML = `
         <td>${s2.closeTime || "-"}</td>
     </tr>
 
-    <tr class="combined-row">
-        <td>Combined</td>
-        <td>${combined.gameTotal}</td>
-        <td>${combined.canteenTotal}</td>
-        <td>${combined.gameCollection}</td>
-        <td>${combined.canteenCollection}</td>
-        <td>${combined.gameBalance}</td>
-        <td>${combined.canteenBalance}</td>
-        <td>${combined.expenses}</td>
-        <td>${combined.closingCash}</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-`;
+    ${combined ? `
+<tr class="combined-row">
+    <td>Combined</td>
+    <td>${combined.gameTotal}</td>
+    <td>${combined.canteenTotal}</td>
+    <td>${combined.gameCollection}</td>
+    <td>${combined.canteenCollection}</td>
+    <td>${combined.gameBalance}</td>
+    <td>${combined.canteenBalance}</td>
+    <td>${combined.expenses}</td>
+    <td>${combined.closingCash}</td>
+    <td>-</td>
+    <td>-</td>
+</tr>
+` : ""}
 
 
     showPopup("shiftSummaryPopup");
