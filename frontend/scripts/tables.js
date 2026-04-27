@@ -1759,27 +1759,39 @@ if (!snap.empty) {
 
     let startMs = shift1?.endMs;
 
-// 🔥 FALLBACK FIX (MAIN SOLUTION)
+// 🔥 HARD FIX (NO FAIL SYSTEM)
 if (!startMs) {
 
-    console.log("⚠️ shift1 missing → fetching from Firebase");
+    console.log("⚠️ shift1 missing → forcing reload");
 
-    const q = query(
-        collection(window.db, "shifts"),
-        where("branch", "==", BRANCH),
-        where("shift_number", "==", 1),
-        where("day_id", "==", window.currentDayId)
-    );
+    // ✅ STEP 1: reload shifts
+    await loadShiftsFromFirebase();
 
-    const snap = await getDocs(q);
+    startMs = shift1?.endMs;
 
-    snap.forEach(doc => {
-        const d = doc.data();
-        startMs = d.end_ms;
-    });
-
+    // ✅ STEP 2: STILL MISSING → WAIT + FETCH
     if (!startMs) {
-        alert("Shift1 data still missing ❌");
+
+        await new Promise(res => setTimeout(res, 800)); // 🔥 WAIT
+
+        const q = query(
+            collection(window.db, "shifts"),
+            where("branch", "==", BRANCH),
+            where("shift_number", "==", 1),
+            where("day_id", "==", window.currentDayId)
+        );
+
+        const snap = await getDocs(q);
+
+        snap.forEach(doc => {
+            const d = doc.data();
+            startMs = d.end_ms;
+        });
+    }
+
+    // ❌ FINAL FAIL (should never happen now)
+    if (!startMs) {
+        alert("Shift1 data still missing ❌ (FINAL)");
         return;
     }
 }
