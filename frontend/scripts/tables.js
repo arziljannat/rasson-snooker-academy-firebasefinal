@@ -1540,12 +1540,6 @@ if (s1 && s2) {
         (combined.gameCollection + combined.canteenCollection) - combined.expenses;
 }
 
-// 🔥 FINAL BALANCE CALCULATION
-combined.gameBalance = combined.gameTotal - combined.gameCollection;
-combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
-
-combined.closingCash = 
-    (combined.gameCollection + combined.canteenCollection) - combined.expenses;
 
 // APPLY to HTML table
 summaryBody.innerHTML = `
