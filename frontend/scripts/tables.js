@@ -1517,23 +1517,28 @@ function openShiftSummary() {
     }
 
 // Load frozen snapshots of shift1 & shift2
-let s1 = shift1 || {};
-let s2 = shift2 || {};
+let s1 = shift1 || null;
+let s2 = shift2 || null;
 
-// Build Combined summary by adding both shift values
-let combined = {
-    gameTotal: (s1.gameTotal || 0) + (s2.gameTotal || 0),
-    canteenTotal: (s1.canteenTotal || 0) + (s2.canteenTotal || 0),
+let combined = null;
 
-    gameCollection: (s1.gameCollection || 0) + (s2.gameCollection || 0),
-    canteenCollection: (s1.canteenCollection || 0) + (s2.canteenCollection || 0),
+if (s1 && s2) {
+    combined = {
+        gameTotal: s1.gameTotal + s2.gameTotal,
+        canteenTotal: s1.canteenTotal + s2.canteenTotal,
 
-    // 🔥 MAIN FIX (NO DOUBLE CONFUSION)
-    gameBalance: 0,
-    canteenBalance: 0,
+        gameCollection: s1.gameCollection + s2.gameCollection,
+        canteenCollection: s1.canteenCollection + s2.canteenCollection,
 
-    expenses: (s1.expenses || 0) + (s2.expenses || 0)
-};
+        expenses: s1.expenses + s2.expenses
+    };
+
+    combined.gameBalance = combined.gameTotal - combined.gameCollection;
+    combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
+
+    combined.closingCash =
+        (combined.gameCollection + combined.canteenCollection) - combined.expenses;
+}
 
 // 🔥 FINAL BALANCE CALCULATION
 combined.gameBalance = combined.gameTotal - combined.gameCollection;
@@ -1620,7 +1625,7 @@ if (!snap.empty) {
     let startMs = firstSession ? firstSession.checkin : now;
     let endMs = now;
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    
     let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift1 = {
@@ -1702,10 +1707,10 @@ if (!snap.empty) {
     // Shift1 snapshot required
     let s1 = shift1 || {};
 
-    let startMs = s1.endMs || 0;
+    let startMs = new Date(s1.closeTime).getTime();
     let endMs = now;
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    
     let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift2 = {
