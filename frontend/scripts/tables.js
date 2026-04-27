@@ -60,7 +60,7 @@ const q = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
     where("day_id", "==", window.currentDayId)
-);;
+);
     const snap = await getDocs(q);
 
     shift1 = null;
