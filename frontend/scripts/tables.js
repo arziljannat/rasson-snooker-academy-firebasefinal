@@ -1921,7 +1921,7 @@ function calculateShiftSnapshot(startTime, endTime) {
         t.history.forEach(h => {
 
 // 🔥 SPLIT LOGIC FIX
-if (h.checkin >= startTime && h.checkin <= endTime) { {
+if (h.checkin >= startTime && h.checkin <= endTime) {
 
     let g = Number(h.amount || 0);
     let c = Number(h.canteenAmount || 0);
