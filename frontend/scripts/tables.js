@@ -23,7 +23,7 @@ window.currentDayId = Number(localStorage.getItem("currentDayId"));
 let firebaseExpenses = [];
 // 🔥 AUTO REFRESH FUNCTION
 async function autoRefreshUI() {
-    await loadShiftsFromFirebase();
+    loadShiftsFromFirebase();
     renderTables();
 }
 
@@ -52,60 +52,58 @@ let tables = [];
 
 let shift1 = null;   // ✅ ADD
 let shift2 = null;   // ✅ ADD
-async function loadShiftsFromFirebase() {
-
-   
+function loadShiftsFromFirebase() {
 
 const q = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
     where("day_id", "==", window.currentDayId)
 );
-const snap = await getDocs(q);
-const docs = snap.docs;
-    
-shift1 = null;
-shift2 = null;
 
-docs.forEach(doc => {
-    const d = doc.data();
+onSnapshot(q, (snapshot) => {
 
-    if (d.shift_number === 1 && !shift1) {
-        shift1 = {
-            openTime: d.open_time,
-            closeTime: d.close_time,
-            startMs: Number(d.start_ms) || 0,
-            endMs: Number(d.end_ms) || 0,      
-            gameTotal: d.game_total,
-            canteenTotal: d.canteen_total,
-            gameCollection: d.game_collection,
-            canteenCollection: d.canteen_collection,
-            expenses: d.expenses,
-            closingCash: d.closing_cash,
-            gameBalance: (d.game_total || 0) - (d.game_collection || 0),
-            canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
-        };
-    }
+    shift1 = null;
+    shift2 = null;
 
-    if (d.shift_number === 2 && !shift2) {
-        shift2 = {
-            openTime: d.open_time,
-            closeTime: d.close_time,
-            startMs: Number(d.start_ms) || 0,
-            endMs: Number(d.end_ms) || 0,      
-            gameTotal: d.game_total,
-            canteenTotal: d.canteen_total,
-            gameCollection: d.game_collection,
-            canteenCollection: d.canteen_collection,
-            expenses: d.expenses,
-            closingCash: d.closing_cash,
-            gameBalance: (d.game_total || 0) - (d.game_collection || 0),
-            canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
-        };
-    }
-});
+    snapshot.forEach(docSnap => {
+        const d = docSnap.data();
 
-    // 🔥 BUTTON STATE FIX
+        if (d.shift_number === 1 && !shift1) {
+            shift1 = {
+                openTime: d.open_time,
+                closeTime: d.close_time,
+                startMs: Number(d.start_ms) || 0,
+                endMs: Number(d.end_ms) || 0,
+                gameTotal: d.game_total,
+                canteenTotal: d.canteen_total,
+                gameCollection: d.game_collection,
+                canteenCollection: d.canteen_collection,
+                expenses: d.expenses,
+                closingCash: d.closing_cash,
+                gameBalance: (d.game_total || 0) - (d.game_collection || 0),
+                canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+            };
+        }
+
+        if (d.shift_number === 2 && !shift2) {
+            shift2 = {
+                openTime: d.open_time,
+                closeTime: d.close_time,
+                startMs: Number(d.start_ms) || 0,
+                endMs: Number(d.end_ms) || 0,
+                gameTotal: d.game_total,
+                canteenTotal: d.canteen_total,
+                gameCollection: d.game_collection,
+                canteenCollection: d.canteen_collection,
+                expenses: d.expenses,
+                closingCash: d.closing_cash,
+                gameBalance: (d.game_total || 0) - (d.game_collection || 0),
+                canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+            };
+        }
+    });
+
+    // 🔥 BUTTON AUTO UPDATE
     const btn = document.getElementById("shiftCloseBtn");
 
     if (!shift1) {
@@ -118,7 +116,9 @@ docs.forEach(doc => {
         btn.innerText = "Day Close";
     }
 
-    console.log("🔥 SHIFTS LOADED:", shift1, shift2);
+    console.log("🔥 REALTIME SHIFTS:", shift1, shift2);
+
+});
 }
 
 let editTargetId = null;
@@ -129,7 +129,7 @@ let deleteTargetId = null;
  ******************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadShiftsFromFirebase();
+  loadShiftsFromFirebase();
     // 🔥 ENSURE DAY ID ALWAYS EXISTS
     listenExpensesRealtime();
     listenInventoryRealtime();
@@ -1733,7 +1733,7 @@ if (!docRef?.id) {
     return;
 }
 alert("Shift 1 closed successfully ✅");
-  await loadShiftsFromFirebase();
+  loadShiftsFromFirebase();
 }
 
 
@@ -1778,7 +1778,7 @@ if (!startMs) {
     console.log("⚠️ shift1 missing → forcing reload");
 
     // ✅ STEP 1: reload shifts
-    await loadShiftsFromFirebase();
+    loadShiftsFromFirebase();
 
     startMs = shift1?.endMs;
 
@@ -1859,7 +1859,7 @@ closing_cash: shiftData.closingCash,
 });
 
 alert("Shift 2 closed successfully ✅");
-  await loadShiftsFromFirebase();
+  loadShiftsFromFirebase();
 }
 
 
