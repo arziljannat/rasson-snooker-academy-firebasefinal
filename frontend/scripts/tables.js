@@ -669,6 +669,19 @@ if (latestSession) {
     day_id: window.currentDayId
 });
 }
+  // 🔥 SAVE HISTORY (MAIN FIX)
+t.history.push({
+    checkin: t.checkinTime,
+    checkout: t.checkoutTime,
+    playSeconds: t.finalSeconds,
+    amount: t.finalAmount,
+    canteenAmount: t.canteenTotal,
+    total: t.finalAmount + t.canteenTotal,
+    paid: false,
+    paidTime: null,
+    rate: t.playType === "century" ? t.centuryRate : t.frameRate,
+    canteenItems: { ...t.canteenItems }
+});
 
     // 🔥 HISTORY SAVE (CORRECT PLACE)
     if (!t.history) t.history = [];
