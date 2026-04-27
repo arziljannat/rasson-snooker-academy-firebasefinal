@@ -1703,7 +1703,7 @@ if (!snap.empty) {
     // Shift1 snapshot required
     let s1 = shift1 || {};
 
-    let startMs = s1.endMs;
+    let startMs = s1?.endMs || Date.now();
     let endMs = now;
 
     
@@ -1943,13 +1943,12 @@ function calculateShiftSnapshot(startTime, endTime) {
             // 🔥 COLLECTION (paidTime based)
             // =========================
             if (h.paid && h.paidTime) {
+        if (h.paidTime >= (startTime - 1000) && h.paidTime <= endTime) {
 
-                if (h.paidTime >= startTime && h.paidTime <= endTime) {
-
-                    gameCollection += g;
-                    canteenCollection += c;
-                }
-            }
+        gameCollection += g;
+        canteenCollection += c;
+        }
+      }
 
         });
     });
@@ -1967,15 +1966,6 @@ function calculateShiftSnapshot(startTime, endTime) {
     // =========================
     // 🔥 FINAL BALANCE FIX
     // =========================
-    // 👉 agar collection ne unpaid clear kar diya ho → balance zero
-    if (gameCollection >= gameTotal) {
-        gameBalance = 0;
-    }
-
-    if (canteenCollection >= canteenTotal) {
-        canteenBalance = 0;
-    }
-
     let closingCash = (gameCollection + canteenCollection) - expenses;
 
     return {
