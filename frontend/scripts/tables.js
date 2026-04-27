@@ -1921,45 +1921,60 @@ function calculateShiftSnapshot(startTime, endTime) {
     tables.forEach(t => {
         t.history.forEach(h => {
 
-// 🔥 GAME TOTAL → based on checkout (MAIN FIX)
-if (h.checkout >= startTime && h.checkout <= endTime) {
+            let g = Number(h.amount || 0);
+            let c = Number(h.canteenAmount || 0);
 
-    let g = Number(h.amount || 0);
-    let c = Number(h.canteenAmount || 0);
+            // =========================
+            // 🔥 TOTAL (checkout based)
+            // =========================
+            if (h.checkout >= startTime && h.checkout <= endTime) {
 
-    gameTotal += g;
-    canteenTotal += c;
+                gameTotal += g;
+                canteenTotal += c;
 
-    // 🔥 UNPAID → same shift balance
-    if (!h.paid) {
-        gameBalance += g;
-        canteenBalance += c;
-    }
-}
+                // ❗ UNPAID → balance
+                if (!h.paid) {
+                    gameBalance += g;
+                    canteenBalance += c;
+                }
+            }
 
-// 🔥 COLLECTION → paidTime base (MAIN FIX)
-if (h.paid && h.paidTime) {
+            // =========================
+            // 🔥 COLLECTION (paidTime based)
+            // =========================
+            if (h.paid && h.paidTime) {
 
-    if (h.paidTime >= startTime && h.paidTime <= endTime) {
+                if (h.paidTime >= startTime && h.paidTime <= endTime) {
 
-        let g = Number(h.amount || 0);
-        let c = Number(h.canteenAmount || 0);
+                    gameCollection += g;
+                    canteenCollection += c;
+                }
+            }
 
-        gameCollection += g;
-        canteenCollection += c;
-    }
-}
         });
     });
 
-    // LOAD shift expenses
-    
+    // =========================
+    // 🔥 EXPENSES
+    // =========================
     let expenses = firebaseExpenses
-    .filter(e => {
-        let time = e.created_at ? new Date(e.created_at).getTime() : 0;
-        return time >= startTime && time <= endTime;
-    })
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+        .filter(e => {
+            let time = e.created_at ? new Date(e.created_at).getTime() : 0;
+            return time >= startTime && time <= endTime;
+        })
+        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    // =========================
+    // 🔥 FINAL BALANCE FIX
+    // =========================
+    // 👉 agar collection ne unpaid clear kar diya ho → balance zero
+    if (gameCollection >= gameTotal) {
+        gameBalance = 0;
+    }
+
+    if (canteenCollection >= canteenTotal) {
+        canteenBalance = 0;
+    }
 
     let closingCash = (gameCollection + canteenCollection) - expenses;
 
