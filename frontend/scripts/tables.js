@@ -1965,8 +1965,22 @@ printData.closingCash =
 // 🔥 DEBUG (optional)
 console.log("🔥 DAY PRINT DATA:", printData);
 
-// 🔥 PRINT
-printShiftThermal("Day Summary", printData, shift1, shift2);
+// 🔥 PRINT FORMAT AS DAY HISTORY PRINT
+printDayHistoryThermal({
+    date: today,
+    shift1: shift1,
+    shift2: shift2,
+    combined: {
+        gameTotal: printData.gameTotal,
+        canteenTotal: printData.canteenTotal,
+        gameCollection: printData.gameCollection,
+        canteenCollection: printData.canteenCollection,
+        gameBalance: (shift1?.gameBalance || 0) + (shift2?.gameBalance || 0),
+        canteenBalance: (shift1?.canteenBalance || 0) + (shift2?.canteenBalance || 0),
+        expenses: printData.expenses,
+        closingCash: printData.closingCash
+    }
+});
 } catch (err) {
     alert("Error saving day data ❌");
     return;
