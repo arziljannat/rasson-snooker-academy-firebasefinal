@@ -74,8 +74,8 @@ docs.forEach(doc => {
         shift1 = {
             openTime: d.open_time,
             closeTime: d.close_time,
-            startMs: d.start_ms,   
-            endMs: d.end_ms,       
+            startMs: Number(d.start_ms) || 0,
+            endMs: Number(d.end_ms) || 0,      
             gameTotal: d.game_total,
             canteenTotal: d.canteen_total,
             gameCollection: d.game_collection,
@@ -91,8 +91,8 @@ docs.forEach(doc => {
         shift2 = {
             openTime: d.open_time,
             closeTime: d.close_time,
-            startMs: d.start_ms,   
-            endMs: d.end_ms,       
+            startMs: Number(d.start_ms) || 0,
+            endMs: Number(d.end_ms) || 0,      
             gameTotal: d.game_total,
             canteenTotal: d.canteen_total,
             gameCollection: d.game_collection,
@@ -1645,12 +1645,20 @@ if (!snap.empty) {
     let now = Date.now();
 
     // 🔥 first shift → start from first session of day
-    let firstSession = tables
-    .flatMap(t => t.history)
-    .sort((a,b) => a.checkin - b.checkin)[0];
+    // 🔥 SAFE START/END FIX (FINAL)
+let startMs = Date.now() - 1000;  // fallback
+let endMs = Date.now();
 
-    let startMs = firstSession ? firstSession.checkin : now;
-    let endMs = now;
+// 🔥 try get real first session
+let allHistory = tables.flatMap(t => t.history);
+
+if (allHistory.length > 0) {
+    let firstSession = allHistory.sort((a,b) => a.checkin - b.checkin)[0];
+
+    if (firstSession && firstSession.checkin) {
+        startMs = firstSession.checkin;
+    }
+}
 
     
     let shiftData = calculateShiftSnapshot(startMs, endMs);
@@ -1668,6 +1676,12 @@ if (!snap.empty) {
 
     document.getElementById("shiftCloseBtn").innerText = "Shift 2 Close";
     hidePopup("shiftSummaryPopup");
+
+
+  console.log("🔥 SHIFT1 SAVE CHECK:", {
+    startMs,
+    endMs
+});
 
 // ✅ BACKEND SAVE
 
