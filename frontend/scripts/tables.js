@@ -430,20 +430,20 @@ Century (${t.centuryRate})
 
                 <div class="big-btn-row">
                     <button id="checkinBtn-${t.id}" class="neon-btn big-btn" onclick="checkIn('${t.id}')">CHECK IN</button>
-                    <button id="checkoutBtn-${t.id}" class="neon-btn big-btn red hidden" onclick='checkOut("${t.id}")'>CHECK OUT</button>
+                    <button id="checkoutBtn-${t.id}" class="neon-btn big-btn red hidden" onclick="checkOut('${t.id}')">CHECK OUT</button>
                     <div id="afterRow-${t.id}" class="dual-btn-row hidden">
-                        <button class="neon-btn big-btn" onclick='showBill("${t.id}")'>VIEW BILL</button>
+                        <button class="neon-btn big-btn" onclick="showBill("${t.id}")">VIEW BILL</button>
                         <button class="neon-btn big-btn" onclick="checkIn('${t.id}')">CHECK IN</button>
                     </div>
                 </div>
 
                 <div class="second-row">
-                    <button id="historyBtn-${t.id}" class="neon-btn small-btn" onclick='openHistory("${t.id}")'>HISTORY</button>
-                    <button id="editBtn-${t.id}" class="neon-btn small-btn" onclick='editTable("${t.id}")'>EDIT</button>
-                    <button id="deleteBtn-${t.id}" class="neon-btn small-btn red" onclick='deleteTableOpen("${t.id}")'>DELETE</button>
+                    <button id="historyBtn-${t.id}" class="neon-btn small-btn" onclick="openHistory("${t.id}")">HISTORY</button>
+                    <button id="editBtn-${t.id}" class="neon-btn small-btn" onclick="editTable("${t.id}")">EDIT</button>
+                    <button id="deleteBtn-${t.id}" class="neon-btn small-btn red" onclick="deleteTableOpen("${t.id}")">DELETE</button>
 
-                   <button id="canteenBtn-${t.id}" class="neon-btn small-btn hidden" onclick='openCanteen("${t.id}")'>CANTEEN</button>
-                    <button id="shiftBtn-${t.id}" class="neon-btn small-btn hidden" onclick='openTableShift("${t.id}")'>SHIFT TABLE</button>
+                   <button id="canteenBtn-${t.id}" class="neon-btn small-btn hidden" onclick="openCanteen("${t.id}")">CANTEEN</button>
+                    <button id="shiftBtn-${t.id}" class="neon-btn small-btn hidden" onclick="openTableShift("${t.id}")">SHIFT TABLE</button>
                 </div>
 
             </div>
@@ -2479,7 +2479,7 @@ function renderHistoryPage() {
 <td>
 ${h.paid
     ? `<button class="paid-btn" disabled>PAID</button>`
-    : `<button class="unpaid-btn"onclick="openBillFromHistory('${tableId}', ${start + index})">UNPAID</button>`
+    : `<button class="unpaid-btn" onclick="openBillFromHistory('${tableId}', ${start + index})">UNPAID</button>`
 }
 </td>
 
