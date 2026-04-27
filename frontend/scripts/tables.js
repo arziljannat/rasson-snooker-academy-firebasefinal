@@ -277,7 +277,8 @@ function listenExpensesRealtime() {
 
     const q = query(
         collection(window.db, "expenses"),
-        where("branch", "==", BRANCH)
+        where("branch", "==", BRANCH),
+        where("day_id", "==", window.currentDayId)
     );
 
     onSnapshot(q, (snapshot) => {
@@ -1919,9 +1920,8 @@ function calculateShiftSnapshot(startTime, endTime) {
     tables.forEach(t => {
         t.history.forEach(h => {
 
-            // ✅ ONLY CHECKOUT BASED (FINAL FIX)
-// 🔥 GAME TOTAL → checkout base
-if (h.checkout >= startTime && h.checkout <= endTime) {
+// 🔥 SPLIT LOGIC FIX
+if (h.checkin >= startTime && h.checkin <= endTime) { {
 
     let g = Number(h.amount || 0);
     let c = Number(h.canteenAmount || 0);
