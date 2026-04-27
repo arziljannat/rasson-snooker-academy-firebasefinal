@@ -1577,7 +1577,7 @@ summaryBody.innerHTML = `
         <td>${s2.closeTime || "-"}</td>
     </tr>
 
-    ${combined ? `
+    
 <tr class="combined-row">
     <td>Combined</td>
     <td>${combined.gameTotal}</td>
@@ -1591,7 +1591,7 @@ summaryBody.innerHTML = `
     <td>-</td>
     <td>-</td>
 </tr>
-` : ""}
+` :
 
 
     showPopup("shiftSummaryPopup");
