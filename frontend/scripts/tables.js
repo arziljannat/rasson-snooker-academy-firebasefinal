@@ -2684,7 +2684,7 @@ window.openBillFromHistory = openBillFromHistory;
 function printThermalBill(id, historyData = null) {
 
     let t = tables.find(x => String(x.id) === String(id));
-let h = historyData;
+    let h = historyData;
     if (!t) return;
 
     let academy = "Rasson Snooker Academy";
@@ -2694,95 +2694,128 @@ let h = historyData;
     let checkout = h ? formatTime(h.checkout) : (t.checkoutTime ? formatTime(t.checkoutTime) : "--");
     let playtime = h ? formatSeconds(h.playSeconds) : formatSeconds(t.finalSeconds || t.playSeconds);
 
-    let gameAmount = h ? h.amount : (t.finalAmount || t.liveAmount);
-
-    // 🔥 CANTEEN
-    let canteenHTML = "";
-    let canteenTotal = 0;
+    let gameAmount = Number(h ? h.amount : (t.finalAmount || t.liveAmount)) || 0;
 
     let itemsSource = h ? h.canteenItems : t.canteenItems;
 
-Object.values(itemsSource || {}).forEach(item => {
-        let total = item.qty * item.price;
+    let canteenHTML = "";
+    let canteenTotal = 0;
+
+    Object.values(itemsSource || {}).forEach(item => {
+
+        let qty = Number(item.qty) || 0;
+        let price = Number(item.price) || 0;
+        let total = qty * price;
+
         canteenTotal += total;
 
         canteenHTML += `
-        <div style="display:flex; justify-content:space-between;">
-            <span>${item.name} x${item.qty}</span>
-            <span>${total}</span>
+        <div class="row">
+            <span>${item.name} x${qty}</span>
+            <span>Rs ${total}</span>
         </div>`;
     });
 
-    if (!canteenHTML) canteenHTML = "<div>No items</div>";
+    if (!canteenHTML) {
+        canteenHTML = `<div class="center">No items</div>`;
+    }
 
     let finalTotal = gameAmount + canteenTotal;
 
-    // 🔥 PRINT WINDOW
     let win = window.open("", "", "width=300,height=600");
 
     win.document.write(`
-    <html>
-    <head>
-        <title>Print</title>
-        <style>
-            body { font-family: monospace; width: 250px; margin: auto; }
-            .center { text-align:center; }
-            .row { display:flex; justify-content:space-between; }
-            hr { border:1px dashed #000; }
-        </style>
-    </head>
-    <body>
+<html>
+<head>
+<style>
+body {
+    font-family: monospace;
+    width: 260px;
+    margin:auto;
+}
 
-        <div class="center">
-            <img src="../assets/bill-logo.png" width="80"><br>
-            <b>${academy}</b><br>
-            ${branch}
-        </div>
+.center { text-align:center; }
 
-        <hr>
+.row {
+    display:flex;
+    justify-content:space-between;
+    margin:2px 0;
+}
 
-        <div>Table: ${t.name}</div>
-        <div>In: ${checkin}</div>
-        <div>Out: ${checkout}</div>
-        <div>Time: ${playtime}</div>
+.line {
+    border-top:1px dashed #000;
+    margin:8px 0;
+}
 
-        <hr>
+.big {
+    font-size:18px;
+    font-weight:bold;
+}
 
-        <div><b>Game</b></div>
-        <div class="row"><span>Charges</span><span>${gameAmount}</span></div>
+.small {
+    font-size:13px;
+}
+</style>
+</head>
+<body>
 
-        <hr>
+<div class="center big">${academy.toUpperCase()}</div>
+<div class="center small">${branch.toUpperCase()}</div>
 
-        <div><b>Canteen</b></div>
-        ${canteenHTML}
+<div class="line"></div>
+<div class="line"></div>
 
-        <div class="row"><b>Canteen Total</b><b>${canteenTotal}</b></div>
+<div class="row"><span>Table</span><span>${t.name}</span></div>
+<div class="row"><span>In</span><span>${checkin}</span></div>
+<div class="row"><span>Out</span><span>${checkout}</span></div>
+<div class="row"><span>Time</span><span>${playtime}</span></div>
 
-        <hr>
+<div class="line"></div>
+<div class="line"></div>
 
-        <div class="row"><b>Total</b><b>${finalTotal}</b></div>
+<div class="row big">
+    <span>GAME</span>
+    <span>Rs ${gameAmount}</span>
+</div>
 
-        <hr>
+<div class="line"></div>
+<div class="line"></div>
 
-        <div class="center">
-            <img src="../assets/QR-bill.png" width="80"><br>
-            Scan & Pay
-        </div>
+<div class="center big">CANTEEN</div>
 
-        <hr>
+${canteenHTML}
 
-        <div class="center">Thank you ❤️</div>
+<div class="line"></div>
+<div class="line"></div>
 
-        <script>
-            window.onload = function() {
-                window.print();
-                window.close();
-            }
-        </script>
+<div class="row big">
+    <span>TOTAL</span>
+    <span>Rs ${finalTotal}</span>
+</div>
 
-    </body>
-    </html>
-    `);
+<div class="line"></div>
+<div class="line"></div>
+
+<div class="center">
+    <img src="../assets/QR-bill.png" width="90"><br>
+    Scan & Pay
+</div>
+
+<div class="line"></div>
+<div class="line"></div>
+
+<div class="center">Thanks ❤️</div>
+
+<script>
+window.onload = function(){
+    window.print();
+    window.close();
+}
+</script>
+
+</body>
+</html>
+`);
 
     win.document.close();
 }
@@ -2995,9 +3028,9 @@ function printShiftThermal(title, data, s1 = {}, s2 = {}) {
         <hr>
 
         <div class="center">
-            {new Date().toLocaleString('en-PK', {
+          ${new Date().toLocaleString('en-PK', {
     timeZone: 'Asia/Karachi'
-})
+})}
         </div>
 
     </body>
@@ -3060,14 +3093,16 @@ function printDayHistoryThermal(d) {
                 margin:auto; 
                 text-align:center;
             }
-            .row { display:flex; justify-content:space-between; }
+            .row { text-align:center; margin:3px 0; }
+.line { border-top:1px dashed #000; margin:6px 0; }
+.big { font-size:16px; font-weight:bold; }
             hr { border:1px dashed #000; }
         </style>
     </head>
     <body>
 
-    <h3>Day History</h3>
-    <small>${BRANCH}</small>
+    <div class="big">DAY HISTORY</div>
+    <div>${BRANCH.toUpperCase()}</div>
 
     <hr>
 
@@ -3084,13 +3119,13 @@ function printDayHistoryThermal(d) {
     <span>To</span>
     <span>${s1.endMs ? new Date(s1.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
-<div class="row"><span>Game</span><span>${s1.gameTotal || 0}</span></div>
-<div class="row"><span>Canteen</span><span>${s1.canteenTotal || 0}</span></div>
-<div class="row"><span>Game Collection</span><span>${s1.gameCollection || 0}</span></div>
-<div class="row"><span>Canteen Collection</span><span>${s1.canteenCollection || 0}</span></div>
-<div class="row"><span>Balance</span><span>${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</span></div>
-<div class="row"><span>Expenses</span><span>${s1.expenses || 0}</span></div>
-<div class="row"><b>Cash</b><b>${s1.closingCash || 0}</b></div>
+<div class="row">Game : Rs ${s1.gameTotal || 0}</div>
+<div class="row">Canteen : Rs ${s1.canteenTotal || 0}</div>
+<div class="row">Game Collection : Rs ${s1.gameCollection || 0}</div>
+<div class="row">Canteen Collection : Rs ${s1.canteenCollection || 0}</div>
+<div class="row">Balance : Rs ${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</div>
+<div class="row">Expenses : Rs ${s1.expenses || 0}</div>
+<div class="row"><b>Cash</b><b>Rs ${s1.closingCash || 0}</b></div>
 
 <hr>
 
@@ -3100,13 +3135,13 @@ function printDayHistoryThermal(d) {
     <span>To</span>
     <span>${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
-<div class="row"><span>Game</span><span>${s2.gameTotal || 0}</span></div>
-<div class="row"><span>Canteen</span><span>${s2.canteenTotal || 0}</span></div>
-<div class="row"><span>Game Collection</span><span>${s2.gameCollection || 0}</span></div>
-<div class="row"><span>Canteen Collection</span><span>${s2.canteenCollection || 0}</span></div>
-<div class="row"><span>Balance</span><span>${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</span></div>
-<div class="row"><span>Expenses</span><span>${s2.expenses || 0}</span></div>
-<div class="row"><b>Cash</b><b>${s2.closingCash || 0}</b></div>
+<div class="row">Game : Rs ${s2.gameTotal || 0}</div>
+<div class="row">Canteen : Rs ${s2.canteenTotal || 0}</div>
+<div class="row">Game Collection : Rs ${s2.gameCollection || 0}</div>
+<div class="row">Canteen Collection : Rs ${s2.canteenCollection || 0}</div>
+<div class="row">Balance : Rs ${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</div>
+<div class="row">Expenses : Rs ${s2.expenses || 0}</div>
+<div class="row"><b>Cash</b><b>Rs ${s2.closingCash || 0}</b></div>
 
 <hr>
 
@@ -3116,15 +3151,17 @@ function printDayHistoryThermal(d) {
     <span>To</span>
     <span>${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
-<div class="row"><span>Game</span><span>${c.gameTotal || 0}</span></div>
-<div class="row"><span>Canteen</span><span>${c.canteenTotal || 0}</span></div>
-<div class="row"><span>Collection</span><span>${(c.gameCollection||0)+(c.canteenCollection||0)}</span></div>
-<div class="row"><span>Balance</span><span>${(c.gameBalance||0)+(c.canteenBalance||0)}</span></div>
-<div class="row"><span>Expenses</span><span>${c.expenses || 0}</span></div>
+<div class="row"><span>Game : Rs ${c.gameTotal || 0}</div>
+<div class="row"><span>Canteen : Rs ${c.canteenTotal || 0}</div>
+<div class="row"><span>Collection : Rs ${(c.gameCollection||0)+(c.canteenCollection||0)}</div>
+<div class="row"><span>Balance : Rs ${(c.gameBalance||0)+(c.canteenBalance||0)}</div>
+<div class="row"><span>Expenses : Rs ${c.expenses || 0}</div>
 
 <hr>
 
-<div class="row"><b>Final Cash</b><b>${c.closingCash || 0}</b></div>
+<div class="line"></div>
+<div class="big">FINAL CASH<br>Rs ${c.closingCash || 0}</div>
+<div class="line"></div>
 
     <hr>
 
@@ -3156,7 +3193,10 @@ function printTableHistoryThermal() {
     let dayIndex = document.getElementById("tableHistoryDateSelect").selectedIndex;
     let d = window._daysData[dayIndex];
 
-    if (!t || !d) return;
+    if (!t || !d) {
+        alert("No data found ❌");
+        return;
+    }
 
     let tableData = d.tables?.find(tb => tb.table_id === t.name);
 
@@ -3166,10 +3206,10 @@ function printTableHistoryThermal() {
     let time = 0;
 
     (tableData?.history || []).forEach(h => {
-        total += h.total || 0;
-        game += h.amount || 0;
-        canteen += h.canteenAmount || 0;
-        time += h.playSeconds || 0;
+        total += Number(h.total || 0);
+        game += Number(h.amount || 0);
+        canteen += Number(h.canteenAmount || 0);
+        time += Number(h.playSeconds || 0);
     });
 
     let win = window.open("", "_blank", "width=300,height=600");
@@ -3184,43 +3224,44 @@ function printTableHistoryThermal() {
                 margin:auto; 
                 text-align:center;
             }
-            .row { display:flex; justify-content:space-between; }
-            hr { border:1px dashed #000; }
+            .line { border-top:1px dashed #000; margin:6px 0; }
+            .big { font-size:18px; font-weight:bold; }
         </style>
     </head>
     <body>
 
-    <h3>Table History</h3>
-    <small>${BRANCH}</small>
+    <div class="big">TABLE HISTORY</div>
+    <div>${BRANCH.toUpperCase()}</div>
 
-    <hr>
+    <div class="line"></div>
 
     <div>
         ${t.name}<br>
         ${d.date}
     </div>
 
-    <hr>
+    <div class="line"></div>
 
-    <div class="row"><span>Play Time</span><span>${formatSeconds(time)}</span></div>
-    <div class="row"><span>Game</span><span>${game}</span></div>
-    <div class="row"><span>Canteen</span><span>${canteen}</span></div>
+    <div>Play Time : ${formatSeconds(time)}</div>
+    <div>Game : Rs ${game}</div>
+    <div>Canteen : Rs ${canteen}</div>
 
-    <hr>
+    <div class="line"></div>
 
-    <div class="row"><b>Total</b><b>${total}</b></div>
+    <div class="big">TOTAL<br>Rs ${total}</div>
 
-    <hr>
+    <div class="line"></div>
 
-    <div>${new Date().toLocaleString('en-PK', {
-    timeZone: 'Asia/Karachi'
-})}</div>
+    <div>
+        ${new Date().toLocaleString('en-PK', {
+            timeZone: 'Asia/Karachi'
+        })}
+    </div>
 
     </body>
     </html>
     `;
 
-    win.document.open();
     win.document.write(html);
     win.document.close();
 
