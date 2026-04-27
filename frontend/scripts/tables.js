@@ -1920,8 +1920,8 @@ function calculateShiftSnapshot(startTime, endTime) {
     tables.forEach(t => {
         t.history.forEach(h => {
 
-// 🔥 SPLIT LOGIC FIX
-if (h.checkin >= startTime && h.checkin <= endTime) {
+// 🔥 GAME TOTAL → based on checkout (MAIN FIX)
+if (h.checkout >= startTime && h.checkout <= endTime) {
 
     let g = Number(h.amount || 0);
     let c = Number(h.canteenAmount || 0);
@@ -1929,7 +1929,7 @@ if (h.checkin >= startTime && h.checkin <= endTime) {
     gameTotal += g;
     canteenTotal += c;
 
-    // 🔥 UNPAID → same shift (checkout)
+    // 🔥 UNPAID → same shift balance
     if (!h.paid) {
         gameBalance += g;
         canteenBalance += c;
