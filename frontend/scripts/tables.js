@@ -403,7 +403,7 @@ sortedTables.forEach(t => {
             <div class="table-title">${t.name}</div>
 
 <div class="rate-selector">
-<select onchange='handleRateChange("${t.id}", this)'>
+<select onchange="handleRateChange('${t.id}', this)">
 
 <option value="frame-${t.frameRate}" 
 ${t.playType === "frame" ? "selected" : ""}>
@@ -429,11 +429,11 @@ Century (${t.centuryRate})
             <div class="table-actions">
 
                 <div class="big-btn-row">
-                    <button id="checkinBtn-${t.id}" class="neon-btn big-btn" onclick='checkIn("${t.id}")'>CHECK IN</button>
+                    <button id="checkinBtn-${t.id}" class="neon-btn big-btn" onclick="checkIn('${t.id}')">CHECK IN</button>
                     <button id="checkoutBtn-${t.id}" class="neon-btn big-btn red hidden" onclick='checkOut("${t.id}")'>CHECK OUT</button>
                     <div id="afterRow-${t.id}" class="dual-btn-row hidden">
                         <button class="neon-btn big-btn" onclick='showBill("${t.id}")'>VIEW BILL</button>
-                        <button class="neon-btn big-btn" onclick='checkIn("${t.id}")'>CHECK IN</button>
+                        <button class="neon-btn big-btn" onclick="checkIn('${t.id}')">CHECK IN</button>
                     </div>
                 </div>
 
