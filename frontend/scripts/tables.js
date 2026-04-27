@@ -386,8 +386,8 @@ if (name.toLowerCase().startsWith("room")) return 2;
     if (typeA !== typeB) return typeA - typeB;
 
     // 🔹 number sort (Table 1, Table 2...)
-    const numA = parseInt(a.name.match(/\d+/)) || 0;
-    const numB = parseInt(b.name.match(/\d+/)) || 0;
+    const numA = parseInt((a.name.match(/\d+/) || [0])[0]);
+    const numB = parseInt((b.name.match(/\d+/) || [0])[0]);
 
     return numA - numB;
 });
@@ -1348,8 +1348,8 @@ const sortedTables = [...tables].sort((a, b) => {
 
     if (typeA !== typeB) return typeA - typeB;
 
-    const numA = parseInt(a.name.match(/\d+/)) || 0;
-    const numB = parseInt(b.name.match(/\d+/)) || 0;
+    const numA = parseInt((a.name.match(/\d+/) || [0])[0]);
+    const numB = parseInt((b.name.match(/\d+/) || [0])[0]);
 
     return numA - numB;
 });
