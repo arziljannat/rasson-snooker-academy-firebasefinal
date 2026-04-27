@@ -1678,7 +1678,7 @@ async function closeShift2() {
   const q = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
-    where("shift_number", "==", 2)
+    where("shift_number", "==", 2),
     where("day_id", "==", window.currentDayId)
 );
 
