@@ -58,8 +58,9 @@ async function loadShiftsFromFirebase() {
 
 const q = query(
     collection(window.db, "shifts"),
-    where("branch", "==", BRANCH)
-);
+    where("branch", "==", BRANCH),
+    where("day_id", "==", window.currentDayId)
+);;
     const snap = await getDocs(q);
 
     shift1 = null;
@@ -1624,6 +1625,8 @@ await addDoc(collection(window.db, "shifts"), {
     shift_number: 1,
     branch: BRANCH,
 
+    day_id: window.currentDayId,
+
     open_time: shift1.openTime,
     close_time: shift1.closeTime,
 
@@ -1705,6 +1708,8 @@ await addDoc(collection(window.db, "shifts"), {
     })),
     shift_number: 2,
     branch: BRANCH,
+
+    day_id: window.currentDayId,
 
     open_time: shift2.openTime,
     close_time: shift2.closeTime,
