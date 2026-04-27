@@ -1698,12 +1698,8 @@ let shiftData = calculateShiftSnapshot(startMs, endMs);
 // ✅ BACKEND SAVE
 
 // 🔥 FIREBASE SAVE SHIFT 1
+// 🔥 FIREBASE SAVE SHIFT 1
 const docRef = await addDoc(collection(window.db, "shifts"), {
-
-  if (!docRef?.id) {
-    alert("Shift1 save failed ❌");
-    return;
-}
     tables: tables.map(t => ({
         table_id: t.name,
         total: t.history.reduce((sum, h) => sum + (h.total || 0), 0)
@@ -1716,20 +1712,26 @@ const docRef = await addDoc(collection(window.db, "shifts"), {
     open_time: shift1.openTime,
     close_time: shift1.closeTime,
 
-    start_ms: shift1.startMs,   // ✅ ADD
-    end_ms: shift1.endMs,        // ✅ ADD
+    start_ms: shift1.startMs,
+    end_ms: shift1.endMs,
 
     game_total: shiftData.gameTotal,
-canteen_total: shiftData.canteenTotal,
+    canteen_total: shiftData.canteenTotal,
 
-game_collection: shiftData.gameCollection,
-canteen_collection: shiftData.canteenCollection,
+    game_collection: shiftData.gameCollection,
+    canteen_collection: shiftData.canteenCollection,
 
-expenses: shiftData.expenses,
-closing_cash: shiftData.closingCash,
+    expenses: shiftData.expenses,
+    closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
 });
+
+// ✅ CHECK AFTER SAVE (YAHAN LAGAO)
+if (!docRef?.id) {
+    alert("Shift1 save failed ❌");
+    return;
+}
 alert("Shift 1 closed successfully ✅");
   await loadShiftsFromFirebase();
 }
