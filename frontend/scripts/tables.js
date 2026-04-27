@@ -13,9 +13,39 @@ import {
 import { increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 DAY ID PERSIST FIX
-if (!localStorage.getItem("currentDayId")) {
-    localStorage.setItem("currentDayId", Date.now());
+// 🔥 CENTRAL DAY SYSTEM (FIREBASE)
+async function initCurrentDay() {
+
+    const q = query(
+        collection(window.db, "system"),
+        where("branch", "==", BRANCH),
+        where("type", "==", "current_day")
+    );
+
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            window.currentDayId = d.day_id;
+        });
+
+    } else {
+
+        const newDayId = Date.now();
+
+        await addDoc(collection(window.db, "system"), {
+            type: "current_day",
+            branch: BRANCH,
+            day_id: newDayId,
+            created_at: new Date().toISOString()
+        });
+
+        window.currentDayId = newDayId;
+    }
+
+    console.log("🔥 CENTRAL DAY:", window.currentDayId);
 }
 
 window.currentDayId = Number(localStorage.getItem("currentDayId"));
@@ -129,6 +159,7 @@ let deleteTargetId = null;
  ******************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await initCurrentDay();
   loadShiftsFromFirebase();
     // 🔥 ENSURE DAY ID ALWAYS EXISTS
     listenExpensesRealtime();
@@ -142,10 +173,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
         restoreTimers();
     }, 500);
-
-    // ❌ OLD METHOD REMOVE
-    // await restoreRunningTables();
-
     // ✅ NEW REALTIME METHOD ADD
     listenRunningSessionsRealtime();
 
@@ -1987,10 +2014,25 @@ printDayHistoryThermal({
 }
 
 
-    // 🔥🔥🔥 STEP 3: AB RESET KARO (SAFE)
-    const newDayId = Date.now();
+    // 🔥 UPDATE CENTRAL DAY (FIREBASE)
+const q = query(
+    collection(window.db, "system"),
+    where("branch", "==", BRANCH),
+    where("type", "==", "current_day")
+);
+
+const snap = await getDocs(q);
+
+const newDayId = Date.now();
+
+snap.forEach(async (d) => {
+    await updateDoc(doc(window.db, "system", d.id), {
+        day_id: newDayId,
+        created_at: new Date().toISOString()
+    });
+});
+
 window.currentDayId = newDayId;
-localStorage.setItem("currentDayId", newDayId);
 
     tables.forEach(t => {
         t.history = [];
