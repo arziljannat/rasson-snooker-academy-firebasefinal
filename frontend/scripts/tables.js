@@ -1658,7 +1658,7 @@ await addDoc(collection(window.db, "shifts"), {
     close_time: shift1.closeTime,
 
     start_ms: shift1.startMs,   // ✅ ADD
-    end_ms: shift1.endMs        // ✅ ADD
+    end_ms: shift1.endMs,        // ✅ ADD
 
     game_total: shiftData.gameTotal,
 canteen_total: shiftData.canteenTotal,
