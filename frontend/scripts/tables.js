@@ -1591,7 +1591,7 @@ summaryBody.innerHTML = `
     <td>-</td>
     <td>-</td>
 </tr>
-` :
+` 
 
 
     showPopup("shiftSummaryPopup");
