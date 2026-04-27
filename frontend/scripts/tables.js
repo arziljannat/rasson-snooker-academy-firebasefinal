@@ -17,25 +17,28 @@ import { orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/fireb
 async function initCurrentDay() {
 
     const q = query(
-    collection(window.db, "system"),
-    where("branch", "==", BRANCH),
-    where("type", "==", "current_day"),
-    orderBy("created_at", "desc"),
-    limit(1)
-);
+        collection(window.db, "system"),
+        where("branch", "==", BRANCH),
+        where("type", "==", "current_day"),
+        orderBy("created_at", "desc"),
+        limit(1)
+    );
 
     const snap = await getDocs(q);
 
     if (!snap.empty) {
-const docSnap = snap.docs[0];
 
-if (docSnap) {
-    const d = docSnap.data();
-    window.currentDayId = d.day_id;
-}
-}if (!window.currentDayId) {
-    console.error("❌ DAY ID NOT SET - CRITICAL");
-}
+        const docSnap = snap.docs[0];
+
+        if (docSnap) {
+            const d = docSnap.data();
+            window.currentDayId = d.day_id;
+        }
+
+        // 🔥 SAFE CHECK ANDAR HI
+        if (!window.currentDayId) {
+            console.error("❌ DAY ID NOT SET - CRITICAL");
+        }
 
     } else {
 
@@ -52,7 +55,6 @@ if (docSnap) {
     }
 
     console.log("🔥 CENTRAL DAY:", window.currentDayId);
- 
 }
 
 
