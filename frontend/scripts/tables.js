@@ -1224,25 +1224,53 @@ function openBillFromHistory(tableId, historyIndex) {
     
 
     const canteenItems = Object.values(h.canteenItems || {});
-document.getElementById("paidBtn").onclick = () => {
+document.getElementById("paidBtn").onclick = async () => {
 
     let t = tables.find(x => String(x.id) === String(tableId));
     let h = t.history[historyIndex];
 
     // ✅ MARK PAID
     h.paid = true;
-  h.paidTime = Date.now();
+    h.paidTime = Date.now();
 
-     
+    // 🔥 FIREBASE UPDATE (MAIN FIX)
+    const q = query(
+        collection(window.db, "sessions"),
+        where("table_id", "==", t.name),
+        where("branch", "==", BRANCH)
+    );
+
+    const snap = await getDocs(q);
+
+    let targetSession = null;
+
+    snap.forEach(d => {
+        const data = d.data();
+
+        const checkinMatch =
+            new Date(data.start_time).getTime() === h.checkin &&
+            new Date(data.end_time).getTime() === h.checkout;
+
+        if (checkinMatch) {
+            targetSession = d;
+        }
+    });
+
+    if (targetSession) {
+        await updateDoc(doc(window.db, "sessions", targetSession.id), {
+            paid: true,
+            paid_time: new Date().toISOString()
+        });
+    }
 
     // ✅ CLOSE BILL
     document.getElementById("billPopup").classList.add("hidden");
 
-    // ✅ 🔥 PRINT CORRECT HISTORY BILL
-    printThermalBill(tableId, h);
-
-    // ✅ 🔥 INSTANT UI UPDATE (UNPAID → PAID)
+    // ✅ UI UPDATE
     openHistory(tableId);
+
+    // ✅ PRINT
+    printThermalBill(tableId, h);
 };
 
 // 🔥 CANTEEN LIST
@@ -1711,9 +1739,29 @@ if (!snap.empty) {
 
     let startMs = shift1?.endMs;
 
+// 🔥 FALLBACK FIX (MAIN SOLUTION)
 if (!startMs) {
-    alert("Shift1 data missing ❌ reload page");
-    return;
+
+    console.log("⚠️ shift1 missing → fetching from Firebase");
+
+    const q = query(
+        collection(window.db, "shifts"),
+        where("branch", "==", BRANCH),
+        where("shift_number", "==", 1),
+        where("day_id", "==", window.currentDayId)
+    );
+
+    const snap = await getDocs(q);
+
+    snap.forEach(doc => {
+        const d = doc.data();
+        startMs = d.end_ms;
+    });
+
+    if (!startMs) {
+        alert("Shift1 data still missing ❌");
+        return;
+    }
 }
     let endMs = now;
 
