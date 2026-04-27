@@ -1927,7 +1927,7 @@ if (h.paid && h.paidTime) {
     
     let expenses = firebaseExpenses
     .filter(e => {
-        let time = new Date(e.created_at).getTime();
+        let time = e.created_at ? new Date(e.created_at).getTime() : 0;
         return time >= startTime && time <= endTime;
     })
     .reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -2687,7 +2687,7 @@ tables.forEach(t => {
             let now = Date.now();
             let diffHours = (now - start) / (1000 * 60 * 60);
 
-            if (diffHours > 100) {
+            if (diffHours > 12){
                 console.log("⚠️ OLD SESSION IGNORED:", s);
                 return;
             }
