@@ -74,6 +74,8 @@ docs.forEach(doc => {
         shift1 = {
             openTime: d.open_time,
             closeTime: d.close_time,
+            startMs: d.start_ms,   
+            endMs: d.end_ms,       
             gameTotal: d.game_total,
             canteenTotal: d.canteen_total,
             gameCollection: d.game_collection,
@@ -89,6 +91,8 @@ docs.forEach(doc => {
         shift2 = {
             openTime: d.open_time,
             closeTime: d.close_time,
+            startMs: d.start_ms,   
+            endMs: d.end_ms,       
             gameTotal: d.game_total,
             canteenTotal: d.canteen_total,
             gameCollection: d.game_collection,
@@ -1653,6 +1657,9 @@ await addDoc(collection(window.db, "shifts"), {
     open_time: shift1.openTime,
     close_time: shift1.closeTime,
 
+    start_ms: shift1.startMs,   // ✅ ADD
+    end_ms: shift1.endMs        // ✅ ADD
+
     game_total: shiftData.gameTotal,
 canteen_total: shiftData.canteenTotal,
 
@@ -1742,6 +1749,8 @@ await addDoc(collection(window.db, "shifts"), {
 
     open_time: shift2.openTime,
     close_time: shift2.closeTime,
+    start_ms: shift2.startMs,
+    end_ms: shift2.endMs,
 
     game_total: shiftData.gameTotal,
 canteen_total: shiftData.canteenTotal,
