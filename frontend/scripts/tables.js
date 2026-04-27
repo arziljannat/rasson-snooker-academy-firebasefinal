@@ -2853,7 +2853,7 @@ function printShiftThermal(title, data, s1 = {}, s2 = {}) {
         <hr>
 
         <div class="center">
-            ${new Date().toLocaleString('en-PK', {
+            {new Date().toLocaleString('en-PK', {
     timeZone: 'Asia/Karachi'
 })
         </div>
