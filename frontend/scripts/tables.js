@@ -17,19 +17,25 @@ import { orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/fireb
 async function initCurrentDay() {
 
     const q = query(
-        collection(window.db, "system"),
-        where("branch", "==", BRANCH),
-        where("type", "==", "current_day")
-    );
+    collection(window.db, "system"),
+    where("branch", "==", BRANCH),
+    where("type", "==", "current_day"),
+    orderBy("created_at", "desc"),
+    limit(1)
+);
 
     const snap = await getDocs(q);
 
     if (!snap.empty) {
+const docSnap = snap.docs[0];
 
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
-            window.currentDayId = d.day_id;
-        });
+if (docSnap) {
+    const d = docSnap.data();
+    window.currentDayId = d.day_id;
+}
+}if (!window.currentDayId) {
+    console.error("❌ DAY ID NOT SET - CRITICAL");
+}
 
     } else {
 
@@ -46,9 +52,9 @@ async function initCurrentDay() {
     }
 
     console.log("🔥 CENTRAL DAY:", window.currentDayId);
+ 
 }
 
-window.currentDayId = Number(localStorage.getItem("currentDayId"));
 
 let firebaseExpenses = [];
 // 🔥 AUTO REFRESH FUNCTION
@@ -57,7 +63,7 @@ async function autoRefreshUI() {
     renderTables();
 }
 
-const BRANCH = localStorage.getItem("branch");
+const BRANCH = (localStorage.getItem("branch") || "").toLowerCase();
 const ROLE = localStorage.getItem("role"); // admin / staff
 let inventoryItems = [];
 
@@ -159,12 +165,22 @@ let deleteTargetId = null;
  ******************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await initCurrentDay();
-  loadShiftsFromFirebase();
-    // 🔥 ENSURE DAY ID ALWAYS EXISTS
+
+    await initCurrentDay();
+
+    // 🔥 HARD CHECK
+    if (!window.currentDayId) {
+        alert("Day system failed ❌");
+        return;
+    }
+
+    console.log("✅ DAY READY:", window.currentDayId);
+
+    loadShiftsFromFirebase();
     listenExpensesRealtime();
     listenInventoryRealtime();
     listenTablesRealtime();
+    listenRunningSessionsRealtime();
 
     bindAddTablePopup();
     bindShiftButtons();
@@ -173,8 +189,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
         restoreTimers();
     }, 500);
-    // ✅ NEW REALTIME METHOD ADD
-    listenRunningSessionsRealtime();
 
 });
 
