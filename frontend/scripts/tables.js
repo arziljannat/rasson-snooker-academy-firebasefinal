@@ -3081,6 +3081,7 @@ function printDayHistoryThermal(d) {
 <b>Shift 1</b>
 <div class="row">
     <span>${s1.startMs ? new Date(s1.startMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
+    <span>To</span>
     <span>${s1.endMs ? new Date(s1.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
 <div class="row"><span>Game</span><span>${s1.gameTotal || 0}</span></div>
@@ -3096,6 +3097,7 @@ function printDayHistoryThermal(d) {
 <b>Shift 2</b>
 <div class="row">
     <span>${s2.startMs ? new Date(s2.startMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
+    <span>To</span>
     <span>${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
 <div class="row"><span>Game</span><span>${s2.gameTotal || 0}</span></div>
@@ -3111,6 +3113,7 @@ function printDayHistoryThermal(d) {
 <b>Combined</b>
 <div class="row">
     <span>${s1.startMs ? new Date(s1.startMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
+    <span>To</span>
     <span>${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true}) : "-"}</span>
 </div>
 <div class="row"><span>Game</span><span>${c.gameTotal || 0}</span></div>
