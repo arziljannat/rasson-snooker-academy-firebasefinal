@@ -11,12 +11,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let firebaseExpenses = [];
 // 🔥 AUTO REFRESH FUNCTION
-function autoRefreshUI() {
-    console.log("🔄 Auto Refresh Triggered");
-    location.reload();
+async function autoRefreshUI() {
+    await loadShiftsFromFirebase();
+    renderTables();
 }
 
 const BRANCH = localStorage.getItem("branch");
@@ -44,64 +45,82 @@ let tables = [];
 
 let shift1 = null;   // ✅ ADD
 let shift2 = null;   // ✅ ADD
+async function loadShiftsFromFirebase() {
+
+   
+
+const q = query(
+    collection(window.db, "shifts"),
+    where("branch", "==", BRANCH)
+);
+    const snap = await getDocs(q);
+
+    shift1 = null;
+    shift2 = null;
+
+    const docs = snap.docs.sort((a, b) => {
+    return new Date(b.data().created_at) - new Date(a.data().created_at);
+});
+
+docs.forEach(doc => {
+
+        const d = doc.data();
+
+        if (d.shift_number === 1) {
+            shift1 = {
+                openTime: d.open_time,
+                closeTime: d.close_time,
+                gameTotal: d.game_total,
+                canteenTotal: d.canteen_total,
+                gameCollection: d.game_collection,
+                canteenCollection: d.canteen_collection,
+                expenses: d.expenses,
+                closingCash: d.closing_cash
+            };
+        }
+
+        if (d.shift_number === 2) {
+            shift2 = {
+                openTime: d.open_time,
+                closeTime: d.close_time,
+                gameTotal: d.game_total,
+                canteenTotal: d.canteen_total,
+                gameCollection: d.game_collection,
+                canteenCollection: d.canteen_collection,
+                expenses: d.expenses,
+                closingCash: d.closing_cash
+            };
+        }
+
+    });
+
+    // 🔥 BUTTON STATE FIX
+    const btn = document.getElementById("shiftCloseBtn");
+
+    if (!shift1) {
+        btn.innerText = "Shift 1 Close";
+    }
+    else if (!shift2) {
+        btn.innerText = "Shift 2 Close";
+    }
+    else {
+        btn.innerText = "Day Close";
+    }
+
+    console.log("🔥 SHIFTS LOADED:", shift1, shift2);
+}
 
 let editTargetId = null;
 let deleteTargetId = null;
-let afterCheckoutMap = JSON.parse(localStorage.getItem("afterCheckoutMap") || "{}");
-
-function saveAfterCheckout() {
-    localStorage.setItem("afterCheckoutMap", JSON.stringify(afterCheckoutMap));
-}
-let finalAmountMap = JSON.parse(localStorage.getItem("finalAmountMap") || "{}");
-
-function saveFinalAmount() {
-    localStorage.setItem("finalAmountMap", JSON.stringify(finalAmountMap));
-}
-let finalSecondsMap = JSON.parse(localStorage.getItem("finalSecondsMap") || "{}");
-
-function saveFinalSeconds() {
-    localStorage.setItem("finalSecondsMap", JSON.stringify(finalSecondsMap));
-}
-let checkoutTimeMap = JSON.parse(localStorage.getItem("checkoutTimeMap") || "{}");
-
-function saveCheckoutTime() {
-    localStorage.setItem("checkoutTimeMap", JSON.stringify(checkoutTimeMap));
-}
-let checkinTimeMap = JSON.parse(localStorage.getItem("checkinTimeMap") || "{}");
-
-function saveCheckinTime() {
-    localStorage.setItem("checkinTimeMap", JSON.stringify(checkinTimeMap));
-}
-/******************************************************
- * SAVE STATE (MANDATORY)
- ******************************************************/
-function saveState() {
-    localStorage.setItem("snookerTables", JSON.stringify(tables));
-}
 
 /******************************************************
  * PAGE LOAD INITIALIZER
  ******************************************************/
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadShiftsFromFirebase();
     // 🔥 ENSURE DAY ID ALWAYS EXISTS
-if (!localStorage.getItem("currentDayId")) {
-    localStorage.setItem("currentDayId", Date.now());
-}
     listenExpensesRealtime();
-    // 🔥 RESTORE SHIFT STATE
-let savedShift1 = localStorage.getItem("shift1Data");
-if (savedShift1) {
-    shift1 = JSON.parse(savedShift1);
-    document.getElementById("shiftCloseBtn").innerText = "Shift 2 Close";
-}
-
-let savedShift2 = localStorage.getItem("shift2Data");
-if (savedShift2) {
-    shift2 = JSON.parse(savedShift2);
-    document.getElementById("shiftCloseBtn").innerText = "Day Close";
-}
-
     listenInventoryRealtime();
     listenTablesRealtime();
 
@@ -333,7 +352,7 @@ tables.push({
 });
     });
 
-    saveState();
+     
 }
 
 /******************************************************
@@ -521,14 +540,14 @@ window._creatingSession = true;
     t.isRunning = true;
     t.checkinTime = Date.now();
 
-    checkinTimeMap[id] = t.checkinTime;
-    saveCheckinTime();
+  
+    
 
     t.afterCheckout = false;
     // 🔥 AGAR PREVIOUS BILL UNPAID HAI → VIEW BILL HIDE
 updateButtons(id, "idle");
-    delete afterCheckoutMap[id];
-    saveAfterCheckout();
+    
+    
 
     t.checkoutTime = null;
     t.playSeconds = 0;
@@ -538,7 +557,7 @@ updateButtons(id, "idle");
 
     updateButtons(id, "running");
     runTimer(id);
-    saveState();
+    
 
 // 🔥 STEP 1: check if already running session exists
 const q = query(
@@ -574,7 +593,7 @@ try {
         play_type: t.playType,
         frame_rate: t.frameRate,
         century_rate: t.centuryRate,
-        day_id: localStorage.getItem("currentDayId")
+        day_id: window.currentDayId
     });
 
 } catch (err) {
@@ -603,14 +622,7 @@ t.checkoutTime = Date.now();
 t.finalSeconds = t.playSeconds;
 t.finalAmount = t.liveAmount;   // ✅ ADD THIS HERE
 
-    afterCheckoutMap[id] = true;
-    checkoutTimeMap[id] = t.checkoutTime;
-    finalSecondsMap[id] = t.finalSeconds;
-
-    saveAfterCheckout();
-    saveCheckoutTime();
-    saveFinalSeconds();
-
+  
     // 🔥 FIREBASE UPDATE
     const q = query(
         collection(window.db, "sessions"),
@@ -636,37 +648,22 @@ snap.forEach(d => {
 });
 
 if (latestSession) {
-    await updateDoc(doc(window.db, "sessions", latestSession.id), {
-        end_time: new Date().toISOString(),
+   await updateDoc(doc(window.db, "sessions", latestSession.id), {
+    end_time: new Date().toISOString(),
 
-        final_amount: t.finalAmount,
-        final_seconds: t.finalSeconds,
-        canteen_total: t.canteenTotal,
+    final_amount: t.finalAmount,
+    final_seconds: t.finalSeconds,
+    canteen_total: t.canteenTotal,
 
-        paid: false,
-        day_id: localStorage.getItem("currentDayId")
-    });
+    canteen_items: t.canteenItems, // 🔥 ADD THIS
+
+    paid: false,
+    day_id: window.currentDayId
+});
 }
-
-    // 🔥 FINAL AMOUNT SAVE
-    finalAmountMap[id] = t.finalAmount;
-    saveFinalAmount();
 
     // 🔥 HISTORY SAVE (CORRECT PLACE)
     if (!t.history) t.history = [];
-    t.history.push({
-        checkin: t.checkinTime,
-        checkout: t.checkoutTime,
-        playSeconds: t.finalSeconds,
-        rate: t.playType === "century" ? t.centuryRate : t.frameRate,
-        amount: t.liveAmount,
-        canteenAmount: t.canteenTotal,
-        total: t.liveAmount + t.canteenTotal,
-        paid: false,
-        canteenItems: JSON.parse(JSON.stringify(t.canteenItems))
-    });
-
-    saveState();
 
     updateButtons(id, "afterCheckout");
     updateDisplay(id);
@@ -687,7 +684,7 @@ function runTimer(id) {
 t.liveAmount = Math.ceil(t.playSeconds / 60) * rate;
 
     updateDisplay(id);
-    saveState();
+     
 
     setTimeout(() => runTimer(id), 1000);
 }
@@ -950,7 +947,7 @@ if (latestSession) {
     });
 }
 
-    saveState();
+     
 
     document.getElementById("billPopup").classList.add("hidden");
 
@@ -1108,7 +1105,7 @@ async function updateTable() {
         century_rate: t.centuryRate
     });
 
-    saveState();
+     
     renderTables();
 
     document.getElementById("editTablePopup").classList.add("hidden");
@@ -1137,7 +1134,7 @@ async function deleteTableConfirm() {
 
     tables = tables.filter(x => x.id !== deleteTargetId);
 
-    saveState();
+     
     renderTables();
 
     document.getElementById("deletePopup").classList.add("hidden");
@@ -1213,7 +1210,7 @@ document.getElementById("paidBtn").onclick = () => {
     h.paid = true;
   h.paidTime = Date.now();
 
-    saveState();
+     
 
     // ✅ CLOSE BILL
     document.getElementById("billPopup").classList.add("hidden");
@@ -1401,7 +1398,7 @@ async function shiftPlayerToNewTable() {
     oldT.canteenTotal = 0;
     oldT.canteenItems = {};
 
-    saveState();
+     
     renderTables();
 
     document.getElementById("shiftTablePopup").classList.add("hidden");
@@ -1435,9 +1432,6 @@ async function shiftPlayerToNewTable() {
 function bindShiftButtons() {
 
     // 🔥 SHIFT START TRACKER
-if (!localStorage.getItem("shift1Start")) {
-    localStorage.setItem("shift1Start", Date.now());
-}
     document.getElementById("shiftCloseBtn").onclick = openShiftSummary;
 
     document.getElementById("confirmShiftCloseBtn").onclick = () => {
@@ -1576,18 +1570,27 @@ summaryBody.innerHTML = `
  * SHIFT 1 CLOSE (running tables allowed)
  ******************************************************/
 async function closeShift1() {
+  const q = query(
+    collection(window.db, "shifts"),
+    where("branch", "==", BRANCH),
+    where("shift_number", "==", 1)
+);
+
+const snap = await getDocs(q);
+
+if (!snap.empty) {
+    alert("Shift 1 already closed ❌");
+    return;
+}
 
     let now = Date.now();
 
     // Start of shift1 = the moment the user closes shift1
-    let startMs = parseInt(localStorage.getItem("shift1Start")) || now;
+    let startMs = Date.now();
+    let endMs = Date.now();
 
-    // Save this ONLY FIRST TIME
-    localStorage.setItem("shift1Start", startMs);
-
-    let endMs = now;
-
-    let snap = calculateShiftSnapshot(startMs, endMs);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift1 = {
         shift: 1,
@@ -1595,7 +1598,7 @@ async function closeShift1() {
         closeTime: new Date(endMs).toLocaleString(),
         startMs: startMs,
         endMs: endMs,
-        ...snap
+        ...shiftData
     };
 
     
@@ -1617,21 +1620,19 @@ await addDoc(collection(window.db, "shifts"), {
     open_time: shift1.openTime,
     close_time: shift1.closeTime,
 
-    game_total: snap.gameTotal,
-    canteen_total: snap.canteenTotal,
+    game_total: shiftData.gameTotal,
+canteen_total: shiftData.canteenTotal,
 
-    game_collection: snap.gameCollection,
-    canteen_collection: snap.canteenCollection,
+game_collection: shiftData.gameCollection,
+canteen_collection: shiftData.canteenCollection,
 
-    expenses: snap.expenses,
-    closing_cash: snap.closingCash,
+expenses: shiftData.expenses,
+closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
 });
 alert("Shift 1 closed successfully ✅");
-  setTimeout(autoRefreshUI, 800);
-// ✅ CORRECT SAVE
-localStorage.setItem("shift1Data", JSON.stringify(shift1));
+  await loadShiftsFromFirebase();
 }
 
 
@@ -1641,6 +1642,19 @@ localStorage.setItem("shift1Data", JSON.stringify(shift1));
  * SHIFT 2 CLOSE (no running tables allowed)
  ******************************************************/
 async function closeShift2() {
+
+  const q = query(
+    collection(window.db, "shifts"),
+    where("branch", "==", BRANCH),
+    where("shift_number", "==", 2)
+);
+
+const snap = await getDocs(q);
+
+if (!snap.empty) {
+    alert("Shift 2 already closed ❌");
+    return;
+}
 
     // cannot close if any table still running
     let running = tables.some(t => t.isRunning);
@@ -1657,7 +1671,8 @@ async function closeShift2() {
     let startMs = s1.endMs || 0;
     let endMs = now;
 
-    let snap = calculateShiftSnapshot(startMs, endMs);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift2 = {
         shift: 2,
@@ -1665,7 +1680,7 @@ async function closeShift2() {
         closeTime: new Date(endMs).toLocaleString(),
         startMs: startMs,
         endMs: endMs,
-        ...snap
+        ...shiftData
     };
 
     
@@ -1687,22 +1702,20 @@ await addDoc(collection(window.db, "shifts"), {
     open_time: shift2.openTime,
     close_time: shift2.closeTime,
 
-    game_total: snap.gameTotal,
-    canteen_total: snap.canteenTotal,
+    game_total: shiftData.gameTotal,
+canteen_total: shiftData.canteenTotal,
 
-    game_collection: snap.gameCollection,
-    canteen_collection: snap.canteenCollection,
+game_collection: shiftData.gameCollection,
+canteen_collection: shiftData.canteenCollection,
 
-    expenses: snap.expenses,
-    closing_cash: snap.closingCash,
+expenses: shiftData.expenses,
+closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
 });
 
 alert("Shift 2 closed successfully ✅");
-  setTimeout(autoRefreshUI, 800);
-localStorage.setItem("shift2Data", JSON.stringify(shift2));
-
+  await loadShiftsFromFirebase();
 }
 
 
@@ -1764,6 +1777,19 @@ const safeShift2 = JSON.parse(JSON.stringify(s2 || {}));
 const safeTables = JSON.parse(JSON.stringify(tablesSnapshot || {}));
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
+      const q = query(
+    collection(window.db, "days"),
+    where("branch", "==", BRANCH),
+    where("date", "==", today)
+);
+
+const snap = await getDocs(q);
+
+if (!snap.empty) {
+    alert("Day already closed ❌");
+    return;
+}
+
 await addDoc(collection(window.db, "days"), {
     tables: safeTables,
     date: today,
@@ -1803,9 +1829,7 @@ printShiftThermal("Day Summary", printData, shift1, shift2);
 
 
     // 🔥🔥🔥 STEP 3: AB RESET KARO (SAFE)
-    localStorage.removeItem("dayStart");
-    localStorage.setItem("currentDayId", Date.now());
-    localStorage.setItem("dayStartTime", Date.now());
+    window.currentDayId = Date.now();
 
     tables.forEach(t => {
         t.history = [];
@@ -1818,7 +1842,7 @@ printShiftThermal("Day Summary", printData, shift1, shift2);
         t.canteenItems = {};
     });
 
-    saveState();
+     
     renderTables();
 
     document.getElementById("shiftCloseBtn").innerText = "Shift 1 Close";
@@ -1830,9 +1854,6 @@ printShiftThermal("Day Summary", printData, shift1, shift2);
 
     alert("Day Closed Successfully & Saved in Day History!");
   setTimeout(autoRefreshUI, 1200);
-    localStorage.removeItem("shift1Start");
-    localStorage.removeItem("shift1Data");
-localStorage.removeItem("shift2Data");
 }
 
 
@@ -2635,11 +2656,13 @@ snapshot.forEach(docSnap => {
 
 tables.forEach(t => {
 
-    // 🔥 AGAR CHECKOUT HO CHUKA HAI → TOUCH NA KARO
     if (t.afterCheckout) return;
 
-    // 🔥 AGAR FIREBASE ME SESSION NA HO → STOP
-    t.isRunning = activeTables.has(t.name);
+    if (activeTables.has(t.name)) {
+        t.isRunning = true;
+    } else {
+        t.isRunning = false;
+    }
 
 });
         snapshot.forEach(docSnap => {
@@ -3013,7 +3036,7 @@ let startOfToday = new Date(
 
   
 
-const currentDayId = localStorage.getItem("currentDayId");
+const currentDayId = window.currentDayId;
 
 // ✅ ONLY CURRENT ACTIVE DAY
 if (s.day_id != currentDayId) {
@@ -3033,7 +3056,7 @@ if (s.day_id != currentDayId) {
             paid: s.paid === true,
           paidTime: s.paid_time ? new Date(s.paid_time).getTime() : null,
             rate: s.play_type === "century" ? s.century_rate : s.frame_rate,
-            canteenItems: {}
+            canteenItems: s.canteen_items || {}
         });
     });
 
