@@ -979,10 +979,6 @@ async function openCanteen(id) {
 
     if (!t) return;
 
-    // 🔥 TEMP DEMO ITEMS (jab tak Firebase inventory nahi banate)
-    // 🔥 FIREBASE INVENTORY LOAD
-;
-
 let list = document.getElementById("canteenList");
 list.innerHTML = "";
 
