@@ -13,6 +13,13 @@ import {
 import { increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// 🔥 DAY ID PERSIST FIX
+if (!localStorage.getItem("currentDayId")) {
+    localStorage.setItem("currentDayId", Date.now());
+}
+
+window.currentDayId = Number(localStorage.getItem("currentDayId"));
+
 let firebaseExpenses = [];
 // 🔥 AUTO REFRESH FUNCTION
 async function autoRefreshUI() {
@@ -1780,7 +1787,7 @@ const safeCombined = JSON.parse(JSON.stringify(combined || {}));
       const q = query(
     collection(window.db, "days"),
     where("branch", "==", BRANCH),
-    where("date", "==", today)
+    where("day_id", "==", window.currentDayId)
 );
 
 const snap = await getDocs(q);
@@ -1793,6 +1800,7 @@ if (!snap.empty) {
 await addDoc(collection(window.db, "days"), {
     tables: safeTables,
     date: today,
+    day_id: window.currentDayId, // 🔥 ADD THIS
     branch: BRANCH,
     shift: "day",
 
@@ -1829,7 +1837,9 @@ printShiftThermal("Day Summary", printData, shift1, shift2);
 
 
     // 🔥🔥🔥 STEP 3: AB RESET KARO (SAFE)
-    window.currentDayId = Date.now();
+    const newDayId = Date.now();
+window.currentDayId = newDayId;
+localStorage.setItem("currentDayId", newDayId);
 
     tables.forEach(t => {
         t.history = [];
