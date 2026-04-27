@@ -1533,11 +1533,6 @@ if (s1 && s2) {
         expenses: s1.expenses + s2.expenses
     };
 
-    combined.gameBalance = combined.gameTotal - combined.gameCollection;
-    combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
-
-    combined.closingCash =
-        (combined.gameCollection + combined.canteenCollection) - combined.expenses;
 }
 
 // 🔥 FINAL BALANCE CALCULATION
@@ -1578,6 +1573,7 @@ summaryBody.innerHTML = `
     </tr>
 
     
+${combined ? `
 <tr class="combined-row">
     <td>Combined</td>
     <td>${combined.gameTotal}</td>
@@ -1591,7 +1587,7 @@ summaryBody.innerHTML = `
     <td>-</td>
     <td>-</td>
 </tr>
-` 
+` : ""}
 
 
     showPopup("shiftSummaryPopup");
