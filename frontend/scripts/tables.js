@@ -2732,40 +2732,38 @@ body {
     font-family: monospace;
     width: 260px;
     margin:auto;
-}
-
-.center { text-align:center; }
-
-.row {
-    display:flex;
-    justify-content:space-between;
-    margin:2px 0;
+    text-align:center;
 }
 
 .line {
     border-top:1px dashed #000;
-    margin:8px 0;
+    margin:6px 0;
+}
+
+.row {
+    display:flex;
+    justify-content:space-between;
 }
 
 .big {
-    font-size:18px;
+    font-size:16px;
     font-weight:bold;
 }
 
-.small {
-    font-size:13px;
+.logo {
+    width:100px;
+    margin-bottom:5px;
 }
 </style>
 </head>
+
 <body>
 
-<div class="center">
-    <img src="${window.location.origin}/assets/bill-logo.png" width="100">
-    <div class="big">${academy.toUpperCase()}</div>
-    <div class="small">${branch.toUpperCase()}</div>
-</div>
+<img src="${window.location.origin}/assets/bill-logo.png" class="logo">
 
-<div class="line"></div>
+<div class="big">${academy.toUpperCase()}</div>
+<div>${branch.toUpperCase()}</div>
+
 <div class="line"></div>
 
 <div class="row"><span>Table</span><span>${t.name}</span></div>
@@ -2774,40 +2772,30 @@ body {
 <div class="row"><span>Time</span><span>${playtime}</span></div>
 
 <div class="line"></div>
-<div class="line"></div>
 
-<div class="row big">
-    <span>GAME</span>
-    <span>Rs ${gameAmount}</span>
-</div>
+<div class="big">GAME</div>
+<div>Rs ${gameAmount}</div>
 
 <div class="line"></div>
-<div class="line"></div>
 
-<div class="center big">CANTEEN</div>
+<div class="big">CANTEEN</div>
 
 ${canteenHTML}
 
 <div class="line"></div>
-<div class="line"></div>
 
-<div class="row big">
-    <span>TOTAL</span>
-    <span>Rs ${finalTotal}</span>
-</div>
+<div class="big">TOTAL</div>
+<div class="big">Rs ${finalTotal}</div>
 
 <div class="line"></div>
-<div class="line"></div>
 
-<div class="center">
-    <img src="../assets/QR-bill.png" width="90"><br>
-    Scan & Pay
-</div>
+<img src="${window.location.origin}/assets/QR-bill.png" width="90">
+<br>
+Scan & Pay
 
 <div class="line"></div>
-<div class="line"></div>
 
-<div class="center">Thanks ❤️</div>
+<div>Thanks ❤️</div>
 
 <script>
 window.onload = function(){
