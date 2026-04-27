@@ -2759,8 +2759,11 @@ body {
 </head>
 <body>
 
-<div class="center big">${academy.toUpperCase()}</div>
-<div class="center small">${branch.toUpperCase()}</div>
+<div class="center">
+    <img src="${window.location.origin}/assets/bill-logo.png" width="100">
+    <div class="big">${academy.toUpperCase()}</div>
+    <div class="small">${branch.toUpperCase()}</div>
+</div>
 
 <div class="line"></div>
 <div class="line"></div>
