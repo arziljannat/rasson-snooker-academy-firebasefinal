@@ -1703,7 +1703,7 @@ if (!snap.empty) {
     // Shift1 snapshot required
     let s1 = shift1 || {};
 
-    let startMs = new Date(s1.closeTime).getTime();
+    let startMs = s1.endMs;
     let endMs = now;
 
     
