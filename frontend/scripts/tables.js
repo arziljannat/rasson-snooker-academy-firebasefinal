@@ -739,9 +739,11 @@ function updateDisplay(id) {
  * FORMAT HELPERS
  ******************************************************/
 function formatTime(ms){
-    return new Date(ms).toLocaleTimeString([], {
+    return new Date(ms).toLocaleTimeString('en-PK', {
+        timeZone: 'Asia/Karachi',   // ✅ Pakistan time force
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true               // ✅ AM/PM
     });
 }
 function pad(n){ return n<10 ? "0"+n : n; }
@@ -778,7 +780,7 @@ function updateButtons(id, mode) {
         checkOutBtn.classList.remove("hidden");
         afterRow.classList.add("hidden");
 
-        histBtn.classList.add("hidden");
+        histBtn.classList.remove("hidden");
         editBtn.classList.add("hidden");
         delBtn.classList.add("hidden");
 
@@ -1167,8 +1169,8 @@ function openHistory(id) {
             body.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td>${new Date(h.checkin).toLocaleString()}</td>
-                    <td>${new Date(h.checkout).toLocaleString()}</td>
+                    <td>${formatTime(h.checkin)}</td>
+                    <td>${formatTime(h.checkout)}</td>
                     <td>${formatSeconds(h.playSeconds)}</td>
                     <td>${h.rate}</td>
                     <td>${h.amount}</td>
@@ -1200,8 +1202,8 @@ function openBillFromHistory(tableId, historyIndex) {
     let academy = localStorage.getItem("academyName") || "Rasson Snooker Academy";
     let branch = BRANCH || "Rasson1";
 
-    let checkin = h.checkin ? new Date(h.checkin).toLocaleTimeString() : "--";
-    let checkout = h.checkout ? new Date(h.checkout).toLocaleTimeString() : "--";
+    let checkin = h.checkin ? formatTime(h.checkin) : "--";
+    let checkout = h.checkout ? formatTime(h.checkout) : "--";
     let playtime = formatSeconds(h.playSeconds || 0);
 
     let bill = document.getElementById("billDetails");
@@ -1484,7 +1486,9 @@ function openShiftSummary() {
 
 
 
-    let now = new Date().toLocaleString();
+    let now = new Date().toLocaleString('en-PK', {
+    timeZone: 'Asia/Karachi'
+});
 
     
     
@@ -1591,19 +1595,24 @@ if (!snap.empty) {
     return;
 }
 
+    // Start of shift1 = the moment the user closes shift1
     let now = Date.now();
 
-    // Start of shift1 = the moment the user closes shift1
-    let startMs = Date.now();
-    let endMs = Date.now();
+    // 🔥 first shift → start from first session of day
+    let firstSession = tables
+    .flatMap(t => t.history)
+    .sort((a,b) => a.checkin - b.checkin)[0];
+
+    let startMs = firstSession ? firstSession.checkin : now;
+    let endMs = now;
 
     await new Promise(resolve => setTimeout(resolve, 500));
     let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift1 = {
         shift: 1,
-        openTime: new Date(startMs).toLocaleString(),
-        closeTime: new Date(endMs).toLocaleString(),
+        openTime: new Date(startMs).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
+        closeTime: new Date(endMs).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
         startMs: startMs,
         endMs: endMs,
         ...shiftData
@@ -1686,8 +1695,8 @@ if (!snap.empty) {
 
     shift2 = {
         shift: 2,
-        openTime: new Date(startMs).toLocaleString(),
-        closeTime: new Date(endMs).toLocaleString(),
+        openTime: new Date(startMs).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
+        closeTime: new Date(endMs).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
         startMs: startMs,
         endMs: endMs,
         ...shiftData
@@ -2029,11 +2038,21 @@ days.sort((a, b) => {
 days.forEach(d => {
 
     let openTime = d.shift1?.startMs 
-        ? new Date(d.shift1.startMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+        ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
         : "-";
 
     let closeTime = d.shift2?.endMs 
-        ? new Date(d.shift2.endMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+        ? new Date(d.shift2.endMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
         : "-";
 
     sel.innerHTML += `
@@ -2165,9 +2184,19 @@ document.getElementById("dayShift2Body").innerHTML = `
         <!-- ✅ MAIN FIX -->
         <td>
     ${d.date}<br>
-    (${s1.startMs ? new Date(s1.startMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "-"}
+    (${s1.startMs ? new Date(s1.startMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) : "-"}
      →
-     ${s2.endMs ? new Date(s2.endMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "-"})
+     ${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) : "-"})
 </td>
     </tr>
 `;
@@ -2209,11 +2238,21 @@ function openTableHistory() {
     // 🔥 Firebase day history use karo
     (window._daysData || []).forEach((d, i) => {
         let openTime = d.shift1?.startMs 
-    ? new Date(d.shift1.startMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+    ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
     : "-";
 
 let closeTime = d.shift2?.endMs 
-    ? new Date(d.shift2.endMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+    ? new Date(d.shift2.endMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
     : "-";
 
 dateSel.innerHTML += `
@@ -2431,8 +2470,8 @@ function renderHistoryPage() {
         body.innerHTML += `
             <tr>
                 <td>${start + index + 1}</td>
-                <td>${new Date(h.checkin).toLocaleString()}</td>
-                <td>${new Date(h.checkout).toLocaleString()}</td>
+                <td>${formatTime(h.checkin)}</td>
+                <td>${formatTime(h.checkout)}</td>
                 <td>${formatSeconds(h.playSeconds)}</td>
                 <td>${h.rate}</td>
                 <td>${h.amount}</td>
@@ -2510,9 +2549,9 @@ let h = historyData;
     let academy = "Rasson Snooker Academy";
     let branch = BRANCH || "rasson1";
 
-    let checkin = h ? new Date(h.checkin).toLocaleTimeString() : (t.checkinTime ? formatTime(t.checkinTime) : "--");
-let checkout = h ? new Date(h.checkout).toLocaleTimeString() : (t.checkoutTime ? formatTime(t.checkoutTime) : "--");
-let playtime = h ? formatSeconds(h.playSeconds) : formatSeconds(t.finalSeconds || t.playSeconds);
+    let checkin = h ? formatTime(h.checkin) : (t.checkinTime ? formatTime(t.checkinTime) : "--");
+    let checkout = h ? formatTime(h.checkout) : (t.checkoutTime ? formatTime(t.checkoutTime) : "--");
+    let playtime = h ? formatSeconds(h.playSeconds) : formatSeconds(t.finalSeconds || t.playSeconds);
 
     let gameAmount = h ? h.amount : (t.finalAmount || t.liveAmount);
 
@@ -2815,7 +2854,9 @@ function printShiftThermal(title, data, s1 = {}, s2 = {}) {
         <hr>
 
         <div class="center">
-            ${new Date().toLocaleString()}
+            ${new Date().toLocaleString('en-PK', {
+    timeZone: 'Asia/Karachi'
+})
         </div>
 
     </body>
@@ -2849,11 +2890,21 @@ function printDayHistoryThermal(d) {
     let c = d.combined || {};
 
     let openTime = s1.startMs 
-        ? new Date(s1.startMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+        ? new Date(s1.startMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
         : "-";
 
     let closeTime = s2.endMs 
-        ? new Date(s2.endMs).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+        ? new Date(s2.endMs).toLocaleTimeString('en-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) 
         : "-";
 
     let win = window.open("", "_blank", "width=300,height=600");
@@ -2921,7 +2972,9 @@ function printDayHistoryThermal(d) {
 
     <hr>
 
-    <div>${new Date().toLocaleString()}</div>
+    <div>${new Date().toLocaleString('en-PK', {
+    timeZone: 'Asia/Karachi'
+})}</div>
 
     </body>
     </html>
@@ -3003,7 +3056,9 @@ function printTableHistoryThermal() {
 
     <hr>
 
-    <div>${new Date().toLocaleString()}</div>
+    <div>${new Date().toLocaleString('en-PK', {
+    timeZone: 'Asia/Karachi'
+})}</div>
 
     </body>
     </html>
