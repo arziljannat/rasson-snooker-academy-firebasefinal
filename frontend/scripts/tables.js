@@ -1597,7 +1597,8 @@ async function closeShift1() {
   const q = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
-    where("shift_number", "==", 1)
+    where("shift_number", "==", 1),
+    where("day_id", "==", window.currentDayId) // 🔥 MAIN FIX
 );
 
 const snap = await getDocs(q);
@@ -1678,6 +1679,7 @@ async function closeShift2() {
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
     where("shift_number", "==", 2)
+    where("day_id", "==", window.currentDayId)
 );
 
 const snap = await getDocs(q);
