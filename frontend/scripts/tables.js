@@ -61,46 +61,45 @@ const q = query(
     where("branch", "==", BRANCH),
     where("day_id", "==", window.currentDayId)
 );
-    const snap = await getDocs(q);
-
-    shift1 = null;
-    shift2 = null;
-
-    const docs = snap.docs.sort((a, b) => {
-    return new Date(b.data().created_at) - new Date(a.data().created_at);
-});
+const snap = await getDocs(q);
+const docs = snap.docs;
+    
+shift1 = null;
+shift2 = null;
 
 docs.forEach(doc => {
+    const d = doc.data();
 
-        const d = doc.data();
+    if (d.shift_number === 1 && !shift1) {
+        shift1 = {
+            openTime: d.open_time,
+            closeTime: d.close_time,
+            gameTotal: d.game_total,
+            canteenTotal: d.canteen_total,
+            gameCollection: d.game_collection,
+            canteenCollection: d.canteen_collection,
+            expenses: d.expenses,
+            closingCash: d.closing_cash,
+            gameBalance: (d.game_total || 0) - (d.game_collection || 0),
+            canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+        };
+    }
 
-        if (d.shift_number === 1) {
-            shift1 = {
-                openTime: d.open_time,
-                closeTime: d.close_time,
-                gameTotal: d.game_total,
-                canteenTotal: d.canteen_total,
-                gameCollection: d.game_collection,
-                canteenCollection: d.canteen_collection,
-                expenses: d.expenses,
-                closingCash: d.closing_cash
-            };
-        }
-
-        if (d.shift_number === 2) {
-            shift2 = {
-                openTime: d.open_time,
-                closeTime: d.close_time,
-                gameTotal: d.game_total,
-                canteenTotal: d.canteen_total,
-                gameCollection: d.game_collection,
-                canteenCollection: d.canteen_collection,
-                expenses: d.expenses,
-                closingCash: d.closing_cash
-            };
-        }
-
-    });
+    if (d.shift_number === 2 && !shift2) {
+        shift2 = {
+            openTime: d.open_time,
+            closeTime: d.close_time,
+            gameTotal: d.game_total,
+            canteenTotal: d.canteen_total,
+            gameCollection: d.game_collection,
+            canteenCollection: d.canteen_collection,
+            expenses: d.expenses,
+            closingCash: d.closing_cash,
+            gameBalance: (d.game_total || 0) - (d.game_collection || 0),
+            canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+        };
+    }
+});
 
     // 🔥 BUTTON STATE FIX
     const btn = document.getElementById("shiftCloseBtn");
@@ -1703,7 +1702,12 @@ if (!snap.empty) {
     // Shift1 snapshot required
     let s1 = shift1 || {};
 
-    let startMs = s1?.endMs || Date.now();
+    let startMs = shift1?.endMs;
+
+if (!startMs) {
+    alert("Shift1 data missing ❌ reload page");
+    return;
+}
     let endMs = now;
 
     
