@@ -179,12 +179,15 @@ window.saveExpense = async function () {
     try {
 
         await addDoc(collection(window.db, "expenses"), {
-            title: document.getElementById("newTitle").value,
-            amount: Number(document.getElementById("newAmount").value),
-            expense_type: document.getElementById("newType").value,
-            branch: branch,
-            created_at: new Date().toISOString()
-        });
+    title: document.getElementById("newTitle").value,
+    amount: Number(document.getElementById("newAmount").value),
+    expense_type: document.getElementById("newType").value,
+    branch: branch,
+
+    day_id: Number(localStorage.getItem("currentDayId")), // ✅ ADD THIS
+
+    created_at: new Date().toISOString()
+});
 
         // clear
         document.getElementById("newTitle").value = "";
