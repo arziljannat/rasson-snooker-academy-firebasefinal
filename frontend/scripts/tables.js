@@ -1543,35 +1543,34 @@ if (s1 && s2) {
 
 // APPLY to HTML table
 summaryBody.innerHTML = `
-    <tr>
-        <td>Shift 1</td>
-        <td>${s1.gameTotal || 0}</td>
-        <td>${s1.canteenTotal || 0}</td>
-        <td>${s1.gameCollection || 0}</td>
-        <td>${s1.canteenCollection || 0}</td>
-        <td>${s1.gameBalance || 0}</td>
-        <td>${s1.canteenBalance || 0}</td>
-        <td>${s1.expenses || 0}</td>
-        <td>${s1.closingCash || 0}</td>
-        <td>${s1.openTime || "-"}</td>
-        <td>${s1.closeTime || "-"}</td>
-    </tr>
+<tr>
+    <td>Shift 1</td>
+    <td>${s1?.gameTotal || 0}</td>
+    <td>${s1?.canteenTotal || 0}</td>
+    <td>${s1?.gameCollection || 0}</td>
+    <td>${s1?.canteenCollection || 0}</td>
+    <td>${s1?.gameBalance || 0}</td>
+    <td>${s1?.canteenBalance || 0}</td>
+    <td>${s1?.expenses || 0}</td>
+    <td>${s1?.closingCash || 0}</td>
+    <td>${s1?.openTime || "-"}</td>
+    <td>${s1?.closeTime || "-"}</td>
+</tr>
 
-    <tr>
-        <td>Shift 2</td>
-        <td>${s2.gameTotal || 0}</td>
-        <td>${s2.canteenTotal || 0}</td>
-        <td>${s2.gameCollection || 0}</td>
-        <td>${s2.canteenCollection || 0}</td>
-        <td>${s2.gameBalance || 0}</td>
-        <td>${s2.canteenBalance || 0}</td>
-        <td>${s2.expenses || 0}</td>
-        <td>${s2.closingCash || 0}</td>
-        <td>${s2.openTime || "-"}</td>
-        <td>${s2.closeTime || "-"}</td>
-    </tr>
+<tr>
+    <td>Shift 2</td>
+    <td>${s2?.gameTotal || 0}</td>
+    <td>${s2?.canteenTotal || 0}</td>
+    <td>${s2?.gameCollection || 0}</td>
+    <td>${s2?.canteenCollection || 0}</td>
+    <td>${s2?.gameBalance || 0}</td>
+    <td>${s2?.canteenBalance || 0}</td>
+    <td>${s2?.expenses || 0}</td>
+    <td>${s2?.closingCash || 0}</td>
+    <td>${s2?.openTime || "-"}</td>
+    <td>${s2?.closeTime || "-"}</td>
+</tr>
 
-    
 ${combined ? (
 "<tr class='combined-row'>" +
 "<td>Combined</td>" +
@@ -1587,6 +1586,7 @@ ${combined ? (
 "<td>-</td>" +
 "</tr>"
 ) : ""}
+`;
 
 
     showPopup("shiftSummaryPopup");
