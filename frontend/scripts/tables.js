@@ -1641,15 +1641,21 @@ if (!snap.empty) {
     return;
 }
 
-    // Start of shift1 = the moment the user closes shift1
-    let now = Date.now();
 
-    // 🔥 first shift → start from first session of day
-    // 🔥 SAFE START/END FIX (FINAL)
-let startMs = Date.now() - 1000;  // fallback
-let endMs = Date.now();
+let now = Date.now();
 
-// 🔥 try get real first session
+let startMs = now - 1000;
+let endMs = now;
+
+// ❗ CRITICAL FIX
+if (!endMs || endMs < 100000) {
+    endMs = Date.now();
+}
+
+// 🔥 STEP 1: FIRST REBUILD HISTORY
+await rebuildHistoryFromSessions();
+
+// 🔥 STEP 2: THEN GET HISTORY
 let allHistory = tables.flatMap(t => t.history);
 
 if (allHistory.length > 0) {
@@ -1660,8 +1666,8 @@ if (allHistory.length > 0) {
     }
 }
 
-    
-    let shiftData = calculateShiftSnapshot(startMs, endMs);
+// 🔥 STEP 3: CALCULATE
+let shiftData = calculateShiftSnapshot(startMs, endMs);
 
     shift1 = {
         shift: 1,
