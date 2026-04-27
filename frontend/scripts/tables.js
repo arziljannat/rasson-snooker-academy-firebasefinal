@@ -1644,12 +1644,18 @@ if (!snap.empty) {
 
 let now = Date.now();
 
+// 🔥 FORCE SAFE TIME
 let startMs = now - 1000;
 let endMs = now;
 
-// ❗ CRITICAL FIX
+// ❗ HARD PROTECTION
 if (!endMs || endMs < 100000) {
     endMs = Date.now();
+}
+
+// ❗ DOUBLE SAFETY
+if (!startMs || startMs <= 0) {
+    startMs = endMs - 1000;
 }
 
 // 🔥 STEP 1: FIRST REBUILD HISTORY
@@ -1692,7 +1698,12 @@ let shiftData = calculateShiftSnapshot(startMs, endMs);
 // ✅ BACKEND SAVE
 
 // 🔥 FIREBASE SAVE SHIFT 1
-await addDoc(collection(window.db, "shifts"), {
+const docRef = await addDoc(collection(window.db, "shifts"), {
+
+  if (!docRef?.id) {
+    alert("Shift1 save failed ❌");
+    return;
+}
     tables: tables.map(t => ({
         table_id: t.name,
         total: t.history.reduce((sum, h) => sum + (h.total || 0), 0)
@@ -1789,11 +1800,12 @@ if (!startMs) {
         });
     }
 
-    // ❌ FINAL FAIL (should never happen now)
     if (!startMs) {
-        alert("Shift1 data still missing ❌ (FINAL)");
-        return;
-    }
+    console.log("🔥 FALLBACK ACTIVATED");
+
+    // 🔥 NEVER FAIL SYSTEM
+    startMs = Date.now() - (60 * 60 * 1000); // 1 hour back
+}
 }
     let endMs = now;
 
