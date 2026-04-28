@@ -8,7 +8,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 console.log("EXPENSES FIREBASE LOADED");
+// =========================
+// POPUP CONTROL
+// =========================
+window.openAddPopup = () => {
+    document.getElementById("addPopup").classList.remove("hide");
+};
 
+window.closeAddPopup = () => {
+    document.getElementById("addPopup").classList.add("hide");
+};
 
 
 // ==========================
