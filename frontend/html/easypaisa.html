@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EasyPaisa – Rasson Snooker</title>
+
+    <link rel="stylesheet" href="../styles/navbar.css">
+    <link rel="stylesheet" href="../styles/easypaisa.css">
+</head>
+
+<body>
+
+<!-- Navbar auto load -->
+<script src="../js/load-navbar.js"></script>
+<script src="../js/navbar.js"></script>
+
+<div class="container">
+
+    <h2>EasyPaisa Entry</h2>
+
+    <div class="form-box">
+        <input type="number" id="amount" placeholder="Enter amount" />
+        <input type="text" id="note" placeholder="Note (optional)" />
+        <button id="addBtn">Add Entry</button>
+    </div>
+
+    <h3>Today EasyPaisa</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Amount</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody id="easyTable"></tbody>
+    </table>
+
+</div>
+
+<script src="../js/easypaisa.js"></script>
+
+</body>
+</html>
