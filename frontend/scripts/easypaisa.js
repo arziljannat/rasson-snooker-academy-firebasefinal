@@ -6,7 +6,8 @@ import {
     where,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { db } from "./firebase-config.js";
+
+const db = window.db;
 
 const branch = (localStorage.getItem("branch") || "").toLowerCase();
 const currentDayId = Number(localStorage.getItem("currentDayId"));
@@ -14,9 +15,9 @@ const currentDayId = Number(localStorage.getItem("currentDayId"));
 let easyData = [];
 
 // =========================
-// ADD ENTRY
+// ➕ ADD EASYPAISA
 // =========================
-document.getElementById("addBtn").addEventListener("click", async () => {
+window.addEasy = async function () {
 
     const amount = Number(document.getElementById("amount").value);
     const note = document.getElementById("note").value;
@@ -36,7 +37,7 @@ document.getElementById("addBtn").addEventListener("click", async () => {
 
     document.getElementById("amount").value = "";
     document.getElementById("note").value = "";
-});
+};
 
 // =========================
 // REALTIME LOAD
