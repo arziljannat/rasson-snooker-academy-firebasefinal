@@ -2,41 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EasyPaisa – Rasson Snooker</title>
+    <title>EasyPaisa</title>
 
+    <!-- NAVBAR CSS -->
     <link rel="stylesheet" href="../styles/navbar.css">
-    <link rel="stylesheet" href="../styles/easypaisa.css">
+
+    <!-- SAME DESIGN AS EXPENSES -->
+    <link rel="stylesheet" href="../styles/expenses.css">
+
+    <!-- NAVBAR -->
+    <script type="module" src="../scripts/load-navbar.js"></script>
+
+    <!-- FIREBASE -->
+    <script type="module" src="../scripts/firebase-config.js"></script>
+
+    <!-- PAGE SCRIPT -->
+    <script type="module" src="../scripts/easypaisa.js"></script>
 </head>
 
 <body>
 
-<div class="container">
+<div class="page-container">
 
-    <h2>EasyPaisa Entry</h2>
+    <h1 class="page-title">EasyPaisa</h1>
 
-    <div class="form-box">
-        <input type="number" id="amount" placeholder="Enter amount" />
-        <input type="text" id="note" placeholder="Note (optional)" />
-        <button onclick="addEasy()">Add Entry</button>
+    <!-- ACTION BAR -->
+    <div class="top-actions">
+        <button class="btn-green" onclick="addEasy()">+ Add EasyPaisa</button>
     </div>
 
-    <h3>Today EasyPaisa</h3>
+    <!-- TOTAL -->
+    <div class="total-box">
+        <span>Today's EasyPaisa:</span>
+        <b id="todayEasyTotal">0 PKR</b>
+    </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Amount</th>
-                <th>Note</th>
-            </tr>
-        </thead>
-        <tbody id="easyTable"></tbody>
-    </table>
+    <!-- TABLE -->
+    <div class="table-box">
+        <table class="exp-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Amount</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody id="easyTable"></tbody>
+        </table>
+    </div>
 
 </div>
-<script type="module" src="../scripts/firebase-config.js"></script>
-<script src="../scripts/load-navbar.js"></script>
-<script src="../scripts/navbar.js"></script>
-<script type="module" src="../scripts/easypaisa.js"></script>
+
 </body>
 </html>
