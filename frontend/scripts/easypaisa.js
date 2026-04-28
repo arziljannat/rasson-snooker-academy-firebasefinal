@@ -100,27 +100,6 @@ window.updateEasy = async () => {
 };
 
 // =========================
-// REALTIME LOAD
-// =========================
-const q = query(
-    collection(db, "easypaisa"),
-    where("branch", "==", branch),
-    where("day_id", "==", window.currentDayId),
-    orderBy("created_at", "desc")
-);
-
-onSnapshot(q, (snap) => {
-
-    easyData = [];
-
-    snap.forEach(d => {
-        easyData.push({ id: d.id, ...d.data() });
-    });
-
-    renderTable();
-});
-
-// =========================
 // KARACHI TIME FORMAT
 // =========================
 function formatTime(timestamp) {
@@ -180,3 +159,35 @@ function renderTable() {
 
     document.getElementById("todayEasyTotal").innerText = total + " PKR";
 }
+
+
+function startEasyListener() {
+
+    if (!window.currentDayId) {
+        console.log("⏳ Waiting for Easy Day ID...");
+        setTimeout(startEasyListener, 500);
+        return;
+    }
+
+    console.log("✅ EASY DAY ID READY:", window.currentDayId);
+
+    const q = query(
+        collection(db, "easypaisa"),
+        where("branch", "==", branch),
+        where("day_id", "==", window.currentDayId),
+        orderBy("created_at", "desc")
+    );
+
+    onSnapshot(q, (snap) => {
+
+        easyData = [];
+
+        snap.forEach(d => {
+            easyData.push({ id: d.id, ...d.data() });
+        });
+
+        renderTable();
+    });
+}
+
+startEasyListener();
