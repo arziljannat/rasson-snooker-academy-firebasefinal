@@ -24,6 +24,7 @@ let editId = null;
 
 let selectedType = "all";
 let selectedDay = "all";
+let selectedMonth = null;
 
 // =========================
 // LOAD CURRENT DAY ID
@@ -203,6 +204,29 @@ function renderTable() {
         // FILTER DAY
         if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
+        if (selectedMonth) {
+
+    let expenseMonth;
+
+    if (e.created_at?.seconds) {
+
+        const d =
+            new Date(e.created_at.seconds * 1000);
+
+        expenseMonth =
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+    } else {
+
+        const d = new Date(e.created_at);
+
+        expenseMonth =
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    if (expenseMonth !== selectedMonth) return;
+}
+        
         total += Number(e.amount || 0);
 
         let actions = "";
@@ -264,6 +288,15 @@ window.filterByDay = function () {
     renderTable();
 };
 
+window.filterByMonth = function () {
+
+    selectedMonth =
+        document.getElementById("monthFilter").value;
+
+    renderTable();
+};
+
+
 // =========================
 // SEARCH
 // =========================
@@ -315,6 +348,19 @@ function startExpensesListener() {
 
         const now = new Date();
 
+        if (!selectedMonth) {
+
+    selectedMonth =
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    const monthInput =
+        document.getElementById("monthFilter");
+
+    if (monthInput) {
+        monthInput.value = selectedMonth;
+    }
+}
+
 snap.forEach(d => {
 
     let data = d.data();
@@ -327,16 +373,10 @@ snap.forEach(d => {
         expenseDate = new Date(data.created_at);
     }
 
-    // ✅ ONLY CURRENT MONTH
-    if (
-        expenseDate.getMonth() === now.getMonth() &&
-        expenseDate.getFullYear() === now.getFullYear()
-    ) {
-        expenseData.push({
-            id: d.id,
-            ...data
+    expenseData.push({
+    id: d.id,
+    ...data
         });
-    }
 });
 
         renderTable();
@@ -346,5 +386,18 @@ snap.forEach(d => {
 // =========================
 // INIT
 // =========================
+if (
+    role !== "admin" &&
+    role !== "super_admin"
+) {
+
+    const monthBox =
+        document.getElementById("monthFilterBox");
+
+    if (monthBox) {
+        monthBox.style.display = "none";
+    }
+}
+
 await loadCurrentDayId();
 startExpensesListener();
