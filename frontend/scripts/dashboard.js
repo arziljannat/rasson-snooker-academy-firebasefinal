@@ -283,29 +283,26 @@ if (easyCardsMonth) {
 
     // ================= UI =================
     setText("totalTables", tablesData.length);
-    const activeTablesCount = tablesData.filter(t =>
+    const activeTablesCount = tablesData.filter(t => {
 
-    // running table
-    (
+    const hasStart =
         t.checkin_time ||
         t.checkInTime ||
         t.start_time ||
         t.startTime ||
         t.start ||
-        t.startedAt
-    )
+        t.startedAt;
 
-    &&
-
-    !(
+    const hasEnd =
         t.checkout_time ||
         t.checkoutTime ||
         t.end_time ||
-        t.endTime
-    )
+        t.endTime;
 
-).length;
+    return hasStart && !hasEnd;
 
+}).length;
+    
 setText("activeTables", activeTablesCount);
 setText("freeTables", tablesData.length - activeTablesCount);
 
@@ -317,10 +314,10 @@ setText("freeTables", tablesData.length - activeTablesCount);
     setText("todayExpenses", today_expense);
 
     const finalTodayNet =
-    today_game_total
-    + today_canteen_total
-    - today_expense
-    - today_easy;
+    Number(today_game_total || 0)
+    + Number(today_canteen_total || 0)
+    - Number(today_expense || 0)
+    - Number(today_easy || 0);
 
 setText("netIncome", finalTodayNet);
 
@@ -332,10 +329,10 @@ setText("netIncome", finalTodayNet);
     setText("monthlyExpenses", monthly_expense);
 
     const finalMonthlyProfit =
-    monthly_income
-    + monthly_canteen
-    - monthly_expense
-    - monthly_easy;
+    Number(monthly_income || 0)
+    + Number(monthly_canteen || 0)
+    - Number(monthly_expense || 0)
+    - Number(monthly_easy || 0);
 
 setText("netProfit", finalMonthlyProfit);
     setText("shift1Monthly", shift1Monthly);
