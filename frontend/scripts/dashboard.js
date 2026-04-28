@@ -263,17 +263,24 @@ const easyCardsToday = document.getElementById("todayEasyPaisa");
 const easyCardsMonth = document.getElementById("monthlyEasyPaisa");
 
 if (easyCardsToday) {
-    today_easy = Number(easyCardsToday.innerText || 0);
+    today_easy = parseFloat(easyCardsToday.innerText) || 0;
 }
 
 if (easyCardsMonth) {
-    monthly_easy = Number(easyCardsMonth.innerText || 0);
+    monthly_easy = parseFloat(easyCardsMonth.innerText) || 0;
 }
 
     // ================= UI =================
     setText("totalTables", tablesData.length);
-    setText("activeTables", tablesData.filter(t=>t.isRunning).length);
-    setText("freeTables", tablesData.length - tablesData.filter(t=>t.isRunning).length);
+    const activeTablesCount = tablesData.filter(t =>
+    t.startTime ||
+    t.start_time ||
+    t.is_running ||
+    t.running
+).length;
+
+setText("activeTables", activeTablesCount);
+setText("freeTables", tablesData.length - activeTablesCount);
 
     setText("todaySessions", today_sessions);
     setText("completedSessions", completed_sessions);
@@ -429,11 +436,16 @@ sessionsData.forEach(s=>{
 
     // 🔥 EXPENSE
     expenseData.forEach(e=>{
-        let d = new Date(e.created_at);
-        if(d.getMonth() !== now.getMonth()) return;
 
-        let day = d.getDate()-1;
-        expenseArr[day] += Number(e.amount||0);
+let date;
+
+if (e.created_at?.seconds) {
+    date = new Date(e.created_at.seconds * 1000);
+} else {
+    date = new Date(e.created_at);
+}
+
+let amount = Number(e.amount || 0);
     });
 
     // 🔥 PROFIT
