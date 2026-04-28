@@ -7,46 +7,9 @@ import {
     onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-console.log("EASYPAISA FIREBASE LOADED");
+console.log("EXPENSES FIREBASE LOADED");
 
-const branch = localStorage.getItem("branch");
 
-let easyList = [];
-
-// ==========================
-// 🔥 REALTIME LOAD
-// ==========================
-document.addEventListener("DOMContentLoaded", () => {
-    listenEasyRealtime();
-});
-
-function listenEasyRealtime() {
-
-    onSnapshot(collection(window.db, "easypaisa"), (snap) => {
-
-        let today = new Date();
-        today.setHours(0,0,0,0);
-
-        easyList = [];
-
-        snap.forEach(docSnap => {
-
-            const e = docSnap.data();
-
-            if (e.branch !== branch) return;
-
-            const time = new Date(e.created_at);
-            if (time < today) return;
-
-            easyList.push({
-                id: docSnap.id,
-                ...e
-            });
-        });
-
-        renderEasy(easyList);
-    });
-}
 
 // ==========================
 // 🟢 RENDER
