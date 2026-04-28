@@ -606,7 +606,7 @@ body * {
 
 /* TABLE FULL WIDTH */
 #shiftSummaryPopup table {
-    width: 100% !important;
+    width: 130% !important;
     font-size: 18px !important;
 }
 
