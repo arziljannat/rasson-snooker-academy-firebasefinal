@@ -9,21 +9,21 @@ import {
 
 const db = window.db;
 
-const branch = (localStorage.getItem("branch") || "").toLowerCase();
+const branch = localStorage.getItem("branch");
 const currentDayId = Number(localStorage.getItem("currentDayId"));
 
 let easyData = [];
 
 // =========================
-// ➕ ADD EASYPAISA
+// ADD EASYPAISA
 // =========================
 window.addEasy = async function () {
 
-    const amount = Number(document.getElementById("amount").value);
-    const note = document.getElementById("note").value;
+    const amount = Number(prompt("Enter EasyPaisa Amount"));
+    const note = prompt("Enter note (optional)");
 
     if (!amount || amount <= 0) {
-        alert("Enter valid amount");
+        alert("Invalid amount");
         return;
     }
 
@@ -35,8 +35,7 @@ window.addEasy = async function () {
         created_at: new Date().toISOString()
     });
 
-    document.getElementById("amount").value = "";
-    document.getElementById("note").value = "";
+    alert("EasyPaisa Added ✅");
 };
 
 // =========================
@@ -61,25 +60,29 @@ onSnapshot(q, (snap) => {
 });
 
 // =========================
-// RENDER TABLE
+// RENDER
 // =========================
 function renderTable() {
 
     const tbody = document.getElementById("easyTable");
     tbody.innerHTML = "";
 
+    let total = 0;
+
     easyData.forEach(e => {
+
+        total += Number(e.amount || 0);
 
         const tr = document.createElement("tr");
 
-        const time = new Date(e.created_at).toLocaleTimeString();
-
         tr.innerHTML = `
-            <td>${time}</td>
+            <td>${new Date(e.created_at).toLocaleTimeString()}</td>
             <td>${e.amount}</td>
             <td>${e.note || "-"}</td>
         `;
 
         tbody.appendChild(tr);
     });
+
+    document.getElementById("todayEasyTotal").innerText = total + " PKR";
 }
