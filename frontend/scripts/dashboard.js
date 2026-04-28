@@ -139,6 +139,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     window.latestEasyDocs = [];
 
     let todayEasy = 0;
+    let monthlyEasy = 0;
 
     let now = new Date();
     const currentDayId = window.currentDayId;
@@ -164,13 +165,21 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
         if (String(e.day_id) === String(currentDayId)) {
             todayEasy += amount;
         }
+        // MONTHLY
+if (
+    date.getMonth() === selectedMonth &&
+    date.getFullYear() === selectedYear
+) {
+    monthlyEasy += amount;
+}
 
     });
 
     setText("todayEasyPaisa", todayEasy);
-    setText("monthlyEasyPaisa", monthlyEasy);
+    setText("monthlyEasyPaisa", realtimeMonthlyEasy || 0);
     
     realtimeTodayEasy = todayEasy;
+    realtimeMonthlyEasy = monthlyEasy;
     
 
 });
