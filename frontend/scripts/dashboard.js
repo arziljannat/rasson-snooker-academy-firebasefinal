@@ -225,10 +225,18 @@ if (
     (localStorage.getItem("branch") || "").toLowerCase()
 ) return;
 
+    if (!e.created_at) return;
+    const easyMonth =
+    date.getMonth();
+
+const easyYear =
+    date.getFullYear();
+
     if (
-        date.getMonth() === selectedMonth &&
-        date.getFullYear() === selectedYear
-    ) {
+    easyMonth === selectedMonth &&
+    easyYear === selectedYear
+    )
+    {
         monthly_easy += Number(e.amount || 0);
     }
 });
@@ -593,6 +601,15 @@ const easypaisaDocs = window.latestEasyDocs || [];
 
 easypaisaDocs.forEach(e=>{
    let rawDate =
+       if (
+    (e.branch || "").toLowerCase() !==
+    (localStorage.getItem("branch") || "").toLowerCase()
+) return;
+    const easyMonth =
+    date.getMonth();
+
+const easyYear =
+    date.getFullYear();
     e.created_at?.seconds
     ? e.created_at.seconds * 1000
     : e.created_at;
@@ -604,9 +621,9 @@ let date = new Date(rawDate);
 if (isNaN(date.getTime())) return;
 
     if(
-        date.getMonth() !== selectedMonth ||
-        date.getFullYear() !== selectedYear
-    ) return;
+    easyMonth !== selectedMonth ||
+    easyYear !== selectedYear
+) return;
 
     let day = date.getDate() - 1;
 
