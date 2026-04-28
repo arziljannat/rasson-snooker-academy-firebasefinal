@@ -72,11 +72,11 @@ window.deleteEasy = async (id) => {
 // =========================
 // EDIT
 // =========================
-let editId = null;
+window.editId = null;
 
 window.editEasy = (id, amount, note) => {
 
-    editId = id;
+   window.editId = id;
 
     document.getElementById("easyAmount").value = amount;
     document.getElementById("easyNote").value = note;
@@ -89,12 +89,12 @@ window.updateEasy = async () => {
     const amount = Number(document.getElementById("easyAmount").value);
     const note = document.getElementById("easyNote").value;
 
-    await updateDoc(doc(db, "easypaisa", editId), {
+    await updateDoc(doc(db, "easypaisa", window.editId), {
         amount,
         note
     });
 
-    editId = null;
+    window.editId = null;
     closeEasyPopup();
 };
 
