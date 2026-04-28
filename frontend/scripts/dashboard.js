@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
 const role = (localStorage.getItem("role") || "").toLowerCase();
 
 let incomeChart, billsChart, hourlyChart;
+let tablesData = [];
+let sessionsData = [];
+let canteenData = [];
+let expenseData = [];
 
 function loadDashboardRealtime() {
 
@@ -16,8 +20,6 @@ function loadDashboardRealtime() {
 
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
-
-    let tablesData=[], sessionsData=[], canteenData=[], expenseData=[];
 
     onSnapshot(collection(window.db, "tables"), snap => {
         tablesData=[];
