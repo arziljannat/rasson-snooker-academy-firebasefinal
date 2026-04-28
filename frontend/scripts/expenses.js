@@ -137,6 +137,12 @@ function renderTable() {
 
     expenseData.forEach(e => {
 
+    // 🔥 TYPE FILTER
+    if (selectedType !== "all" && e.type !== selectedType) return;
+
+    // 🔥 DAY FILTER (simple logic)
+    if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
+
         total += Number(e.amount || 0);
 
         let actions = "";
@@ -194,3 +200,23 @@ function startExpensesListener() {
 }
 
 startExpensesListener();
+
+
+let selectedType = "all";
+let selectedDay = "all";
+
+// =========================
+// FILTER TYPE
+// =========================
+window.filterByType = function () {
+    selectedType = document.getElementById("filterType").value;
+    renderTable();
+};
+
+// =========================
+// FILTER DAY
+// =========================
+window.filterByDay = function () {
+    selectedDay = document.getElementById("dayFilter").value;
+    renderTable();
+};
