@@ -147,26 +147,26 @@ body::before {
 /* =========================
    COLUMN WIDTH FIX
 ========================= */
-.exp-table th:nth-child(1),
-.exp-table td:nth-child(1) {
-    width: 25%;
+.exp-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.exp-table th:nth-child(2),
-.exp-table td:nth-child(2) {
-    width: 20%;
+.exp-table th,
+.exp-table td {
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--neon);
+    word-break: break-word; /* 🔥 FIX TEXT BREAK */
 }
 
-.exp-table th:nth-child(3),
-.exp-table td:nth-child(3) {
-    width: 30%;
+/* ACTION BUTTON ALIGN */
+.exp-table td:last-child {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
 }
-
-.exp-table th:nth-child(4),
-.exp-table td:nth-child(4) {
-    width: 25%;
-}
-
 /* =========================
    BUTTON ALIGN
 ========================= */
