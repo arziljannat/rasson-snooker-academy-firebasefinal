@@ -28,6 +28,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("🔥 DASHBOARD CURRENT DAY:", window.currentDayId);
 
     loadDashboardRealtime();
+
+    // ✅ MONTH FILTER
+const monthInput = document.getElementById("dashboardMonthFilter");
+
+if(monthInput){
+
+    let now = new Date();
+
+    monthInput.value =
+        `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+
+    monthInput.addEventListener("change", (e)=>{
+
+        let value = e.target.value;
+
+        if(!value) return;
+
+        let parts = value.split("-");
+
+        selectedYear = Number(parts[0]);
+        selectedMonth = Number(parts[1]) - 1;
+
+        updateDashboard();
+    });
+}
 });
 
 const role = (localStorage.getItem("role") || "").toLowerCase();
@@ -39,6 +64,8 @@ let canteenData = [];
 let expenseData = [];
 let realtimeTodayEasy = 0;
 let realtimeMonthlyEasy = 0;
+let selectedMonth = new Date().getMonth();
+let selectedYear = new Date().getFullYear();
 
 function loadDashboardRealtime() {
 
@@ -193,7 +220,7 @@ if(String(sessionDayId) === String(currentDayId)){
 }
 
     // 🔥 MONTHLY (NO DAY FILTER)
-    if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+    if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
         monthly_income += amount;
 
         let hour = date.getHours();
@@ -221,7 +248,7 @@ if(String(c.day_id) === String(currentDayId)){
 }
 
 // 🔥 MONTHLY (NO FILTER)
-if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
     monthly_canteen+=amount;
 }
 });
@@ -241,7 +268,7 @@ sessionsData.forEach(s=>{
     }
 
     // 🔥 MONTHLY (NO DAY FILTER)
-    if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
+    if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
         monthly_canteen += canteen;
     }
 });
@@ -417,7 +444,7 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
     // 🔥 SESSIONS
     sessionsData.forEach(s=>{
         let d = new Date(s.start_time || s.startTime || s.created_at);
-        if(d.getMonth() !== now.getMonth()) return;
+        if(d.getMonth() !== selectedMonth) return;
 
         let day = d.getDate()-1;
         let amount = Number(
@@ -444,7 +471,7 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
     // 🔥 CANTEEN (logs)
 canteenData.forEach(c=>{
     let d = new Date(c.time || c.created_at || c.date);
-    if(d.getMonth() !== now.getMonth()) return;
+    if(d.getMonth() !== selectedMonth) return;
 
     let day = d.getDate()-1;
     canteenArr[day] += Number(c.total || c.amount || 0);
@@ -453,7 +480,7 @@ canteenData.forEach(c=>{
 // 🔥 CANTEEN FROM SESSIONS (SEPARATE LOOP)
 sessionsData.forEach(s=>{
     let d = new Date(s.start_time || s.startTime || s.created_at);
-    if(d.getMonth() !== now.getMonth()) return;
+    if(d.getMonth() !== selectedMonth) return;
 
     let day = d.getDate()-1;
     canteenArr[day] += Number(s.canteen_total || 0);
