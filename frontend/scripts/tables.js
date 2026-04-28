@@ -1684,7 +1684,7 @@ ${combined ? (
 "<td>" + combined.canteenCollection + "</td>" +
 "<td>" + combined.gameBalance + "</td>" +
 "<td>" + combined.canteenBalance + "</td>" +
-<td>" + (combined.expenses + (combined.easypaisa || 0)) + "</td> +
+"<td>" + (combined.expenses + (combined.easypaisa || 0)) + "</td>" +
 "<td>" + combined.closingCash + "</td>" +
 "<td>-</td>" +
 "<td>-</td>" +
