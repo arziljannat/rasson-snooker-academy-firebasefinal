@@ -2037,7 +2037,7 @@ let printData = {
     gameCollection: (s1?.gameCollection || 0) + (s2?.gameCollection || 0),
     canteenCollection: (s1?.canteenCollection || 0) + (s2?.canteenCollection || 0),
 
-    expenses: (s1?.expenses || 0) + (s2?.expenses || 0)
+    expenses: (s1?.expenses || 0) + (s2?.expenses || 0),
   easypaisa: (s1?.easypaisa || 0) + (s2?.easypaisa || 0),
 };
 
