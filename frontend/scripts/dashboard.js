@@ -539,21 +539,25 @@ function createChart(id, label, labels, data){
             },
 
             // 🔥 PULSE DOT ANIMATION
-            {
-                id: "pulseDot",
-                afterDatasetsDraw(chart){
-                    const ctx = chart.ctx;
-                    const dataset = chart.data.datasets[0];
-                    const meta = chart.getDatasetMeta(0);
+           {
+    id: "pulseDot",
+    afterDatasetsDraw(chart){
+        const ctx = chart.ctx;
+        const meta = chart.getDatasetMeta(0);
 
-                    meta.data.forEach(point => {
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
-                        ctx.fillStyle = "rgba(0,255,204,0.2)";
-                        ctx.fill();
-                        ctx.restore();
-                    });
-                }
-            }
-            window.chartStore[id] = chart;
+        meta.data.forEach(point => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(0,255,204,0.2)";
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+}
+
+]
+    });
+
+    window.chartStore[id] = chart;
+}
