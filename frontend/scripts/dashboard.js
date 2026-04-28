@@ -155,11 +155,16 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
         let date;
 
-        if (e.created_at?.seconds) {
-            date = new Date(e.created_at.seconds * 1000);
-        } else {
-            date = new Date(e.created_at);
-        }
+        let rawDate =
+    e.created_at?.seconds
+    ? e.created_at.seconds * 1000
+    : e.created_at;
+
+if (!rawDate) return;
+
+date = new Date(rawDate);
+
+if (isNaN(date.getTime())) return;
 
         // TODAY
         if (String(e.day_id) === String(currentDayId)) {
@@ -205,6 +210,16 @@ function updateDashboard() {
     let monthly_easy = 0;
 
 (window.latestEasyDocs || []).forEach(e => {
+    let rawDate =
+    e.created_at?.seconds
+    ? e.created_at.seconds * 1000
+    : e.created_at;
+
+if (!rawDate) return;
+
+date = new Date(rawDate);
+
+if (isNaN(date.getTime())) return;
 
     if ((e.branch || "").toLowerCase() !==
         (localStorage.getItem("branch") || "").toLowerCase()) return;
@@ -586,6 +601,16 @@ sessionsData.forEach(s=>{
 const easypaisaDocs = window.latestEasyDocs || [];
 
 easypaisaDocs.forEach(e=>{
+    let rawDate =
+    e.created_at?.seconds
+    ? e.created_at.seconds * 1000
+    : e.created_at;
+
+if (!rawDate) return;
+
+date = new Date(rawDate);
+
+if (isNaN(date.getTime())) return;
 
     let date;
 
