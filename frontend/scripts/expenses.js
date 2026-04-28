@@ -8,16 +8,31 @@ import {
     deleteDoc,
     doc,
     updateDoc,
-    serverTimestamp
+    serverTimestamp,
+    getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+console.log("EXPENSES FIREBASE LOADED");
+
+const db = window.db;
+
+const branch = (localStorage.getItem("branch") || "").toLowerCase();
+const role = (localStorage.getItem("role") || "").toLowerCase();
+
+let expenseData = [];
+let editId = null;
+
+let selectedType = "all";
+let selectedDay = "all";
+
+// =========================
+// LOAD CURRENT DAY ID
+// =========================
 async function loadCurrentDayId() {
 
     const snap = await getDocs(collection(db, "system"));
 
     snap.forEach(d => {
-
         const data = d.data();
 
         if (data.type === "current_day" && data.branch === branch) {
@@ -28,16 +43,28 @@ async function loadCurrentDayId() {
     console.log("✅ CURRENT DAY ID LOADED:", window.currentDayId);
 }
 
-console.log("EXPENSES FIREBASE LOADED");
+// =========================
+// TIME FORMAT
+// =========================
+function formatTime(timestamp) {
 
-const db = window.db;
+    if (!timestamp) return "-";
 
-const branch = (localStorage.getItem("branch") || "").toLowerCase();
-const role = (localStorage.getItem("role") || "").toLowerCase();
-const currentDayId = window.currentDayId;
+    let date;
 
-let expenseData = [];
-let editId = null;
+    if (timestamp.seconds) {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        date = new Date(timestamp);
+    }
+
+    return date.toLocaleString("en-PK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Karachi"
+    });
+}
 
 // =========================
 // POPUP
@@ -84,7 +111,7 @@ window.saveExpense = async () => {
 };
 
 // =========================
-// EDIT OPEN
+// EDIT
 // =========================
 window.editExpense = (id, title, amount, type) => {
 
@@ -125,6 +152,7 @@ window.deleteExpense = async (id) => {
 
     await deleteDoc(doc(db, "expenses", id));
 };
+
 // =========================
 // RENDER
 // =========================
@@ -137,11 +165,11 @@ function renderTable() {
 
     expenseData.forEach(e => {
 
-    // 🔥 TYPE FILTER
-    if (selectedType !== "all" && e.type !== selectedType) return;
+        // FILTER TYPE
+        if (selectedType !== "all" && e.type !== selectedType) return;
 
-    // 🔥 DAY FILTER (simple logic)
-    if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
+        // FILTER DAY
+        if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
         total += Number(e.amount || 0);
 
@@ -168,8 +196,22 @@ function renderTable() {
     document.getElementById("todayTotal").innerText = total + " PKR";
 }
 
-await loadCurrentDayId();
-startExpensesListener();
+// =========================
+// FILTERS
+// =========================
+window.filterByType = function () {
+    selectedType = document.getElementById("filterType").value;
+    renderTable();
+};
+
+window.filterByDay = function () {
+    selectedDay = document.getElementById("dayFilter").value;
+    renderTable();
+};
+
+// =========================
+// LISTENER START
+// =========================
 function startExpensesListener() {
 
     if (!window.currentDayId) {
@@ -199,24 +241,8 @@ function startExpensesListener() {
     });
 }
 
+// =========================
+// INIT
+// =========================
+await loadCurrentDayId();
 startExpensesListener();
-
-
-let selectedType = "all";
-let selectedDay = "all";
-
-// =========================
-// FILTER TYPE
-// =========================
-window.filterByType = function () {
-    selectedType = document.getElementById("filterType").value;
-    renderTable();
-};
-
-// =========================
-// FILTER DAY
-// =========================
-window.filterByDay = function () {
-    selectedDay = document.getElementById("dayFilter").value;
-    renderTable();
-};
