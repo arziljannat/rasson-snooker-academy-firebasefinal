@@ -15,15 +15,26 @@ const currentDayId = Number(localStorage.getItem("currentDayId"));
 let easyData = [];
 
 // =========================
-// ADD EASYPAISA
+// 🔥 POPUP CONTROL
 // =========================
-window.addEasy = async function () {
+window.openEasyPopup = function () {
+    document.getElementById("easyPopup").classList.remove("hide");
+};
 
-    const amount = Number(prompt("Enter EasyPaisa Amount"));
-    const note = prompt("Enter note (optional)");
+window.closeEasyPopup = function () {
+    document.getElementById("easyPopup").classList.add("hide");
+};
+
+// =========================
+// ➕ SAVE EASYPAISA
+// =========================
+window.saveEasy = async function () {
+
+    const amount = Number(document.getElementById("easyAmount").value);
+    const note = document.getElementById("easyNote").value;
 
     if (!amount || amount <= 0) {
-        alert("Invalid amount");
+        alert("Enter valid amount");
         return;
     }
 
@@ -35,7 +46,10 @@ window.addEasy = async function () {
         created_at: new Date().toISOString()
     });
 
-    alert("EasyPaisa Added ✅");
+    document.getElementById("easyAmount").value = "";
+    document.getElementById("easyNote").value = "";
+
+    closeEasyPopup();
 };
 
 // =========================
