@@ -210,6 +210,32 @@ window.filterByDay = function () {
 };
 
 // =========================
+// SEARCH
+// =========================
+window.searchExpenses = function () {
+
+    const search =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    const rows =
+        document.querySelectorAll("#expensesBody tr");
+
+    rows.forEach(row => {
+
+        const text =
+            row.innerText.toLowerCase();
+
+        if (text.includes(search)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+};
+
+// =========================
 // LISTENER START
 // =========================
 function startExpensesListener() {
