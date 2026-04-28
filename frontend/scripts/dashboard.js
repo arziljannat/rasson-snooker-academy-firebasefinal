@@ -1,7 +1,28 @@
 import { collection, onSnapshot } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const branch = (localStorage.getItem("branch") || "").toLowerCase();
+
+    const snap = await window.getDocs(
+        window.collection(window.db, "system")
+    );
+
+    snap.forEach(d => {
+
+        let data = d.data();
+
+        if (
+            data.type === "current_day" &&
+            (data.branch || "").toLowerCase() === branch
+        ) {
+            window.currentDayId = data.day_id;
+        }
+    });
+
+    console.log("🔥 DASHBOARD CURRENT DAY:", window.currentDayId);
+
     loadDashboardRealtime();
 });
 
@@ -65,7 +86,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     let monthlyEasy = 0;
 
     let now = new Date();
-    const currentDayId = localStorage.getItem("currentDayId");
+    const currentDayId = window.currentDayId;
 
     snap.forEach(d => {
 
@@ -108,7 +129,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 function updateDashboard() {
 
     let now = new Date();
-    const currentDayId = localStorage.getItem("currentDayId");
+    const currentDayId = window.currentDayId;
     let todayStart = new Date();
     todayStart.setHours(0,0,0,0);
 
