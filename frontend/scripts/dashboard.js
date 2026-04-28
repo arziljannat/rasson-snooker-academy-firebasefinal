@@ -4,7 +4,6 @@ import {
     getDocs
 }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 document.addEventListener("DOMContentLoaded", async () => {
 
     const branch = (localStorage.getItem("branch") || "").toLowerCase();
