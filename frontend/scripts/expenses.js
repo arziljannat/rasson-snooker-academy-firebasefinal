@@ -10,6 +10,23 @@ import {
     updateDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadCurrentDayId() {
+
+    const snap = await getDocs(collection(db, "system"));
+
+    snap.forEach(d => {
+
+        const data = d.data();
+
+        if (data.type === "current_day" && data.branch === branch) {
+            window.currentDayId = data.day_id;
+        }
+    });
+
+    console.log("✅ CURRENT DAY ID LOADED:", window.currentDayId);
+}
 
 console.log("EXPENSES FIREBASE LOADED");
 
@@ -145,7 +162,8 @@ function renderTable() {
     document.getElementById("todayTotal").innerText = total + " PKR";
 }
 
-
+await loadCurrentDayId();
+startExpensesListener();
 function startExpensesListener() {
 
     if (!window.currentDayId) {
