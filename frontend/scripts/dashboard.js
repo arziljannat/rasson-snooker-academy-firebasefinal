@@ -255,7 +255,6 @@ if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
         });
 }
 
-}
 // ================= CHARTS =================
 
 function renderCharts(g,c,p,u){
