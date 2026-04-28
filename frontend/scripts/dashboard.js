@@ -165,13 +165,6 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
             todayEasy += amount;
         }
 
-        // MONTHLY
-        if (
-            date.getMonth() === selectedMonth &&
-            date.getFullYear() === selectedYear
-            ) {
-                monthlyEasy += amount;
-              }
     });
 
     setText("todayEasyPaisa", todayEasy);
