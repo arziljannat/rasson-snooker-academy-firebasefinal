@@ -613,7 +613,7 @@ body * {
 /* HEADINGS */
 #shiftSummaryPopup th {
     font-size: 24px !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     padding: 14px !important;
     text-align: center;
 }
@@ -621,7 +621,7 @@ body * {
 /* DATA */
 #shiftSummaryPopup td {
     font-size: 20px !important;
-    font-weight: 750 !important;
+    font-weight: 700 !important;
     padding: 12px !important;
     text-align: center;
 }
