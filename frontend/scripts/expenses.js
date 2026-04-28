@@ -223,19 +223,40 @@ function startExpensesListener() {
     console.log("✅ DAY ID READY:", window.currentDayId);
 
     const q = query(
-        collection(db, "expenses"),
-        where("branch", "==", branch),
-        where("day_id", "==", window.currentDayId),
-        orderBy("created_at", "desc")
-    );
+    collection(db, "expenses"),
+    where("branch", "==", branch),
+    orderBy("created_at", "desc")
+);
 
     onSnapshot(q, (snap) => {
 
         expenseData = [];
 
-        snap.forEach(d => {
-            expenseData.push({ id: d.id, ...d.data() });
+        const now = new Date();
+
+snap.forEach(d => {
+
+    let data = d.data();
+
+    let expenseDate;
+
+    if (data.created_at?.seconds) {
+        expenseDate = new Date(data.created_at.seconds * 1000);
+    } else {
+        expenseDate = new Date(data.created_at);
+    }
+
+    // ✅ ONLY CURRENT MONTH
+    if (
+        expenseDate.getMonth() === now.getMonth() &&
+        expenseDate.getFullYear() === now.getFullYear()
+    ) {
+        expenseData.push({
+            id: d.id,
+            ...data
         });
+    }
+});
 
         renderTable();
     });
