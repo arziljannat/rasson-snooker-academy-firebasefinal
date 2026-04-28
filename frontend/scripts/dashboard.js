@@ -99,8 +99,6 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     setText("monthlyEasy", monthlyEasy);
 
 });
-
-    window.chartStore[id] = chart;
 }
         
       
@@ -558,3 +556,4 @@ function createChart(id, label, labels, data){
                     });
                 }
             }
+            window.chartStore[id] = chart;
