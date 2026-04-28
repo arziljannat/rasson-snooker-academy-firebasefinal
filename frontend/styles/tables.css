@@ -620,7 +620,7 @@ body * {
 
 /* DATA */
 #shiftSummaryPopup td {
-    font-size: 20px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     padding: 12px !important;
     text-align: center;
@@ -629,9 +629,9 @@ body * {
 /* TITLE */
 #shiftSummaryPopup h2,
 #shiftSummaryTitle {
-    font-size: 30px !important;
+    font-size: 28px !important;
     font-weight: bold !important;
-    margin-bottom: 24px !important;
+    margin-bottom: 22px !important;
 }
 
 /* BUTTONS */
