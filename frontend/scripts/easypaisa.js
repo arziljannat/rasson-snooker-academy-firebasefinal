@@ -191,19 +191,41 @@ function startEasyListener() {
     console.log("✅ EASY DAY ID READY:", window.currentDayId);
 
     const q = query(
-        collection(db, "easypaisa"),
-        where("branch", "==", branch),
-        where("day_id", "==", window.currentDayId),
-        orderBy("created_at", "desc")
-    );
+    collection(db, "easypaisa"),
+    where("branch", "==", branch),
+    orderBy("created_at", "desc")
+);
 
     onSnapshot(q, (snap) => {
 
         easyData = [];
 
-        snap.forEach(d => {
-            easyData.push({ id: d.id, ...d.data() });
+        const now = new Date();
+
+snap.forEach(d => {
+
+    let data = d.data();
+
+    let easyDate;
+
+    if (data.created_at?.seconds) {
+        easyDate = new Date(data.created_at.seconds * 1000);
+    } else {
+        easyDate = new Date(data.created_at);
+    }
+
+    // ✅ ONLY CURRENT MONTH
+    if (
+        easyDate.getMonth() === now.getMonth() &&
+        easyDate.getFullYear() === now.getFullYear()
+    ) {
+
+        easyData.push({
+            id: d.id,
+            ...data
         });
+    }
+});
 
         renderTable();
     });
