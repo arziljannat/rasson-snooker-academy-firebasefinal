@@ -594,49 +594,50 @@ body * {
 
 /* ===========================
    🔥 FINAL SHIFT SUMMARY FIX
-   (FORCE OVERRIDE)
 =========================== */
 
 #shiftSummaryPopup .popup-box,
 #shiftSummaryPopup .popup-content {
-    width: 1200px !important;
+    width: 1100px !important;
     max-width: 95% !important;
     padding: 30px !important;
 }
 
-/* TABLE FULL WIDTH */
+/* ❌ SCROLL FIX */
 #shiftSummaryPopup table {
-    width: 130% !important;
+    width: 100% !important;   /* 🔥 yahan fix */
+    table-layout: fixed;
     font-size: 18px !important;
 }
 
 /* HEADINGS */
 #shiftSummaryPopup th {
-    font-size: 24px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    padding: 14px !important;
+    padding: 12px !important;
     text-align: center;
 }
 
 /* DATA */
 #shiftSummaryPopup td {
     font-size: 18px !important;
-    font-weight: 700 !important;
-    padding: 12px !important;
+    font-weight: 600 !important;
+    padding: 10px !important;
     text-align: center;
 }
 
-/* TITLE */
+/* 🔥 TITLE CENTER */
 #shiftSummaryPopup h2,
 #shiftSummaryTitle {
-    font-size: 28px !important;
+    font-size: 26px !important;
     font-weight: bold !important;
-    margin-bottom: 22px !important;
+    margin-bottom: 20px !important;
+    text-align: center !important;  /* 🔥 center */
 }
 
 /* BUTTONS */
 #shiftSummaryPopup button {
-    font-size: 20px !important;
-    padding: 12px 24px !important;
+    font-size: 16px !important;
+    padding: 10px 22px !important;
 }
 
