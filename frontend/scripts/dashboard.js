@@ -136,16 +136,30 @@ function updateDashboard() {
 );
 
     // 🔥 CURRENT DAY ONLY
-    if(String(s.day_id) === String(currentDayId)){
-        if (isNaN(date.getTime())) return;
-        if(date>=todayStart){
-            today_sessions++;
-            today_game_total+=amount;
 
-            if(s.paid) today_paid++; else today_unpaid++;
-            if(s.end_time) completed_sessions++;
-        }
+let sessionDayId =
+    s.day_id ||
+    s.dayId ||
+    s.current_day_id ||
+    0;
+
+if(String(sessionDayId) === String(currentDayId)){
+
+    if (isNaN(date.getTime())) return;
+
+    today_sessions++;
+    today_game_total += amount;
+
+    if(s.paid){
+        today_paid++;
+    } else {
+        today_unpaid++;
     }
+
+    if(s.end_time){
+        completed_sessions++;
+    }
+}
 
     // 🔥 MONTHLY (NO DAY FILTER)
     if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
