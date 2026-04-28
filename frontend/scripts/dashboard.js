@@ -600,30 +600,30 @@ sessionsData.forEach(s=>{
 const easypaisaDocs = window.latestEasyDocs || [];
 
 easypaisaDocs.forEach(e=>{
-   let rawDate =
-       if (
-    (e.branch || "").toLowerCase() !==
-    (localStorage.getItem("branch") || "").toLowerCase()
-) return;
-    const easyMonth =
-    date.getMonth();
 
-const easyYear =
-    date.getFullYear();
-    e.created_at?.seconds
-    ? e.created_at.seconds * 1000
-    : e.created_at;
+    if (
+        (e.branch || "").toLowerCase() !==
+        (localStorage.getItem("branch") || "").toLowerCase()
+    ) return;
 
-if (!rawDate) return;
+    let rawDate =
+        e.created_at?.seconds
+        ? e.created_at.seconds * 1000
+        : e.created_at;
 
-let date = new Date(rawDate);
+    if (!rawDate) return;
 
-if (isNaN(date.getTime())) return;
+    let date = new Date(rawDate);
+
+    if (isNaN(date.getTime())) return;
+
+    const easyMonth = date.getMonth();
+    const easyYear = date.getFullYear();
 
     if(
-    easyMonth !== selectedMonth ||
-    easyYear !== selectedYear
-) return;
+        easyMonth !== selectedMonth ||
+        easyYear !== selectedYear
+    ) return;
 
     let day = date.getDate() - 1;
 
