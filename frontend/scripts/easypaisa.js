@@ -11,8 +11,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = window.db;
+if (!db) {
+    console.error("❌ Firebase DB not loaded");
+}
 
-const branch = localStorage.getItem("branch");
+const branch = (localStorage.getItem("branch") || "").toLowerCase();
 const role = (localStorage.getItem("role") || "").toLowerCase();
 const currentDayId = Number(localStorage.getItem("currentDayId"));
 
@@ -100,9 +103,7 @@ window.updateEasy = async () => {
 // =========================
 const q = query(
     collection(db, "easypaisa"),
-    where("branch", "==", branch),
-    where("day_id", "==", currentDayId),
-    orderBy("created_at", "desc")
+    where("branch", "==", branch)
 );
 
 onSnapshot(q, (snap) => {
