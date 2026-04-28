@@ -59,6 +59,7 @@ async function initCurrentDay() {
 
 
 let firebaseExpenses = [];
+let firebaseEasy = [];
 // 🔥 AUTO REFRESH FUNCTION
 async function autoRefreshUI() {
     loadShiftsFromFirebase();
@@ -180,6 +181,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     loadShiftsFromFirebase();
     listenExpensesRealtime();
+    listenEasyRealtime();
     listenInventoryRealtime();
     listenTablesRealtime();
     listenRunningSessionsRealtime();
@@ -318,6 +320,7 @@ async function loadInventory() {
     console.log("🔥 INVENTORY LOADED:", inventoryItems);
 }
 
+/// Expenses from firebase
 
 function listenExpensesRealtime() {
 
@@ -336,6 +339,28 @@ function listenExpensesRealtime() {
         });
 
         console.log("🔥 FIREBASE EXPENSES:", firebaseExpenses);
+    });
+}
+
+/// easypaisa from firebase
+
+function listenEasyRealtime() {
+
+    const q = query(
+        collection(window.db, "easypaisa"),
+        where("branch", "==", BRANCH),
+        where("day_id", "==", window.currentDayId)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+        firebaseEasy = [];
+
+        snapshot.forEach(doc => {
+            firebaseEasy.push(doc.data());
+        });
+
+        console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
     });
 }
 /******************************************************
@@ -1604,14 +1629,17 @@ if (s1 && s2) {
         gameCollection: s1.gameCollection + s2.gameCollection,
         canteenCollection: s1.canteenCollection + s2.canteenCollection,
 
-        expenses: s1.expenses + s2.expenses
+       expenses: (s1.expenses || 0) + (s2.expenses || 0),
+easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
     };
 
     combined.gameBalance = combined.gameTotal - combined.gameCollection;
     combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
 
     combined.closingCash =
-        (combined.gameCollection + combined.canteenCollection) - combined.expenses;
+    (combined.gameCollection + combined.canteenCollection)
+    - combined.expenses
+    - (combined.easypaisa || 0);
 }
 
 
@@ -1625,7 +1653,7 @@ summaryBody.innerHTML = `
     <td>${s1?.canteenCollection || 0}</td>
     <td>${s1?.gameBalance || 0}</td>
     <td>${s1?.canteenBalance || 0}</td>
-    <td>${s1?.expenses || 0}</td>
+    <td>${(s1?.expenses || 0) + (s1?.easypaisa || 0)}</td>
     <td>${s1?.closingCash || 0}</td>
     <td>${s1?.openTime || "-"}</td>
     <td>${s1?.closeTime || "-"}</td>
@@ -1765,6 +1793,7 @@ const docRef = await addDoc(collection(window.db, "shifts"), {
     canteen_collection: shiftData.canteenCollection,
 
     expenses: shiftData.expenses,
+    easypaisa: shiftData.easypaisa, // 🔥 ADD
     closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
@@ -1896,6 +1925,7 @@ game_collection: shiftData.gameCollection,
 canteen_collection: shiftData.canteenCollection,
 
 expenses: shiftData.expenses,
+easypaisa: shiftData.easypaisa, // 🔥 ADD
 closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
@@ -1933,6 +1963,7 @@ async function closeDay() {
         canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
 
         expenses: (s1.expenses || 0) + (s2.expenses || 0),
+easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
     };
 
     combined.closingCash =
@@ -2003,7 +2034,9 @@ let printData = {
 };
 
 printData.closingCash =
-    (printData.gameCollection + printData.canteenCollection) - printData.expenses;
+    (printData.gameCollection + printData.canteenCollection)
+    - printData.expenses
+    - (printData.easypaisa || 0);
 
 // 🔥 DEBUG (optional)
 console.log("🔥 DAY PRINT DATA:", printData);
@@ -2141,11 +2174,20 @@ function calculateShiftSnapshot(startTime, endTime) {
             return time >= startTime && time <= endTime;
         })
         .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    // =========================
+    // 🔥 EASYPAISA
+    // =========================
+  let easypaisa = firebaseEasy
+    .filter(e => {
+        let time = e.created_at ? new Date(e.created_at).getTime() : 0;
+        return time >= startTime && time <= endTime;
+    })
+    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
     // =========================
     // 🔥 FINAL BALANCE FIX
     // =========================
-    let closingCash = (gameCollection + canteenCollection) - expenses;
+    let closingCash = (gameCollection + canteenCollection) - expenses - easypaisa;
 
     return {
         gameTotal,
@@ -2155,6 +2197,7 @@ function calculateShiftSnapshot(startTime, endTime) {
         gameBalance,
         canteenBalance,
         expenses,
+        easypaisa,
         closingCash
     };
 }
