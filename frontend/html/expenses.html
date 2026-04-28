@@ -34,6 +34,18 @@
         <div class="filter-row">
     <label class="filter-label">Day Filter:</label>
     <select id="dayFilter" class="filter-select" onchange="filterByDay()">
+        <div class="filter-row admin-only" id="monthFilterBox">
+
+    <label class="filter-label">Month:</label>
+
+    <input
+        type="month"
+        id="monthFilter"
+        class="filter-select"
+        onchange="filterByMonth()"
+    >
+
+</div>
         <option value="all">All Days</option>
         <option value="current">Current Day</option>
     </select>
