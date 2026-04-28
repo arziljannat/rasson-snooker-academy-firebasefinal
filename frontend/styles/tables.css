@@ -612,31 +612,31 @@ body * {
 
 /* HEADINGS */
 #shiftSummaryPopup th {
-    font-size: 19px !important;
-    font-weight: 700 !important;
-    padding: 12px !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    padding: 14px !important;
     text-align: center;
 }
 
 /* DATA */
 #shiftSummaryPopup td {
-    font-size: 17px !important;
-    font-weight: 600 !important;
-    padding: 10px !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    padding: 12px !important;
     text-align: center;
 }
 
 /* TITLE */
 #shiftSummaryPopup h2,
 #shiftSummaryTitle {
-    font-size: 26px !important;
+    font-size: 30px !important;
     font-weight: bold !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 24px !important;
 }
 
 /* BUTTONS */
 #shiftSummaryPopup button {
-    font-size: 16px !important;
-    padding: 10px 22px !important;
+    font-size: 20px !important;
+    padding: 12px 24px !important;
 }
 
