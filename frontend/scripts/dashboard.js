@@ -271,12 +271,19 @@ if (easyCardsMonth) {
 }
 
     // ================= UI =================
-    setText("totalTables", tablesData.length);
     const activeTablesCount = tablesData.filter(t =>
-    t.startTime ||
-    t.start_time ||
-    t.is_running ||
-    t.running
+
+    // running table
+    !t.checkout_time &&
+    !t.checkoutTime &&
+
+    (
+        t.checkin_time ||
+        t.checkInTime ||
+        t.start_time ||
+        t.startTime
+    )
+
 ).length;
 
 setText("activeTables", activeTablesCount);
@@ -289,12 +296,13 @@ setText("freeTables", tablesData.length - activeTablesCount);
     setText("todayCanteen", today_canteen_total);
     setText("todayExpenses", today_expense);
 
-    setText(
-    "netIncome",
-    (today_game_total + today_canteen_total)
+    const finalTodayNet =
+    today_game_total
+    + today_canteen_total
     - today_expense
-    - today_easy
-);
+    - today_easy;
+
+setText("netIncome", finalTodayNet);
 
     setText("paidBills", today_paid);
     setText("unpaidBills", today_unpaid);
@@ -303,12 +311,13 @@ setText("freeTables", tablesData.length - activeTablesCount);
     setText("monthlycanteen", monthly_canteen);
     setText("monthlyExpenses", monthly_expense);
 
-    setText(
-    "netProfit",
-    (monthly_income + monthly_canteen)
+    const finalMonthlyProfit =
+    monthly_income
+    + monthly_canteen
     - monthly_expense
-    - monthly_easy
-);
+    - monthly_easy;
+
+setText("netProfit", finalMonthlyProfit);
     setText("shift1Monthly", shift1Monthly);
     setText("shift2Monthly", shift2Monthly);
 
@@ -437,16 +446,20 @@ sessionsData.forEach(s=>{
     // 🔥 EXPENSE
     expenseData.forEach(e=>{
 
-let date;
+    let date;
 
-if (e.created_at?.seconds) {
-    date = new Date(e.created_at.seconds * 1000);
-} else {
-    date = new Date(e.created_at);
-}
+    if (e.created_at?.seconds) {
+        date = new Date(e.created_at.seconds * 1000);
+    } else {
+        date = new Date(e.created_at);
+    }
 
-let amount = Number(e.amount || 0);
-    });
+    if(isNaN(date.getTime())) return;
+
+    let day = date.getDate() - 1;
+
+    expenseArr[day] += Number(e.amount || 0);
+});
 
     // 🔥 PROFIT
     for(let i=0;i<daysInMonth;i++){
