@@ -6,6 +6,7 @@ import {
     where,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { db } from "./firebase-config.js";
 
 const branch = (localStorage.getItem("branch") || "").toLowerCase();
 const currentDayId = Number(localStorage.getItem("currentDayId"));
@@ -25,7 +26,7 @@ document.getElementById("addBtn").addEventListener("click", async () => {
         return;
     }
 
-    await addDoc(collection(window.db, "easypaisa"), {
+    await addDoc(collection(db, "easypaisa"), {
         amount,
         note,
         branch,
@@ -41,7 +42,7 @@ document.getElementById("addBtn").addEventListener("click", async () => {
 // REALTIME LOAD
 // =========================
 const q = query(
-    collection(window.db, "easypaisa"),
+    collection(db, "easypaisa")
     where("branch", "==", branch),
     where("day_id", "==", currentDayId),
     orderBy("created_at", "desc")
