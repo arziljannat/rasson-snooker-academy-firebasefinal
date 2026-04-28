@@ -2173,17 +2173,33 @@ function calculateShiftSnapshot(startTime, endTime) {
     // 🔥 EXPENSES
     // =========================
     let expenses = firebaseExpenses
-        .filter(e => {
-            let time = e.created_at ? new Date(e.created_at).getTime() : 0;
-            return time >= startTime && time <= endTime;
-        })
-        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    .filter(e => {
+
+        let time = 0;
+
+        if (e.created_at?.seconds) {
+            time = e.created_at.seconds * 1000;
+        } else if (e.created_at) {
+            time = new Date(e.created_at).getTime();
+        }
+
+        return time >= startTime && time <= endTime;
+    })
+    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
     // =========================
     // 🔥 EASYPAISA
     // =========================
   let easypaisa = firebaseEasy
     .filter(e => {
-        let time = e.created_at ? new Date(e.created_at).getTime() : 0;
+
+        let time = 0;
+
+        if (e.created_at?.seconds) {
+            time = e.created_at.seconds * 1000;
+        } else if (e.created_at) {
+            time = new Date(e.created_at).getTime();
+        }
+
         return time >= startTime && time <= endTime;
     })
     .reduce((sum, e) => sum + Number(e.amount || 0), 0);
