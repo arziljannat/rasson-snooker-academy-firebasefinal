@@ -216,22 +216,14 @@ function updateDashboard() {
 
 if (!rawDate) return;
 
-date = new Date(rawDate);
+let date = new Date(rawDate);
 
 if (isNaN(date.getTime())) return;
 
-    if ((e.branch || "").toLowerCase() !==
-        (localStorage.getItem("branch") || "").toLowerCase()) return;
-
-    let date;
-
-    if (e.created_at?.seconds) {
-        date = new Date(e.created_at.seconds * 1000);
-    } else {
-        date = new Date(e.created_at);
-    }
-
-    if (isNaN(date.getTime())) return;
+if (
+    (e.branch || "").toLowerCase() !==
+    (localStorage.getItem("branch") || "").toLowerCase()
+) return;
 
     if (
         date.getMonth() === selectedMonth &&
@@ -600,26 +592,16 @@ sessionsData.forEach(s=>{
 const easypaisaDocs = window.latestEasyDocs || [];
 
 easypaisaDocs.forEach(e=>{
-    let rawDate =
+   let rawDate =
     e.created_at?.seconds
     ? e.created_at.seconds * 1000
     : e.created_at;
 
 if (!rawDate) return;
 
-date = new Date(rawDate);
+let date = new Date(rawDate);
 
 if (isNaN(date.getTime())) return;
-
-    let date;
-
-    if (e.created_at?.seconds) {
-        date = new Date(e.created_at.seconds * 1000);
-    } else {
-        date = new Date(e.created_at);
-    }
-
-    if(isNaN(date.getTime())) return;
 
     if(
         date.getMonth() !== selectedMonth ||
