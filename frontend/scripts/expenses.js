@@ -17,7 +17,7 @@ const db = window.db;
 
 const branch = (localStorage.getItem("branch") || "").toLowerCase();
 const role = (localStorage.getItem("role") || "").toLowerCase();
-const currentDayId = Number(localStorage.getItem("currentDayId"));
+const currentDayId = window.currentDayId;
 
 let expenseData = [];
 let editId = null;
@@ -56,7 +56,7 @@ window.saveExpense = async () => {
         title,
         amount,
         branch,
-        day_id: currentDayId,
+        day_id: window.currentDayId,
         created_at: serverTimestamp()
     });
 
@@ -115,7 +115,7 @@ window.deleteExpense = async (id) => {
 const q = query(
     collection(db, "expenses"),
     where("branch", "==", branch),
-    where("day_id", "==", currentDayId),
+    where("day_id", "==", window.currentDayId),
     orderBy("created_at", "desc")
 );
 
