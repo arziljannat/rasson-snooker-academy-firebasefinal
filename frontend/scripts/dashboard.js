@@ -176,7 +176,7 @@ if (
     });
 
     setText("todayEasyPaisa", todayEasy);
-    setText("monthlyEasyPaisa", realtimeMonthlyEasy || 0);
+    setText("monthlyEasyPaisa", monthlyEasy || 0);
     
     realtimeTodayEasy = todayEasy;
     realtimeMonthlyEasy = monthlyEasy;
