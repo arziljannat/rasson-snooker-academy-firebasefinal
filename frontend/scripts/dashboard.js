@@ -139,7 +139,6 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     window.latestEasyDocs = [];
 
     let todayEasy = 0;
-    let monthlyEasy = 0;
 
     let now = new Date();
     const currentDayId = window.currentDayId;
@@ -178,7 +177,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     setText("todayEasyPaisa", todayEasy);
     setText("monthlyEasyPaisa", monthlyEasy);
     realtimeTodayEasy = todayEasy;
-    realtimeMonthlyEasy = monthlyEasy;
+    
 
 });
 }
@@ -200,7 +199,30 @@ function updateDashboard() {
     let monthly_income=0;
 
     let today_easy = realtimeTodayEasy || 0;
-    let monthly_easy = realtimeMonthlyEasy || 0;
+    let monthly_easy = 0;
+
+(window.latestEasyDocs || []).forEach(e => {
+
+    if ((e.branch || "").toLowerCase() !==
+        (localStorage.getItem("branch") || "").toLowerCase()) return;
+
+    let date;
+
+    if (e.created_at?.seconds) {
+        date = new Date(e.created_at.seconds * 1000);
+    } else {
+        date = new Date(e.created_at);
+    }
+
+    if (isNaN(date.getTime())) return;
+
+    if (
+        date.getMonth() === selectedMonth &&
+        date.getFullYear() === selectedYear
+    ) {
+        monthly_easy += Number(e.amount || 0);
+    }
+});
 
     let monthly_canteen=0;
     let monthly_expense=0;
