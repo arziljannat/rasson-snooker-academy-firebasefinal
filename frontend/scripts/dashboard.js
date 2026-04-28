@@ -97,8 +97,8 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
         }
     });
 
-    setText("todayEasy", todayEasy);
-    setText("monthlyEasy", monthlyEasy);
+    setText("todayEasyPaisa", todayEasy);
+    setText("monthlyEasyPaisa", monthlyEasy);
 
 });
 }
@@ -118,6 +118,8 @@ function updateDashboard() {
     let today_expense=0;
 
     let monthly_income=0;
+    let today_easy = 0;
+    let monthly_easy = 0;
     let monthly_canteen=0;
     let monthly_expense=0;
     let shift1Monthly = 0;
@@ -211,6 +213,18 @@ if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
 }
     });
 
+    // ================= EASYPAISA =================
+const easyCardsToday = document.getElementById("todayEasyPaisa");
+const easyCardsMonth = document.getElementById("monthlyEasyPaisa");
+
+if (easyCardsToday) {
+    today_easy = Number(easyCardsToday.innerText || 0);
+}
+
+if (easyCardsMonth) {
+    monthly_easy = Number(easyCardsMonth.innerText || 0);
+}
+
     // ================= UI =================
     setText("totalTables", tablesData.length);
     setText("activeTables", tablesData.filter(t=>t.isRunning).length);
@@ -223,7 +237,12 @@ if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
     setText("todayCanteen", today_canteen_total);
     setText("todayExpenses", today_expense);
 
-    setText("netIncome", (today_game_total + today_canteen_total) - today_expense);
+    setText(
+    "netIncome",
+    (today_game_total + today_canteen_total)
+    - today_expense
+    - today_easy
+);
 
     setText("paidBills", today_paid);
     setText("unpaidBills", today_unpaid);
@@ -232,7 +251,12 @@ if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
     setText("monthlycanteen", monthly_canteen);
     setText("monthlyExpenses", monthly_expense);
 
-    setText("netProfit", (monthly_income + monthly_canteen) - monthly_expense);
+    setText(
+    "netProfit",
+    (monthly_income + monthly_canteen)
+    - monthly_expense
+    - monthly_easy
+);
     setText("shift1Monthly", shift1Monthly);
     setText("shift2Monthly", shift2Monthly);
 
@@ -319,7 +343,12 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
         if(d.getMonth() !== now.getMonth()) return;
 
         let day = d.getDate()-1;
-        let amount = Number(s.final_amount || 0);
+        let amount = Number(
+    s.final_amount ||
+    s.total_amount ||
+    s.amount ||
+    0
+);
         let canteen = Number(s.canteen_total || 0);
 
         incomeArr[day] += amount;
