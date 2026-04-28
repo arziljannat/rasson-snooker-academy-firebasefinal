@@ -128,10 +128,16 @@ function updateDashboard() {
     sessionsData.forEach(s=>{
 
     let date = new Date(s.start_time || s.startTime || s.created_at);
-    let amount = Number(s.final_amount || 0);
+    let amount = Number(
+    s.final_amount ||
+    s.total_amount ||
+    s.amount ||
+    0
+);
 
     // 🔥 CURRENT DAY ONLY
     if(String(s.day_id) === String(currentDayId)){
+        if (isNaN(date.getTime())) return;
         if(date>=todayStart){
             today_sessions++;
             today_game_total+=amount;
