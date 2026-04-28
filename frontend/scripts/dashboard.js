@@ -1,6 +1,5 @@
 import {
     collection,
-    onSnapshot,
     getDocs
 }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -74,7 +73,7 @@ function loadDashboardRealtime() {
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
 
-    onSnapshot(collection(window.db, "tables"), snap => {
+    getDocs(collection(window.db, "tables")).then(snap => {
 
     tablesData = [];
 
@@ -104,7 +103,7 @@ function loadDashboardRealtime() {
     updateDashboard();
 });
 
-    onSnapshot(collection(window.db, "sessions"), snap => {
+    getDocs(collection(window.db, "sessions")).then(snap => {
         sessionsData=[];
         snap.forEach(d=>{
             let s=d.data();
@@ -113,7 +112,7 @@ function loadDashboardRealtime() {
         updateDashboard();
     });
 
-    onSnapshot(collection(window.db, "canteen_logs"), snap => {
+    getDocs(collection(window.db, "canteen_logs")).then(snap => {
         canteenData=[];
         snap.forEach(d=>{
             let c=d.data();
@@ -122,7 +121,7 @@ function loadDashboardRealtime() {
         updateDashboard();
     });
 
-    onSnapshot(collection(window.db, "expenses"), snap => {
+    getDocs(collection(window.db, "expenses")).then(snap => {
         expenseData=[];
         snap.forEach(d=>{
             let e=d.data();
@@ -133,7 +132,7 @@ function loadDashboardRealtime() {
 
     
 // ✅ EASYPAISA
-onSnapshot(collection(window.db, "easypaisa"), snap => {
+getDocs(collection(window.db, "easypaisa")).then(snap => {
 
     window.latestEasyDocs = [];
 
