@@ -118,7 +118,13 @@ window.saveExpense = async () => {
 // =========================
 // EDIT
 // =========================
-window.editExpense = (id, title, amount, type) => {
+window.editExpense = (
+    id,
+    title,
+    amount,
+    type,
+    created_at
+) => {
 
     editId = id;
 
@@ -154,13 +160,13 @@ window.updateExpense = async () => {
     document.getElementById("editDate").value;
 
     await updateDoc(doc(db, "expenses", editId), {
-        title,
-        amount,
-        type
-        created_at: editDate
-    ? new Date(editDate).toISOString()
-    : new Date().toISOString()
-    });
+    title,
+    amount,
+    type,
+    created_at: editDate
+        ? new Date(editDate).toISOString()
+        : new Date().toISOString()
+});
 
     editId = null;
     closeEditPopup();
