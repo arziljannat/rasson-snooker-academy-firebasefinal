@@ -2038,6 +2038,7 @@ let printData = {
     canteenCollection: (s1?.canteenCollection || 0) + (s2?.canteenCollection || 0),
 
     expenses: (s1?.expenses || 0) + (s2?.expenses || 0)
+  easypaisa: (s1?.easypaisa || 0) + (s2?.easypaisa || 0),
 };
 
 printData.closingCash =
@@ -2380,6 +2381,11 @@ document.getElementById("dayShift1Body").innerHTML = `
             <span>${s1.expenses || 0}</span>
         </div>
 
+        <div class="summary-row">
+            <span>📲 EasyPaisa</span>
+            <span>${s1.easypaisa || 0}</span>
+        </div>
+
         <div class="summary-row total">
             <span>💵 Cash</span>
             <span>${s1.closingCash || 0}</span>
@@ -2425,6 +2431,11 @@ document.getElementById("dayShift2Body").innerHTML = `
             <span>${s2.expenses || 0}</span>
         </div>
 
+        <div class="summary-row">
+            <span>📲 EasyPaisa</span>
+            <span>${s2.easypaisa || 0}</span>
+        </div>
+
         <div class="summary-row total">
             <span>💵 Cash</span>
             <span>${s2.closingCash || 0}</span>
@@ -2444,6 +2455,7 @@ document.getElementById("dayShift2Body").innerHTML = `
         <td>${c.gameBalance || 0}</td>
         <td>${c.canteenBalance || 0}</td>
         <td>${c.expenses || 0}</td>
+        <td>${c.easypaisa || 0}</td>
         <td>${c.closingCash || 0}</td>
 
         <!-- ✅ MAIN FIX -->
@@ -3240,6 +3252,7 @@ function printDayHistoryThermal(d) {
 <div class="row">Canteen Collection : Rs ${s1.canteenCollection || 0}</div>
 <div class="row">Balance : Rs ${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s1.expenses || 0}</div>
+<div class="row">EasyPaisa : Rs ${s1.easypaisa || 0}</div>
 <div class="row"><b>Cash</b><b>Rs ${s1.closingCash || 0}</b></div>
 
 <hr>
@@ -3256,6 +3269,7 @@ function printDayHistoryThermal(d) {
 <div class="row">Canteen Collection : Rs ${s2.canteenCollection || 0}</div>
 <div class="row">Balance : Rs ${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s2.expenses || 0}</div>
+<div class="row">EasyPaisa : Rs ${s2.easypaisa || 0}</div>
 <div class="row"><b>Cash</b><b>Rs ${s2.closingCash || 0}</b></div>
 
 <hr>
@@ -3271,6 +3285,7 @@ function printDayHistoryThermal(d) {
 <div class="row"><span>Collection : Rs ${(c.gameCollection||0)+(c.canteenCollection||0)}</div>
 <div class="row"><span>Balance : Rs ${(c.gameBalance||0)+(c.canteenBalance||0)}</div>
 <div class="row"><span>Expenses : Rs ${c.expenses || 0}</div>
+<div class="row"><span>EasyPaisa : Rs ${c.easypaisa || 0}</div>
 
 <hr>
 
