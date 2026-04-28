@@ -52,6 +52,47 @@ function loadDashboardRealtime() {
             let e=d.data();
             if(e.branch===branch) expenseData.push(e);
         });
+
+            let todayEasy = 0;
+let monthlyEasy = 0;
+
+onSnapshot(collection(window.db, "easypaisa"), snap => {
+
+    todayEasy = 0;
+    monthlyEasy = 0;
+
+    let now = new Date();
+
+    snap.forEach(d => {
+
+        let e = d.data();
+
+        if (e.branch !== branch) return;
+
+        let date = new Date(e.created_at);
+        let amount = Number(e.amount || 0);
+
+        if (String(e.day_id) === String(currentDayId)) {
+            todayEasy += amount;
+        }
+
+        if (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        ) {
+            monthlyEasy += amount;
+        }
+    });
+
+    setText("todayEasy", todayEasy);
+    setText("monthlyEasy", monthlyEasy);
+});
+        ]
+    });
+
+    window.chartStore[id] = chart;
+}
+        
         updateDashboard();
         
 
@@ -510,43 +551,3 @@ function createChart(id, label, labels, data){
                     });
                 }
             }
-
-            let todayEasy = 0;
-let monthlyEasy = 0;
-
-onSnapshot(collection(window.db, "easypaisa"), snap => {
-
-    todayEasy = 0;
-    monthlyEasy = 0;
-
-    let now = new Date();
-
-    snap.forEach(d => {
-
-        let e = d.data();
-
-        if (e.branch !== branch) return;
-
-        let date = new Date(e.created_at);
-        let amount = Number(e.amount || 0);
-
-        if (String(e.day_id) === String(currentDayId)) {
-            todayEasy += amount;
-        }
-
-        if (
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()
-        ) {
-            monthlyEasy += amount;
-        }
-    });
-
-    setText("todayEasy", todayEasy);
-    setText("monthlyEasy", monthlyEasy);
-});
-        ]
-    });
-
-    window.chartStore[id] = chart;
-}
