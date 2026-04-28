@@ -592,14 +592,51 @@ body * {
     color: #00ffcc;
 }
 
-#shiftSummaryTitle {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
+/* ===========================
+   🔥 FINAL SHIFT SUMMARY FIX
+   (FORCE OVERRIDE)
+=========================== */
+
+#shiftSummaryPopup .popup-box,
+#shiftSummaryPopup .popup-content {
+    width: 1200px !important;
+    max-width: 95% !important;
+    padding: 30px !important;
 }
 
+/* TABLE FULL WIDTH */
+#shiftSummaryPopup table {
+    width: 100% !important;
+    font-size: 18px !important;
+}
+
+/* HEADINGS */
+#shiftSummaryPopup th {
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    padding: 12px !important;
+    text-align: center;
+}
+
+/* DATA */
+#shiftSummaryPopup td {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    padding: 10px !important;
+    text-align: center;
+}
+
+/* TITLE */
+#shiftSummaryPopup h2,
+#shiftSummaryTitle {
+    font-size: 26px !important;
+    font-weight: bold !important;
+    margin-bottom: 20px !important;
+}
+
+/* BUTTONS */
 #shiftSummaryPopup button {
-    font-size: 15px;
-    padding: 8px 18px;
+    font-size: 16px !important;
+    padding: 10px 22px !important;
 }
 
