@@ -1,15 +1,29 @@
-// ==========================
-// 🔥 FIREBASE IMPORT
-// ==========================
-import { 
-    collection, 
-    addDoc, 
-    onSnapshot 
+import {
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    where,
+    orderBy,
+    deleteDoc,
+    doc,
+    updateDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 console.log("EXPENSES FIREBASE LOADED");
+
+const db = window.db;
+
+const branch = (localStorage.getItem("branch") || "").toLowerCase();
+const role = (localStorage.getItem("role") || "").toLowerCase();
+const currentDayId = Number(localStorage.getItem("currentDayId"));
+
+let expenseData = [];
+let editId = null;
+
 // =========================
-// POPUP CONTROL
+// POPUP
 // =========================
 window.openAddPopup = () => {
     document.getElementById("addPopup").classList.remove("hide");
@@ -19,58 +33,162 @@ window.closeAddPopup = () => {
     document.getElementById("addPopup").classList.add("hide");
 };
 
+window.closeEditPopup = () => {
+    document.getElementById("editPopup").classList.add("hide");
+};
 
-// ==========================
-// 🟢 RENDER
-// ==========================
-function renderEasy(list) {
+// =========================
+// SAVE EXPENSE
+// =========================
+window.saveExpense = async () => {
 
-    const body = document.getElementById("easyTable");
+    const type = document.getElementById("newType").value;
+    const title = document.getElementById("newTitle").value;
+    const amount = Number(document.getElementById("newAmount").value);
+
+    if (!title || !amount) {
+        alert("Fill all fields");
+        return;
+    }
+
+    await addDoc(collection(db, "expenses"), {
+        type,
+        title,
+        amount,
+        branch,
+        day_id: currentDayId,
+        created_at: serverTimestamp()
+    });
+
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newAmount").value = "";
+
+    closeAddPopup();
+};
+
+// =========================
+// EDIT OPEN
+// =========================
+window.editExpense = (id, title, amount, type) => {
+
+    editId = id;
+
+    document.getElementById("editTitle").value = title;
+    document.getElementById("editAmount").value = amount;
+    document.getElementById("editType").value = type;
+
+    document.getElementById("editPopup").classList.remove("hide");
+};
+
+// =========================
+// UPDATE
+// =========================
+window.updateExpense = async () => {
+
+    const title = document.getElementById("editTitle").value;
+    const amount = Number(document.getElementById("editAmount").value);
+    const type = document.getElementById("editType").value;
+
+    await updateDoc(doc(db, "expenses", editId), {
+        title,
+        amount,
+        type
+    });
+
+    editId = null;
+    closeEditPopup();
+};
+
+// =========================
+// DELETE
+// =========================
+window.deleteExpense = async (id) => {
+
+    if (!confirm("Delete this expense?")) return;
+
+    await deleteDoc(doc(db, "expenses", id));
+};
+
+// =========================
+// QUERY
+// =========================
+const q = query(
+    collection(db, "expenses"),
+    where("branch", "==", branch),
+    where("day_id", "==", currentDayId),
+    orderBy("created_at", "desc")
+);
+
+// =========================
+// TIME FORMAT
+// =========================
+function formatTime(timestamp) {
+
+    if (!timestamp) return "-";
+
+    let date;
+
+    if (timestamp.seconds) {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        date = new Date(timestamp);
+    }
+
+    return date.toLocaleString("en-PK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Karachi"
+    });
+}
+
+// =========================
+// REALTIME
+// =========================
+onSnapshot(q, (snap) => {
+
+    expenseData = [];
+
+    snap.forEach(d => {
+        expenseData.push({ id: d.id, ...d.data() });
+    });
+
+    renderTable();
+});
+
+// =========================
+// RENDER
+// =========================
+function renderTable() {
+
+    const body = document.getElementById("expensesBody");
     body.innerHTML = "";
 
     let total = 0;
-    list.forEach(x => total += Number(x.amount || 0));
 
-    list.forEach(x => {
+    expenseData.forEach(e => {
+
+        total += Number(e.amount || 0);
+
+        let actions = "";
+
+        if (role === "admin" || role === "super_admin") {
+            actions = `
+                <button class="btn-green" onclick="editExpense('${e.id}', '${e.title}', ${e.amount}, '${e.type}')">Edit</button>
+                <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
+            `;
+        }
 
         body.innerHTML += `
             <tr>
-                <td>${new Date(x.created_at).toLocaleTimeString()}</td>
-                <td>${x.amount}</td>
-                <td>${x.note || "-"}</td>
+                <td>${e.title}</td>
+                <td>${e.amount}</td>
+                <td>${e.type}</td>
+                <td>${formatTime(e.created_at)}</td>
+                <td>${actions}</td>
             </tr>
         `;
     });
 
-    console.log("TODAY EASYPAISA:", total);
-}
-
-// ==========================
-// ➕ ADD EASYPAISA
-// ==========================
-window.addEasy = async function () {
-
-    const amount = Number(document.getElementById("amount").value);
-    const note = document.getElementById("note").value;
-
-    if (!amount || amount <= 0) {
-        alert("Enter valid amount");
-        return;
-    }
-
-    await addDoc(collection(window.db, "easypaisa"), {
-
-        amount,
-        note,
-        branch,
-
-        day_id: Number(localStorage.getItem("currentDayId")), // 🔥 IMPORTANT
-
-        created_at: new Date().toISOString()
-    });
-
-    document.getElementById("amount").value = "";
-    document.getElementById("note").value = "";
-
-    alert("EasyPaisa added ✅");
+    document.getElementById("todayTotal").innerText = total + " PKR";
 }
