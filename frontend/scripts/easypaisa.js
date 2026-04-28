@@ -7,7 +7,8 @@ import {
     orderBy,
     deleteDoc,
     doc,
-    updateDoc
+    updateDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = window.db;
@@ -50,7 +51,7 @@ window.saveEasy = async () => {
         note,
         branch,
         day_id: currentDayId,
-        created_at: new Date().toISOString()
+        created_at: serverTimestamp()
     });
 
     document.getElementById("easyAmount").value = "";
@@ -90,9 +91,10 @@ window.updateEasy = async () => {
     const note = document.getElementById("easyNote").value;
 
     await updateDoc(doc(db, "easypaisa", window.editId), {
-        amount,
-        note
-    });
+    amount,
+    note,
+    created_at: serverTimestamp()
+});
 
     window.editId = null;
     closeEasyPopup();
@@ -120,8 +122,20 @@ onSnapshot(q, (snap) => {
 // =========================
 // KARACHI TIME FORMAT
 // =========================
-function formatTime(dateStr) {
-    return new Date(dateStr).toLocaleString("en-PK", {
+function formatTime(timestamp) {
+
+    if (!timestamp) return "-";
+
+    let date;
+
+    // 🔥 Firebase timestamp handle
+    if (timestamp.seconds) {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        date = new Date(timestamp);
+    }
+
+    return date.toLocaleString("en-PK", {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
