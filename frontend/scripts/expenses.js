@@ -89,6 +89,8 @@ window.saveExpense = async () => {
     const type = document.getElementById("newType").value;
     const title = document.getElementById("newTitle").value;
     const amount = Number(document.getElementById("newAmount").value);
+    const selectedDate =
+    document.getElementById("newDate").value;
 
     if (!title || !amount) {
         alert("Fill all fields");
@@ -101,11 +103,14 @@ window.saveExpense = async () => {
         amount,
         branch,
         day_id: window.currentDayId,
-        created_at: serverTimestamp()
+        created_at: selectedDate
+    ? new Date(selectedDate).toISOString()
+    : new Date().toISOString()
     });
 
     document.getElementById("newTitle").value = "";
     document.getElementById("newAmount").value = "";
+    document.getElementById("newDate").value = "";
 
     closeAddPopup();
 };
@@ -120,6 +125,19 @@ window.editExpense = (id, title, amount, type) => {
     document.getElementById("editTitle").value = title;
     document.getElementById("editAmount").value = amount;
     document.getElementById("editType").value = type;
+    if (created_at) {
+
+    let d;
+
+    if (created_at.seconds) {
+        d = new Date(created_at.seconds * 1000);
+    } else {
+        d = new Date(created_at);
+    }
+
+    document.getElementById("editDate").value =
+        d.toISOString().slice(0,16);
+}
 
     document.getElementById("editPopup").classList.remove("hide");
 };
@@ -132,11 +150,16 @@ window.updateExpense = async () => {
     const title = document.getElementById("editTitle").value;
     const amount = Number(document.getElementById("editAmount").value);
     const type = document.getElementById("editType").value;
+    const editDate =
+    document.getElementById("editDate").value;
 
     await updateDoc(doc(db, "expenses", editId), {
         title,
         amount,
         type
+        created_at: editDate
+    ? new Date(editDate).toISOString()
+    : new Date().toISOString()
     });
 
     editId = null;
@@ -174,10 +197,33 @@ function renderTable() {
         total += Number(e.amount || 0);
 
         let actions = "";
+        let expenseDate;
 
-        if (role === "admin" || role === "super_admin") {
+if (e.created_at?.seconds) {
+    expenseDate = new Date(e.created_at.seconds * 1000);
+} else {
+    expenseDate = new Date(e.created_at);
+}
+
+const now = new Date();
+
+const isOldMonth =
+    expenseDate.getMonth() !== now.getMonth() ||
+    expenseDate.getFullYear() !== now.getFullYear();
+
+        if (
+    role === "admin" ||
+    role === "super_admin" ||
+    !isOldMonth
+) {
             actions = `
-                <button class="btn-green" onclick="editExpense('${e.id}', '${e.title}', ${e.amount}, '${e.type}')">Edit</button>
+                <button class="btn-green"onclick="editExpense(
+'${e.id}',
+'${e.title}',
+${e.amount},
+'${e.type}',
+'${e.created_at || ""}'
+)">Edit</button>
                 <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
             `;
         }
