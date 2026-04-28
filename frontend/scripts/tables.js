@@ -1655,7 +1655,8 @@ summaryBody.innerHTML = `
     <td>${s1?.canteenCollection || 0}</td>
     <td>${s1?.gameBalance || 0}</td>
     <td>${s1?.canteenBalance || 0}</td>
-    <td>${(s1?.expenses || 0) + (s1?.easypaisa || 0)}</td>
+    <td>${s1?.expenses || 0}</td>
+    <td>${s1?.easypaisa || 0}</td>
     <td>${s1?.closingCash || 0}</td>
     <td>${s1?.openTime || "-"}</td>
     <td>${s1?.closeTime || "-"}</td>
@@ -1669,7 +1670,8 @@ summaryBody.innerHTML = `
     <td>${s2?.canteenCollection || 0}</td>
     <td>${s2?.gameBalance || 0}</td>
     <td>${s2?.canteenBalance || 0}</td>
-    <td>${(s2?.expenses || 0) + (s2?.easypaisa || 0)}</td>
+    <td>${s2?.expenses || 0}</td>
+    <td>${s2?.easypaisa || 0}</td>
     <td>${s2?.closingCash || 0}</td>
     <td>${s2?.openTime || "-"}</td>
     <td>${s2?.closeTime || "-"}</td>
@@ -1684,7 +1686,8 @@ ${combined ? (
 "<td>" + combined.canteenCollection + "</td>" +
 "<td>" + combined.gameBalance + "</td>" +
 "<td>" + combined.canteenBalance + "</td>" +
-"<td>" + (combined.expenses + (combined.easypaisa || 0)) + "</td>" +
+"<td>" + combined.expenses + "</td>" +
+"<td>" + combined.easypaisa + "</td>" +
 "<td>" + combined.closingCash + "</td>" +
 "<td>-</td>" +
 "<td>-</td>" +
