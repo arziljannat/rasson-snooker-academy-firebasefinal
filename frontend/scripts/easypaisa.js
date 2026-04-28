@@ -4,31 +4,35 @@ import {
     onSnapshot,
     query,
     where,
-    orderBy
+    orderBy,
+    deleteDoc,
+    doc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = window.db;
 
 const branch = localStorage.getItem("branch");
+const role = (localStorage.getItem("role") || "").toLowerCase();
 const currentDayId = Number(localStorage.getItem("currentDayId"));
 
 let easyData = [];
 
 // =========================
-// 🔥 POPUP CONTROL
+// POPUP
 // =========================
-window.openEasyPopup = function () {
+window.openEasyPopup = () => {
     document.getElementById("easyPopup").classList.remove("hide");
 };
 
-window.closeEasyPopup = function () {
+window.closeEasyPopup = () => {
     document.getElementById("easyPopup").classList.add("hide");
 };
 
 // =========================
-// ➕ SAVE EASYPAISA
+// SAVE
 // =========================
-window.saveEasy = async function () {
+window.saveEasy = async () => {
 
     const amount = Number(document.getElementById("easyAmount").value);
     const note = document.getElementById("easyNote").value;
@@ -53,6 +57,45 @@ window.saveEasy = async function () {
 };
 
 // =========================
+// DELETE (ADMIN ONLY)
+// =========================
+window.deleteEasy = async (id) => {
+
+    if (!confirm("Delete this entry?")) return;
+
+    await deleteDoc(doc(db, "easypaisa", id));
+};
+
+// =========================
+// EDIT
+// =========================
+let editId = null;
+
+window.editEasy = (id, amount, note) => {
+
+    editId = id;
+
+    document.getElementById("easyAmount").value = amount;
+    document.getElementById("easyNote").value = note;
+
+    openEasyPopup();
+};
+
+window.updateEasy = async () => {
+
+    const amount = Number(document.getElementById("easyAmount").value);
+    const note = document.getElementById("easyNote").value;
+
+    await updateDoc(doc(db, "easypaisa", editId), {
+        amount,
+        note
+    });
+
+    editId = null;
+    closeEasyPopup();
+};
+
+// =========================
 // REALTIME LOAD
 // =========================
 const q = query(
@@ -66,12 +109,25 @@ onSnapshot(q, (snap) => {
 
     easyData = [];
 
-    snap.forEach(doc => {
-        easyData.push(doc.data());
+    snap.forEach(d => {
+        easyData.push({ id: d.id, ...d.data() });
     });
 
     renderTable();
 });
+
+// =========================
+// KARACHI TIME FORMAT
+// =========================
+function formatTime(dateStr) {
+    return new Date(dateStr).toLocaleString("en-PK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Karachi"
+    });
+}
 
 // =========================
 // RENDER
@@ -87,15 +143,23 @@ function renderTable() {
 
         total += Number(e.amount || 0);
 
-        const tr = document.createElement("tr");
+        let actions = "";
 
-        tr.innerHTML = `
-            <td>${new Date(e.created_at).toLocaleTimeString()}</td>
-            <td>${e.amount}</td>
-            <td>${e.note || "-"}</td>
+        if (role === "admin" || role === "super_admin") {
+            actions = `
+                <button class="btn-green" onclick="editEasy('${e.id}', ${e.amount}, '${e.note || ""}')">Edit</button>
+                <button class="btn-red" onclick="deleteEasy('${e.id}')">Delete</button>
+            `;
+        }
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${formatTime(e.created_at)}</td>
+                <td>${e.amount}</td>
+                <td>${e.note || "-"}</td>
+                <td>${actions}</td>
+            </tr>
         `;
-
-        tbody.appendChild(tr);
     });
 
     document.getElementById("todayEasyTotal").innerText = total + " PKR";
