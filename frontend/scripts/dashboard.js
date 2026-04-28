@@ -52,16 +52,18 @@ function loadDashboardRealtime() {
             let e=d.data();
             if(e.branch===branch) expenseData.push(e);
         });
+  updateDashboard();
+          });
 
-            let todayEasy = 0;
-let monthlyEasy = 0;
-
+    
+// ✅ EASYPAISA
 onSnapshot(collection(window.db, "easypaisa"), snap => {
 
-    todayEasy = 0;
-    monthlyEasy = 0;
+    let todayEasy = 0;
+    let monthlyEasy = 0;
 
     let now = new Date();
+    const currentDayId = localStorage.getItem("currentDayId");
 
     snap.forEach(d => {
 
@@ -69,13 +71,22 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
         if (e.branch !== branch) return;
 
-        let date = new Date(e.created_at);
         let amount = Number(e.amount || 0);
 
+        let date;
+
+        if (e.created_at?.seconds) {
+            date = new Date(e.created_at.seconds * 1000);
+        } else {
+            date = new Date(e.created_at);
+        }
+
+        // TODAY
         if (String(e.day_id) === String(currentDayId)) {
             todayEasy += amount;
         }
 
+        // MONTHLY
         if (
             date.getMonth() === now.getMonth() &&
             date.getFullYear() === now.getFullYear()
@@ -86,17 +97,13 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
     setText("todayEasy", todayEasy);
     setText("monthlyEasy", monthlyEasy);
+
 });
-        ]
-    });
 
     window.chartStore[id] = chart;
 }
         
-        updateDashboard();
-        
-
-    });
+      
 
 function updateDashboard() {
 
