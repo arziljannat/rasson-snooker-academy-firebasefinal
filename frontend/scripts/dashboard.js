@@ -1,13 +1,17 @@
-import { collection, onSnapshot } 
+import {
+    collection,
+    onSnapshot,
+    getDocs
+}
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
 
     const branch = (localStorage.getItem("branch") || "").toLowerCase();
 
-    const snap = await window.getDocs(
-        window.collection(window.db, "system")
-    );
+    const snap = await getDocs(
+    collection(window.db, "system")
+);
 
     snap.forEach(d => {
 
