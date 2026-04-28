@@ -168,6 +168,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     });
 
     setText("todayEasyPaisa", todayEasy);
+    setText("monthlyEasyPaisa", monthlyEasy);
     
     realtimeTodayEasy = todayEasy;
     
