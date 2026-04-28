@@ -15,7 +15,7 @@ let expenseData = [];
 
 function loadDashboardRealtime() {
 
-    const branch = localStorage.getItem("branch");
+    const branch = (localStorage.getItem("branch") || "").toLowerCase();
     if (!branch) return;
 
     const todayStart = new Date();
@@ -25,7 +25,7 @@ function loadDashboardRealtime() {
         tablesData=[];
         snap.forEach(d=>{
             let t=d.data();
-            if(t.branch===branch) tablesData.push(t);
+            if((t.branch || "").toLowerCase() === branch) tablesData.push(t);
         });
         updateDashboard();
     });
@@ -34,7 +34,7 @@ function loadDashboardRealtime() {
         sessionsData=[];
         snap.forEach(d=>{
             let s=d.data();
-            if(s.branch===branch) sessionsData.push(s);
+            if((s.branch || "").toLowerCase() === branch) sessionsData.push(s);
         });
         updateDashboard();
     });
@@ -43,7 +43,7 @@ function loadDashboardRealtime() {
         canteenData=[];
         snap.forEach(d=>{
             let c=d.data();
-            if(c.branch===branch) canteenData.push(c);
+            if((c.branch || "").toLowerCase() === branch) canteenData.push(c);
         });
         updateDashboard();
     });
@@ -52,7 +52,7 @@ function loadDashboardRealtime() {
         expenseData=[];
         snap.forEach(d=>{
             let e=d.data();
-            if(e.branch===branch) expenseData.push(e);
+            if((e.branch || "").toLowerCase() === branch) expenseData.push(e);
         });
   updateDashboard();
           });
@@ -71,7 +71,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
         let e = d.data();
 
-        if (e.branch !== branch) return;
+        if ((e.branch || "").toLowerCase() !== branch) return;
 
         let amount = Number(e.amount || 0);
 
