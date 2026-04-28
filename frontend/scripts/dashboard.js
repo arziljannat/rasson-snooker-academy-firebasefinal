@@ -242,21 +242,32 @@ sessionsData.forEach(s=>{
 
     // ================= EXPENSE =================
     expenseData.forEach(e=>{
-        let date=new Date(e.created_at);
-let amount=Number(e.amount||0);
 
-// 🔥 CURRENT DAY
-if(String(e.day_id) === String(currentDayId)){
-    if(date>=todayStart){
-        today_expense+=amount;
+    let date;
+
+    if (e.created_at?.seconds) {
+        date = new Date(e.created_at.seconds * 1000);
+    } else {
+        date = new Date(e.created_at);
     }
-}
 
-// 🔥 MONTHLY
-if(date.getMonth()===now.getMonth() && date.getFullYear()===now.getFullYear()){
-    monthly_expense+=amount;
-}
-    });
+    if(isNaN(date.getTime())) return;
+
+    let amount = Number(e.amount || 0);
+
+    // TODAY
+    if(String(e.day_id) === String(currentDayId)){
+        today_expense += amount;
+    }
+
+    // MONTHLY
+    if(
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+    ){
+        monthly_expense += amount;
+    }
+});
 
     // ================= EASYPAISA =================
 const easyCardsToday = document.getElementById("todayEasyPaisa");
@@ -271,17 +282,26 @@ if (easyCardsMonth) {
 }
 
     // ================= UI =================
+    setText("totalTables", tablesData.length);
     const activeTablesCount = tablesData.filter(t =>
 
     // running table
-    !t.checkout_time &&
-    !t.checkoutTime &&
-
     (
         t.checkin_time ||
         t.checkInTime ||
         t.start_time ||
-        t.startTime
+        t.startTime ||
+        t.start ||
+        t.startedAt
+    )
+
+    &&
+
+    !(
+        t.checkout_time ||
+        t.checkoutTime ||
+        t.end_time ||
+        t.endTime
     )
 
 ).length;
