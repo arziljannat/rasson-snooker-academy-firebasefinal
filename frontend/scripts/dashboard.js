@@ -401,7 +401,6 @@ setText(
     "monthlyAverage",
     Math.round(monthlyAvg)
 );
-    setText("monthlyAverage", Math.round(monthlyAvg));
 
     // 🔥 REALTIME CHARTS
     renderMonthlyCharts(sessionsData, canteenData, expenseData);
@@ -484,7 +483,10 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
     // 🔥 SESSIONS
     sessionsData.forEach(s=>{
         let d = new Date(s.start_time || s.startTime || s.created_at);
-        if(d.getMonth() !== selectedMonth) return;
+        if(
+    d.getMonth() !== selectedMonth ||
+    d.getFullYear() !== selectedYear
+) return;
 
         let day = d.getDate()-1;
         let amount = Number(
@@ -511,7 +513,10 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
     // 🔥 CANTEEN (logs)
 canteenData.forEach(c=>{
     let d = new Date(c.time || c.created_at || c.date);
-    if(d.getMonth() !== selectedMonth) return;
+    if(
+    d.getMonth() !== selectedMonth ||
+    d.getFullYear() !== selectedYear
+) return;
 
     let day = d.getDate()-1;
     canteenArr[day] += Number(c.total || c.amount || 0);
@@ -520,7 +525,10 @@ canteenData.forEach(c=>{
 // 🔥 CANTEEN FROM SESSIONS (SEPARATE LOOP)
 sessionsData.forEach(s=>{
     let d = new Date(s.start_time || s.startTime || s.created_at);
-    if(d.getMonth() !== selectedMonth) return;
+    if(
+    d.getMonth() !== selectedMonth ||
+    d.getFullYear() !== selectedYear
+) return;
 
     let day = d.getDate()-1;
     canteenArr[day] += Number(s.canteen_total || 0);
@@ -538,6 +546,10 @@ sessionsData.forEach(s=>{
     }
 
     if(isNaN(date.getTime())) return;
+        if(
+    date.getMonth() !== selectedMonth ||
+    date.getFullYear() !== selectedYear
+) return;
 
     let day = date.getDate() - 1;
 
