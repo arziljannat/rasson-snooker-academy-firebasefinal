@@ -1,3 +1,6 @@
+/* =========================
+   ROOT + BODY
+========================= */
 :root {
     --neon: #5DFF4A;
 }
@@ -19,9 +22,12 @@ body::before {
     z-index:-1;
 }
 
+/* =========================
+   PAGE
+========================= */
 .page-container {
-    width: 90%;
-    margin: 130px auto 50px auto;
+    width: 95%;
+    margin: 120px auto 50px auto;
 }
 
 .page-title {
@@ -30,17 +36,21 @@ body::before {
     text-shadow: 0 0 18px var(--neon);
 }
 
-/* TOP FILTER */
+/* =========================
+   FILTER (Expenses only)
+========================= */
 .filter-row {
     margin-top: 20px;
     display: flex;
     align-items: center;
     gap: 15px;
 }
+
 .filter-label {
     font-size: 20px;
     font-weight: bold;
 }
+
 .filter-select {
     padding: 10px 14px;
     width: 180px;
@@ -51,15 +61,20 @@ body::before {
     font-weight: bold;
 }
 
-/* ACTION BAR */
+/* =========================
+   ACTION BAR
+========================= */
 .top-actions {
     display:flex;
     justify-content: space-between;
     margin-top: 15px;
 }
 
+/* =========================
+   BUTTONS
+========================= */
 .btn-green, .btn-red {
-    padding:10px 18px;
+    padding:8px 14px;
     border-radius:6px;
     cursor:pointer;
     border:none;
@@ -76,6 +91,9 @@ body::before {
     color:white;
 }
 
+/* =========================
+   SEARCH
+========================= */
 .search-bar {
     width:200px;
     padding:10px;
@@ -85,38 +103,80 @@ body::before {
     color:var(--neon);
 }
 
-/* TOTAL BOX */
+/* =========================
+   TOTAL BOX
+========================= */
 .total-box {
     margin-top:20px;
     font-size:22px;
     text-shadow:0 0 10px var(--neon);
 }
 
-/* TABLE */
+/* =========================
+   TABLE BOX
+========================= */
 .table-box {
     margin-top:20px;
     background:rgba(0,0,0,0.7);
-    padding:15px;
+    padding:20px;
     border-radius:12px;
     box-shadow:0 0 18px var(--neon);
 }
 
+/* =========================
+   TABLE FIX (MAIN)
+========================= */
 .exp-table {
     width:100%;
     border-collapse:collapse;
+    table-layout: fixed; /* 🔥 IMPORTANT */
 }
 
-.exp-table th {
-    padding:12px;
-    border-bottom:2px solid var(--neon);
-}
-
+.exp-table th,
 .exp-table td {
-    padding:10px;
+    padding:12px;
+    text-align:center;
+    vertical-align:middle;
     border-bottom:1px solid var(--neon);
 }
 
-/* POPUPS */
+.exp-table th {
+    border-bottom:2px solid var(--neon);
+}
+
+/* =========================
+   COLUMN WIDTH FIX
+========================= */
+.exp-table th:nth-child(1),
+.exp-table td:nth-child(1) {
+    width: 25%;
+}
+
+.exp-table th:nth-child(2),
+.exp-table td:nth-child(2) {
+    width: 20%;
+}
+
+.exp-table th:nth-child(3),
+.exp-table td:nth-child(3) {
+    width: 30%;
+}
+
+.exp-table th:nth-child(4),
+.exp-table td:nth-child(4) {
+    width: 25%;
+}
+
+/* =========================
+   BUTTON ALIGN
+========================= */
+.exp-table td button {
+    margin: 0 4px;
+}
+
+/* =========================
+   POPUP
+========================= */
 .popup {
     position:fixed;
     top:0; left:0;
