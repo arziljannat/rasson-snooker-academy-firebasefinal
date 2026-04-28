@@ -76,13 +76,34 @@ function loadDashboardRealtime() {
     todayStart.setHours(0,0,0,0);
 
     onSnapshot(collection(window.db, "tables"), snap => {
-        tablesData=[];
-        snap.forEach(d=>{
-            let t=d.data();
-            if((t.branch || "").toLowerCase() === branch) tablesData.push(t);
-        });
-        updateDashboard();
+
+    tablesData = [];
+
+    let uniqueTables = {};
+
+    snap.forEach(d => {
+
+        let t = d.data();
+
+        // ONLY CURRENT BRANCH
+        if ((t.branch || "").toLowerCase() !== branch) return;
+
+        // TABLE NAME
+        let tableName =
+            (t.table_id || t.name || "")
+            .toLowerCase()
+            .trim();
+
+        // SKIP DUPLICATES
+        if (uniqueTables[tableName]) return;
+
+        uniqueTables[tableName] = true;
+
+        tablesData.push(t);
     });
+
+    updateDashboard();
+});
 
     onSnapshot(collection(window.db, "sessions"), snap => {
         sessionsData=[];
