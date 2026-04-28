@@ -37,6 +37,8 @@ let tablesData = [];
 let sessionsData = [];
 let canteenData = [];
 let expenseData = [];
+let realtimeTodayEasy = 0;
+let realtimeMonthlyEasy = 0;
 
 function loadDashboardRealtime() {
 
@@ -124,6 +126,8 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
     setText("todayEasyPaisa", todayEasy);
     setText("monthlyEasyPaisa", monthlyEasy);
+    realtimeTodayEasy = todayEasy;
+    realtimeMonthlyEasy = monthlyEasy;
 
 });
 }
@@ -143,8 +147,10 @@ function updateDashboard() {
     let today_expense=0;
 
     let monthly_income=0;
-    let today_easy = 0;
-    let monthly_easy = 0;
+
+    let today_easy = realtimeTodayEasy || 0;
+    let monthly_easy = realtimeMonthlyEasy || 0;
+
     let monthly_canteen=0;
     let monthly_expense=0;
     let shift1Monthly = 0;
@@ -270,36 +276,29 @@ sessionsData.forEach(s=>{
 });
 
     // ================= EASYPAISA =================
-const easyCardsToday = document.getElementById("todayEasyPaisa");
-const easyCardsMonth = document.getElementById("monthlyEasyPaisa");
 
-if (easyCardsToday) {
-    today_easy = parseFloat(easyCardsToday.innerText) || 0;
-}
-
-if (easyCardsMonth) {
-    monthly_easy = parseFloat(easyCardsMonth.innerText) || 0;
-}
 
     // ================= UI =================
     setText("totalTables", tablesData.length);
-    const activeTablesCount = tablesData.filter(t => {
+    const activeTablesCount = sessionsData.filter(s => {
 
-    const hasStart =
-        t.checkin_time ||
-        t.checkInTime ||
-        t.start_time ||
-        t.startTime ||
-        t.start ||
-        t.startedAt;
+    const sameDay =
+        String(
+            s.day_id ||
+            s.dayId ||
+            s.current_day_id ||
+            ""
+        ) === String(currentDayId);
 
-    const hasEnd =
-        t.checkout_time ||
-        t.checkoutTime ||
-        t.end_time ||
-        t.endTime;
+       const running =
+        !s.end_time &&
+        !s.endTime &&
+        !s.checkout_time &&
+        !s.checkoutTime &&
+        !s.closeTime &&
+        !s.close_time;
 
-    return hasStart && !hasEnd;
+    return sameDay && running;
 
 }).length;
     
