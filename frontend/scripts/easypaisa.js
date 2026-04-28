@@ -18,7 +18,7 @@ if (!db) {
 
 const branch = (localStorage.getItem("branch") || "").toLowerCase();
 const role = (localStorage.getItem("role") || "").toLowerCase();
-const currentDayId = Number(localStorage.getItem("currentDayId"));
+const currentDayId = window.currentDayId;
 
 let easyData = [];
 
@@ -50,7 +50,7 @@ window.saveEasy = async () => {
         amount,
         note,
         branch,
-        day_id: currentDayId,
+        day_id: window.currentDayId,
         created_at: serverTimestamp()
     });
 
@@ -105,7 +105,7 @@ window.updateEasy = async () => {
 const q = query(
     collection(db, "easypaisa"),
     where("branch", "==", branch),
-    where("day_id", "==", currentDayId),
+    where("day_id", "==", window.currentDayId),
     orderBy("created_at", "desc")
 );
 
