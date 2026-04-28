@@ -108,54 +108,6 @@ window.deleteExpense = async (id) => {
 
     await deleteDoc(doc(db, "expenses", id));
 };
-
-// =========================
-// QUERY
-// =========================
-const q = query(
-    collection(db, "expenses"),
-    where("branch", "==", branch),
-    where("day_id", "==", window.currentDayId),
-    orderBy("created_at", "desc")
-);
-
-// =========================
-// TIME FORMAT
-// =========================
-function formatTime(timestamp) {
-
-    if (!timestamp) return "-";
-
-    let date;
-
-    if (timestamp.seconds) {
-        date = new Date(timestamp.seconds * 1000);
-    } else {
-        date = new Date(timestamp);
-    }
-
-    return date.toLocaleString("en-PK", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Karachi"
-    });
-}
-
-// =========================
-// REALTIME
-// =========================
-onSnapshot(q, (snap) => {
-
-    expenseData = [];
-
-    snap.forEach(d => {
-        expenseData.push({ id: d.id, ...d.data() });
-    });
-
-    renderTable();
-});
-
 // =========================
 // RENDER
 // =========================
@@ -192,3 +144,35 @@ function renderTable() {
 
     document.getElementById("todayTotal").innerText = total + " PKR";
 }
+
+
+function startExpensesListener() {
+
+    if (!window.currentDayId) {
+        console.log("⏳ Waiting for currentDayId...");
+        setTimeout(startExpensesListener, 500);
+        return;
+    }
+
+    console.log("✅ DAY ID READY:", window.currentDayId);
+
+    const q = query(
+        collection(db, "expenses"),
+        where("branch", "==", branch),
+        where("day_id", "==", window.currentDayId),
+        orderBy("created_at", "desc")
+    );
+
+    onSnapshot(q, (snap) => {
+
+        expenseData = [];
+
+        snap.forEach(d => {
+            expenseData.push({ id: d.id, ...d.data() });
+        });
+
+        renderTable();
+    });
+}
+
+startExpensesListener();
