@@ -11,6 +11,24 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadCurrentDayId() {
+
+    const snap = await getDocs(collection(db, "system"));
+
+    snap.forEach(d => {
+
+        const data = d.data();
+
+        if (data.type === "current_day" && data.branch === branch) {
+            window.currentDayId = data.day_id;
+        }
+    });
+
+    console.log("✅ EASY CURRENT DAY ID:", window.currentDayId);
+}
+
 const db = window.db;
 if (!db) {
     console.error("❌ Firebase DB not loaded");
@@ -160,7 +178,8 @@ function renderTable() {
     document.getElementById("todayEasyTotal").innerText = total + " PKR";
 }
 
-
+await loadCurrentDayId();
+startEasyListener();
 function startEasyListener() {
 
     if (!window.currentDayId) {
