@@ -165,11 +165,11 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
 
         // MONTHLY
         if (
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()
-        ) {
-            monthlyEasy += amount;
-        }
+            date.getMonth() === selectedMonth &&
+            date.getFullYear() === selectedYear
+            ) {
+                monthlyEasy += amount;
+              }
     });
 
     setText("todayEasyPaisa", todayEasy);
@@ -316,11 +316,11 @@ sessionsData.forEach(s=>{
 
     // MONTHLY
     if(
-        date.getMonth() === now.getMonth() &&
-        date.getFullYear() === now.getFullYear()
-    ){
-        monthly_expense += amount;
-    }
+            date.getMonth() === selectedMonth &&
+            date.getFullYear() === selectedYear
+        ){
+            monthly_expense += amount;
+         }
 });
 
     // ================= EASYPAISA =================
@@ -385,7 +385,23 @@ setText("netProfit", finalMonthlyProfit);
     setText("shift1Monthly", shift1Monthly);
     setText("shift2Monthly", shift2Monthly);
 
-    let daysPassed = new Date().getDate();
+    let daysPassed;
+
+const currentDate = new Date();
+
+if(
+    selectedMonth === currentDate.getMonth() &&
+    selectedYear === currentDate.getFullYear()
+    ){
+    daysPassed = currentDate.getDate();
+    }else{
+    daysPassed = new Date(
+        selectedYear,
+        selectedMonth + 1,
+        0
+        ).getDate();
+    }
+
     let monthlyAvg = monthly_income / daysPassed;
     setText("monthlyAverage", Math.round(monthlyAvg));
 
