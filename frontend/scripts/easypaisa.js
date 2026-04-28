@@ -92,8 +92,7 @@ window.updateEasy = async () => {
 
     await updateDoc(doc(db, "easypaisa", window.editId), {
     amount,
-    note,
-    created_at: serverTimestamp()
+    note
 });
 
     window.editId = null;
@@ -105,7 +104,9 @@ window.updateEasy = async () => {
 // =========================
 const q = query(
     collection(db, "easypaisa"),
-    where("branch", "==", branch)
+    where("branch", "==", branch),
+    where("day_id", "==", currentDayId),
+    orderBy("created_at", "desc")
 );
 
 onSnapshot(q, (snap) => {
