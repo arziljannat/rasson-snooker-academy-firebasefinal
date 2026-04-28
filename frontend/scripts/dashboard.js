@@ -136,6 +136,8 @@ function loadDashboardRealtime() {
 // ✅ EASYPAISA
 onSnapshot(collection(window.db, "easypaisa"), snap => {
 
+    window.latestEasyDocs = [];
+
     let todayEasy = 0;
     let monthlyEasy = 0;
 
@@ -145,6 +147,7 @@ onSnapshot(collection(window.db, "easypaisa"), snap => {
     snap.forEach(d => {
 
         let e = d.data();
+        window.latestEasyDocs.push(e);
 
         if ((e.branch || "").toLowerCase() !== branch) return;
 
@@ -385,24 +388,19 @@ setText("netProfit", finalMonthlyProfit);
     setText("shift1Monthly", shift1Monthly);
     setText("shift2Monthly", shift2Monthly);
 
-    let daysPassed;
+    let totalMonthDays = new Date(
+    selectedYear,
+    selectedMonth + 1,
+    0
+).getDate();
 
-const currentDate = new Date();
+let monthlyAvg =
+    Number(monthly_income || 0) / totalMonthDays;
 
-if(
-    selectedMonth === currentDate.getMonth() &&
-    selectedYear === currentDate.getFullYear()
-    ){
-    daysPassed = currentDate.getDate();
-    }else{
-    daysPassed = new Date(
-        selectedYear,
-        selectedMonth + 1,
-        0
-        ).getDate();
-    }
-
-    let monthlyAvg = monthly_income / daysPassed;
+setText(
+    "monthlyAverage",
+    Math.round(monthlyAvg)
+);
     setText("monthlyAverage", Math.round(monthlyAvg));
 
     // 🔥 REALTIME CHARTS
@@ -462,14 +460,19 @@ function setText(id, value) {
 
 function renderMonthlyCharts(sessionsData, canteenData, expenseData){
 
-    let now = new Date();
-    let daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    let daysInMonth = new Date(
+    selectedYear,
+    selectedMonth + 1,
+    0
+).getDate();
 
     let labels = [];
     let incomeArr = new Array(daysInMonth).fill(0);
     let canteenArr = new Array(daysInMonth).fill(0);
     let expenseArr = new Array(daysInMonth).fill(0);
     let profitArr = new Array(daysInMonth).fill(0);
+
+    let easyArr = new Array(daysInMonth).fill(0);
 
     let shift1Arr = new Array(daysInMonth).fill(0);
     let shift2Arr = new Array(daysInMonth).fill(0);
@@ -542,9 +545,40 @@ sessionsData.forEach(s=>{
 });
 
     // 🔥 PROFIT
-    for(let i=0;i<daysInMonth;i++){
-        profitArr[i] = (incomeArr[i] + canteenArr[i]) - expenseArr[i];
+    // 🔥 EASYPAISA
+const easypaisaDocs = window.latestEasyDocs || [];
+
+easypaisaDocs.forEach(e=>{
+
+    let date;
+
+    if (e.created_at?.seconds) {
+        date = new Date(e.created_at.seconds * 1000);
+    } else {
+        date = new Date(e.created_at);
     }
+
+    if(isNaN(date.getTime())) return;
+
+    if(
+        date.getMonth() !== selectedMonth ||
+        date.getFullYear() !== selectedYear
+    ) return;
+
+    let day = date.getDate() - 1;
+
+    easyArr[day] += Number(e.amount || 0);
+});
+
+// 🔥 PROFIT
+for(let i=0;i<daysInMonth;i++){
+
+    profitArr[i] =
+        incomeArr[i]
+        + canteenArr[i]
+        - expenseArr[i]
+        - easyArr[i];
+}
 
     // 🔥 CREATE CHARTS
     createChart("monthlyIncomeChart", "Income", labels, incomeArr);
