@@ -42,7 +42,7 @@ document.getElementById("addBtn").addEventListener("click", async () => {
 // REALTIME LOAD
 // =========================
 const q = query(
-    collection(db, "easypaisa")
+    collection(db, "easypaisa"),
     where("branch", "==", branch),
     where("day_id", "==", currentDayId),
     orderBy("created_at", "desc")
