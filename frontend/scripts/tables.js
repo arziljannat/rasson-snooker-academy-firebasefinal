@@ -1243,6 +1243,11 @@ function openHistory(id) {
     let body = document.getElementById("historyTableBody");
     body.innerHTML = "";
 
+    // 🔥 LATEST CHECKOUT FIRST
+t.history.sort((a, b) => {
+    return b.checkout - a.checkout;
+});
+    
     if (t.history.length === 0) {
         body.innerHTML = `
             <tr><td colspan="9" style="text-align:center;">No history found.</td></tr>
@@ -2703,27 +2708,8 @@ function buildTableHistoryRow(t, d) {
  ******************************************************/
 
 let historyPage = 1;
-let historyPerPage = 5;  // 5 rows per page (you can change this)
+let historyPerPage = 100;
 
-function nextPage() {
-    let tableId = document.getElementById("tableHistoryTableSelect").value;
-    let t = tables.find(x => String(x.id) === String(tableId));
-
-    if (!t || t.history.length === 0) return;
-
-    let maxPage = Math.ceil(t.history.length / historyPerPage);
-    if (historyPage < maxPage) {
-        historyPage++;
-        renderHistoryPage();
-    }
-}
-
-function prevPage() {
-    if (historyPage > 1) {
-        historyPage--;
-        renderHistoryPage();
-    }
-}
 
 function renderHistoryPage() {
 
@@ -2765,9 +2751,6 @@ ${h.paid
             </tr>
         `;
     });
-
-    // Update current page number display
-    document.getElementById("pageNumber").innerText = historyPage;
 }
 
 /******************************************************
