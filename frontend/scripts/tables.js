@@ -646,7 +646,8 @@ const q = query(
     collection(window.db, "sessions"),
     where("table_id", "==", t.name),
     where("branch", "==", BRANCH),
-    where("end_time", "==", null)
+    where("end_time", "==", null),
+    where("is_deleted", "!=", true)
 );
 
 const snap = await getDocs(q);
@@ -3013,6 +3014,12 @@ snapshot.forEach(docSnap => {
     const s = docSnap.data();
     activeTables.add(s.table_id);
 });
+
+// 🔥 EMPTY SNAPSHOT PROTECTION
+if (snapshot.empty) {
+    console.log("⚠️ Empty snapshot ignored");
+    return;
+}
 
 tables.forEach(t => {
 
