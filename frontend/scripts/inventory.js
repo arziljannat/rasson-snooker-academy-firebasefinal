@@ -120,12 +120,24 @@ window.saveNewItem = async function () {
         }
 
         await addDoc(collection(window.db, "inventory"), {
-            name,
-            stock: qty,
-            price: Number(document.getElementById("newCost").value),
-            selling_price: Number(document.getElementById("newSell").value),
-            branch: currentBranch
-        });
+    name,
+    stock: qty,
+    price: Number(document.getElementById("newCost").value),
+    selling_price: Number(document.getElementById("newSell").value),
+    branch: currentBranch
+});
+
+// ✅ INVENTORY LOG
+await addDoc(collection(window.db, "inventory_logs"), {
+
+    item_name: name,
+    qty: qty,
+    type: "add",
+    price: Number(document.getElementById("newCost").value),
+    selling_price: Number(document.getElementById("newSell").value),
+    branch: currentBranch,
+    created_at: new Date().toISOString()
+});
 
         closeAddPopup();
         loadInventory();
@@ -136,30 +148,73 @@ window.saveNewItem = async function () {
 };
 
 window.updateItem = async function () {
+
     try {
-        await updateDoc(doc(window.db, "inventory", selectedItemId), {
-            name: document.getElementById("editName").value,
-            stock: Number(document.getElementById("editQty").value),
-            price: Number(document.getElementById("editCost").value),
-            selling_price: Number(document.getElementById("editSell").value)
+
+        const itemName =
+            document.getElementById("editName").value;
+
+        const newQty =
+            Number(document.getElementById("editQty").value);
+
+        await updateDoc(
+            doc(window.db, "inventory", selectedItemId),
+            {
+                name: itemName,
+                stock: newQty,
+                price: Number(document.getElementById("editCost").value),
+                selling_price: Number(document.getElementById("editSell").value)
+            }
+        );
+
+        // ✅ INVENTORY LOG
+        await addDoc(collection(window.db, "inventory_logs"), {
+
+            item_name: itemName,
+            qty: newQty,
+            type: "edit",
+            branch: currentBranch,
+            created_at: new Date().toISOString()
         });
 
         closeEditPopup();
         loadInventory();
 
     } catch (err) {
+
         console.error("UPDATE ERROR:", err);
     }
 };
 
 window.confirmDelete = async function () {
+
     try {
-        await deleteDoc(doc(window.db, "inventory", selectedItemId));
+
+        const item =
+            inventoryData.find(i => i.id === selectedItemId);
+
+        // ✅ INVENTORY LOG
+        if (item) {
+
+            await addDoc(collection(window.db, "inventory_logs"), {
+
+                item_name: item.name,
+                qty: item.stock,
+                type: "delete",
+                branch: currentBranch,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        await deleteDoc(
+            doc(window.db, "inventory", selectedItemId)
+        );
 
         closeDeletePopup();
         loadInventory();
 
     } catch (err) {
+
         console.error("DELETE ERROR:", err);
     }
 };
