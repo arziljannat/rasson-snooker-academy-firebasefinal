@@ -391,11 +391,28 @@ if (
     role !== "super_admin"
 ) {
 
+    // HIDE MONTH FILTER
     const monthBox =
         document.getElementById("monthFilterBox");
 
     if (monthBox) {
         monthBox.style.display = "none";
+    }
+
+    // HIDE DATE INPUT
+    const newDate =
+        document.getElementById("newDate");
+
+    if (newDate) {
+        newDate.style.display = "none";
+    }
+
+    // HIDE EDIT DATE INPUT
+    const editDate =
+        document.getElementById("editDate");
+
+    if (editDate) {
+        editDate.style.display = "none";
     }
 }
 
