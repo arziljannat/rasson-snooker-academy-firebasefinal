@@ -1126,6 +1126,17 @@ async function addItem(tableId, itemId, price, name) {
     await updateDoc(doc(window.db, "inventory", itemId), {
         stock: increment(-1)
     });
+  // ✅ INVENTORY SALE LOG
+await addDoc(
+    collection(window.db, "inventory_logs"),
+    {
+        item_name: getItemName(item),
+        qty: 1,
+        type: "sale",
+        branch: BRANCH,
+        created_at: new Date().toISOString()
+    }
+);
 
     // 🔥 LOCAL UPDATE (IMPORTANT)
     item.stock = Math.max(0, (item.stock || 0) - 1);
