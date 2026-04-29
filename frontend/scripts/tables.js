@@ -3046,12 +3046,6 @@ snapshot.forEach(docSnap => {
     activeTables.add(s.table_id);
 });
 
-// 🔥 EMPTY SNAPSHOT PROTECTION
-if (snapshot.empty) {
-    console.log("⚠️ Empty snapshot ignored");
-    return;
-}
-
 tables.forEach(t => {
 
     if (t.afterCheckout) return;
@@ -3448,8 +3442,7 @@ async function rebuildHistoryFromSessions() {
 
     const q = query(
         collection(window.db, "sessions"),
-        where("branch", "==", BRANCH),
-        where("is_deleted", "==", false)
+        where("branch", "==", BRANCH)
     );
 
     const snap = await getDocs(q);
@@ -3460,6 +3453,10 @@ async function rebuildHistoryFromSessions() {
     snap.forEach(docSnap => {
 
         const s = docSnap.data();
+      // 🔥 skip deleted
+if (s.is_deleted === true) {
+    return;
+}
 
         console.log("🔥 SESSION:", s);
 
@@ -3592,6 +3589,11 @@ async function softDeleteSession(tableId, historyIndex) {
         await rebuildHistoryFromSessions();
 
         renderTables();
+
+      // 🔥 FORCE GLOBAL REFRESH
+          setTimeout(() => {
+                    autoRefreshUI();
+                                  }, 500);
 
         alert("Session deleted successfully ✅");
 
