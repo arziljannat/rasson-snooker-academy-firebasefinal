@@ -3553,15 +3553,18 @@ async function softDeleteSession(tableId, historyIndex) {
 
             const data = d.data();
 
-            const startMatch =
-                new Date(data.start_time).getTime() === h.checkin;
+           const startDiff = Math.abs(
+        new Date(data.start_time).getTime() - h.checkin
+                );
 
-            const endMatch =
-                new Date(data.end_time).getTime() === h.checkout;
+          const endDiff = Math.abs(
+        new Date(data.end_time).getTime() - h.checkout
+                );
 
-            if (startMatch && endMatch) {
-                targetSession = d;
-            }
+// 🔥 5 second tolerance
+if (startDiff < 5000 && endDiff < 5000) {
+    targetSession = d;
+}
         });
 
         if (!targetSession) {
