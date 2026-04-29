@@ -3469,10 +3469,12 @@ async function rebuildHistoryFromSessions() {
         const currentDayId = String(window.currentDayId || "").trim();
         const sessionDayId = String(s.day_id || "").trim();
 
-        // ✅ ONLY CURRENT ACTIVE DAY
-        if (sessionDayId !== currentDayId) {
-            return;
-        }
+        // ✅ current day filter
+// old sessions without day_id bhi allow karo
+
+if (sessionDayId && sessionDayId !== currentDayId) {
+    return;
+}
 
         let t = tables.find(x => x.name === s.table_id);
 
