@@ -647,7 +647,7 @@ const q = query(
     where("table_id", "==", t.name),
     where("branch", "==", BRANCH),
     where("end_time", "==", null),
-    where("is_deleted", "!=", true)
+    where("is_deleted", "==", false)
 );
 
 const snap = await getDocs(q);
@@ -667,17 +667,19 @@ if (!snap.empty) {
 try {
 
     await addDoc(collection(window.db, "sessions"), {
-        table_id: t.name,
-        branch: BRANCH,
+    table_id: t.name,
+    branch: BRANCH,
 
-        start_time: new Date().toISOString(),
-        end_time: null,
+    start_time: new Date().toISOString(),
+    end_time: null,
 
-        play_type: t.playType,
-        frame_rate: t.frameRate,
-        century_rate: t.centuryRate,
-        day_id: window.currentDayId
-    });
+    play_type: t.playType,
+    frame_rate: t.frameRate,
+    century_rate: t.centuryRate,
+    day_id: window.currentDayId,
+
+    is_deleted: false
+});
 
 } catch (err) {
     console.error("❌ Session create error:", err);
@@ -1017,7 +1019,8 @@ async function completePayment(id) {
 const q = query(
     collection(window.db, "sessions"),
     where("table_id", "==", t.name),
-    where("branch", "==", BRANCH)
+    where("branch", "==", BRANCH),
+    where("is_deleted", "==", false)
 );
 
 // 🔥 ONLY LAST SESSION KO PAID KARO
@@ -1333,7 +1336,8 @@ document.getElementById("paidBtn").onclick = async () => {
     const q = query(
         collection(window.db, "sessions"),
         where("table_id", "==", t.name),
-        where("branch", "==", BRANCH)
+        where("branch", "==", BRANCH),
+      where("is_deleted", "==", false)
     );
 
     const snap = await getDocs(q);
@@ -2535,6 +2539,16 @@ function buildDayRow(s) {
  ******************************************************/
 function openTableHistory() {
 
+  if (!window._daysData || window._daysData.length === 0) {
+    openDayHistory();
+
+    setTimeout(() => {
+        openTableHistory();
+    }, 1000);
+
+    return;
+}
+
     let dateSel = document.getElementById("tableHistoryDateSelect");
     dateSel.innerHTML = "";
 
@@ -3002,7 +3016,7 @@ function listenRunningSessionsRealtime() {
     collection(window.db, "sessions"),
     where("branch", "==", BRANCH),
     where("end_time", "==", null),
-    where("is_deleted", "!=", true)
+    where("is_deleted", "==", false)
 );
 
     onSnapshot(q, (snapshot) => {
@@ -3418,7 +3432,7 @@ async function rebuildHistoryFromSessions() {
     const q = query(
     collection(window.db, "sessions"),
     where("branch", "==", BRANCH),
-    where("is_deleted", "!=", true)
+    where("is_deleted", "==", false)
 );
 
     const snap = await getDocs(q);
@@ -3501,10 +3515,11 @@ async function softDeleteSession(tableId, historyIndex) {
     try {
 
         const q = query(
-            collection(window.db, "sessions"),
-            where("table_id", "==", t.name),
-            where("branch", "==", BRANCH)
-        );
+    collection(window.db, "sessions"),
+    where("table_id", "==", t.name),
+    where("branch", "==", BRANCH),
+    where("is_deleted", "==", false)
+);
 
         const snap = await getDocs(q);
 
