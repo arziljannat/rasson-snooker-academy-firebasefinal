@@ -105,7 +105,11 @@
 
         <input id="newTitle" class="popup-input" placeholder="Expense Title">
         <input id="newAmount" type="number" class="popup-input" placeholder="Amount">
-        <input id="newDate" type="datetime-local" class="popup-input">
+        <input
+    id="newDate"
+    type="datetime-local"
+    class="popup-input admin-only"
+>
 
         <div class="popup-actions">
             <button class="btn-green" onclick="saveExpense()">Save</button>
