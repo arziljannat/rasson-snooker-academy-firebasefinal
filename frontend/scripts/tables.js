@@ -3541,8 +3541,7 @@ async function softDeleteSession(tableId, historyIndex) {
         const q = query(
     collection(window.db, "sessions"),
     where("table_id", "==", t.name),
-    where("branch", "==", BRANCH),
-    where("is_deleted", "==", false)
+    where("branch", "==", BRANCH)
 );
 
         const snap = await getDocs(q);
@@ -3553,6 +3552,11 @@ let smallestDiff = Infinity;
 snap.forEach(d => {
 
     const data = d.data();
+
+    // 🔥 skip already deleted
+    if (data.is_deleted === true) {
+        return;
+    }
 
     // ❌ skip running session
     if (!data.end_time) return;
@@ -3576,7 +3580,6 @@ snap.forEach(d => {
 
     const totalDiff = startDiff + endDiff;
 
-    // 🔥 nearest session pick karo
     if (totalDiff < smallestDiff) {
 
         smallestDiff = totalDiff;
@@ -3584,7 +3587,6 @@ snap.forEach(d => {
         targetSession = d;
     }
 });
-
       console.log("🔥 TARGET SESSION:", targetSession?.data());
 console.log("🔥 HISTORY:", h);
 
