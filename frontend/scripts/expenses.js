@@ -140,13 +140,27 @@ window.editExpense = (
     let d;
 
     if (created_at.seconds) {
+
         d = new Date(created_at.seconds * 1000);
+
     } else {
+
         d = new Date(created_at);
     }
 
-    document.getElementById("editDate").value =
-        d.toISOString().slice(0,16);
+    // ✅ INVALID DATE FIX
+    if (!isNaN(d.getTime())) {
+
+        const localDate =
+            new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+
+        document.getElementById("editDate").value =
+            localDate.toISOString().slice(0, 16);
+
+    } else {
+
+        document.getElementById("editDate").value = "";
+    }
 }
 
     document.getElementById("editPopup").classList.remove("hide");
