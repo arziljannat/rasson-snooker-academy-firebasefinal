@@ -246,6 +246,8 @@ const easyYear =
     let shift2Monthly = 0;
     // ================= SESSIONS =================
     sessionsData.forEach(s=>{
+        // 🔥 SKIP DELETED SESSIONS
+if (s.is_deleted === true) return;
 
     let date = new Date(s.start_time || s.startTime || s.created_at);
     let amount = Number(
@@ -318,7 +320,8 @@ if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
 // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
     // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
 sessionsData.forEach(s=>{
-
+// 🔥 SKIP DELETED SESSIONS
+if (s.is_deleted === true) return;
     let date = new Date(s.start_time || s.startTime || s.created_at);
     let canteen = Number(s.canteen_total || 0);
 
@@ -370,6 +373,9 @@ sessionsData.forEach(s=>{
     // ================= UI =================
     setText("totalTables", tablesData.length);
     const activeTablesCount = sessionsData.filter(s => {
+
+        // 🔥 SKIP DELETED
+if (s.is_deleted === true) return false;
 
     const sameDay =
         String(
@@ -520,6 +526,10 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
 
     // 🔥 SESSIONS
     sessionsData.forEach(s=>{
+
+        // 🔥 SKIP DELETED SESSIONS
+if (s.is_deleted === true) return;
+        
         let d = new Date(s.start_time || s.startTime || s.created_at);
         if(
     d.getMonth() !== selectedMonth ||
@@ -562,6 +572,11 @@ canteenData.forEach(c=>{
 
 // 🔥 CANTEEN FROM SESSIONS (SEPARATE LOOP)
 sessionsData.forEach(s=>{
+
+    // 🔥 SKIP DELETED SESSIONS
+if (s.is_deleted === true) return;
+
+    
     let d = new Date(s.start_time || s.startTime || s.created_at);
     if(
     d.getMonth() !== selectedMonth ||
