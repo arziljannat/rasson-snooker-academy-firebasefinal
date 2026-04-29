@@ -39,6 +39,7 @@ const role = (localStorage.getItem("role") || "").toLowerCase();
 const currentDayId = window.currentDayId;
 
 let easyData = [];
+let selectedMonth = null;
 
 // =========================
 // POPUP
@@ -46,6 +47,15 @@ let easyData = [];
 window.openEasyPopup = () => {
     document.getElementById("easyPopup").classList.remove("hide");
 };
+
+window.filterEasyByMonth = () => {
+
+    selectedMonth =
+        document.getElementById("monthFilter").value;
+
+    renderTable();
+};
+
 
 window.closeEasyPopup = () => {
     document.getElementById("easyPopup").classList.add("hide");
@@ -134,9 +144,15 @@ function formatTime(timestamp) {
     }
 
     return date.toLocaleString("en-PK", {
+
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
+
         hour12: true,
         timeZone: "Asia/Karachi"
     });
@@ -152,9 +168,29 @@ function renderTable() {
 
     let total = 0;
 
-    easyData.forEach(e => {
+easyData.forEach(e => {
 
-        total += Number(e.amount || 0);
+    // 🔥 MONTH FILTER
+    if (selectedMonth) {
+
+        let d;
+
+        if (e.created_at?.seconds) {
+            d = new Date(e.created_at.seconds * 1000);
+        } else {
+            d = new Date(e.created_at);
+        }
+
+        const month =
+            d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0");
+
+        if (month !== selectedMonth) {
+            return;
+        }
+    }
+
+    total += Number(e.amount || 0);
 
         let actions = "";
 
