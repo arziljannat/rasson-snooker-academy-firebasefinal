@@ -3548,24 +3548,45 @@ async function softDeleteSession(tableId, historyIndex) {
         const snap = await getDocs(q);
 
         let targetSession = null;
+let smallestDiff = Infinity;
 
-        snap.forEach(d => {
+snap.forEach(d => {
 
-            const data = d.data();
+    const data = d.data();
 
-           const startDiff = Math.abs(
+    // ❌ skip running session
+    if (!data.end_time) return;
+
+    // 🔥 DAY FILTER
+    const firebaseDayId = String(data.day_id || "").trim();
+    const historyDayId = String(window.currentDayId || "").trim();
+
+    // old sessions allow
+    if (firebaseDayId && firebaseDayId !== historyDayId) {
+        return;
+    }
+
+    const startDiff = Math.abs(
         new Date(data.start_time).getTime() - h.checkin
-                );
+    );
 
-          const endDiff = Math.abs(
+    const endDiff = Math.abs(
         new Date(data.end_time).getTime() - h.checkout
-                );
+    );
 
-// 🔥 5 second tolerance
-if (startDiff < 5000 && endDiff < 5000) {
-    targetSession = d;
-}
-        });
+    const totalDiff = startDiff + endDiff;
+
+    // 🔥 nearest session pick karo
+    if (totalDiff < smallestDiff) {
+
+        smallestDiff = totalDiff;
+
+        targetSession = d;
+    }
+});
+
+      console.log("🔥 TARGET SESSION:", targetSession?.data());
+console.log("🔥 HISTORY:", h);
 
         if (!targetSession) {
             alert("Session not found ❌");
