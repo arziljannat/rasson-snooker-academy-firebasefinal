@@ -58,7 +58,16 @@ window.filterEasyByMonth = () => {
 
 
 window.closeEasyPopup = () => {
-    document.getElementById("easyPopup").classList.add("hide");
+
+    document.getElementById("easyPopup")
+    .classList.add("hide");
+
+    // CLEAR FORM
+    document.getElementById("easyAmount").value = "";
+    document.getElementById("easyNote").value = "";
+
+    // RESET EDIT MODE
+    window.editId = null;
 };
 
 // =========================
@@ -115,15 +124,25 @@ window.editEasy = (id, amount, note) => {
 
 window.updateEasy = async () => {
 
-    const amount = Number(document.getElementById("easyAmount").value);
-    const note = document.getElementById("easyNote").value;
+    const amount =
+        Number(document.getElementById("easyAmount").value);
 
-    await updateDoc(doc(db, "easypaisa", window.editId), {
-    amount,
-    note
-});
+    const note =
+        document.getElementById("easyNote").value;
 
-    window.editId = null;
+    if (!amount || amount <= 0) {
+        alert("Enter valid amount");
+        return;
+    }
+
+    await updateDoc(
+        doc(db, "easypaisa", window.editId),
+        {
+            amount,
+            note
+        }
+    );
+
     closeEasyPopup();
 };
 
