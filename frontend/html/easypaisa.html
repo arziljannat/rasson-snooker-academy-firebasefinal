@@ -37,12 +37,26 @@
         <b id="todayEasyTotal">0 PKR</b>
     </div>
 
+    <div class="filter-row admin-only">
+
+    <label class="filter-label">Month:</label>
+
+    <input
+        type="month"
+        id="monthFilter"
+        class="filter-select"
+        onchange="filterEasyByMonth()"
+    >
+
+</div>
+    
+
     <!-- TABLE -->
     <div class="table-box">
         <table class="exp-table">
             <thead>
 <tr>
-    <th>Time</th>
+    <th>Date & Time</th>
     <th>Amount</th>
     <th>Note</th>
     <th>Actions</th>
