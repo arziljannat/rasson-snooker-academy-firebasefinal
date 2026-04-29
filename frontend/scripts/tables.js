@@ -3460,10 +3460,11 @@ let startOfToday = new Date(
 
   
 
-const currentDayId = window.currentDayId;
+const currentDayId = String(window.currentDayId || "").trim();
+const sessionDayId = String(s.day_id || "").trim();
 
 // ✅ ONLY CURRENT ACTIVE DAY
-if (s.day_id != currentDayId) {
+if (sessionDayId !== currentDayId) {
     return;
 }
 
