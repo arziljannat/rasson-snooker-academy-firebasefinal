@@ -2,7 +2,9 @@ import {
   collection,
   getDocs,
   query,
-  where
+  where,
+  addDoc
+
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
@@ -64,51 +66,190 @@ async function loadReport() {
 
     try {
 
-        const q = query(
-            collection(window.db, "days"),
-            where("branch", "==", branch)
+        // =========================
+        // LOAD COLLECTIONS
+        // =========================
+
+        const sessionsSnap = await getDocs(
+            query(
+                collection(window.db, "sessions"),
+                where("branch", "==", branch)
+            )
         );
 
-        const snap = await getDocs(q);
+        const expenseSnap = await getDocs(
+            query(
+                collection(window.db, "expenses"),
+                where("branch", "==", branch)
+            )
+        );
 
-        let totalIncome = 0;
+        const easySnap = await getDocs(
+            query(
+                collection(window.db, "easypaisa"),
+                where("branch", "==", branch)
+            )
+        );
+
+        const canteenSnap = await getDocs(
+            query(
+                collection(window.db, "canteen_logs"),
+                where("branch", "==", branch)
+            )
+        );
+
+        // =========================
+        // TOTALS
+        // =========================
+
+        let totalGame = 0;
+        let totalCanteen = 0;
         let totalExpense = 0;
+        let totalEasy = 0;
 
-        let html = "<h3>Game Report</h3>";
+        // =========================
+        // GAME INCOME
+        // =========================
 
-        snap.forEach(doc => {
+        sessionsSnap.forEach(doc => {
 
             let d = doc.data();
-            let date = new Date(d.date + "T00:00:00");
+
+            if (!d.checkout_time) return;
+
+            let date;
+
+            if (d.checkout_time.seconds) {
+                date = new Date(d.checkout_time.seconds * 1000);
+            } else {
+                date = new Date(d.checkout_time);
+            }
 
             if (date >= dates.from && date <= dates.to) {
 
-                let game = d.combined?.gameTotal || 0;
-                let canteen = d.combined?.canteenTotal || 0;
-                let expense = d.combined?.expenses || 0;
-
-                html += "<div class='report-card'>";
-                html += "<b>" + d.date + "</b><br>";
-                html += "Game: Rs " + game + "<br>";
-                html += "Canteen: Rs " + canteen + "<br>";
-                html += "Expense: Rs " + expense + "<br>";
-                html += "<div>Total: Rs " + (game + canteen) + "</div>";
-                html += "</div><hr>";
-
-                totalIncome += (game + canteen);
-                totalExpense += expense;
+                totalGame += Number(d.total_price || 0);
             }
         });
 
-        html += "<h3>Total Income: Rs " + totalIncome + "</h3>";
-        html += "<h3>Total Expense: Rs " + totalExpense + "</h3>";
-        html += "<h2 style='color:#00ffcc;'>Net Profit: Rs " + (totalIncome - totalExpense) + "</h2>";
+        // =========================
+        // CANTEEN
+        // =========================
+
+        canteenSnap.forEach(doc => {
+
+            let d = doc.data();
+
+            let date;
+
+            if (d.created_at?.seconds) {
+                date = new Date(d.created_at.seconds * 1000);
+            } else {
+                date = new Date(d.created_at);
+            }
+
+            if (date >= dates.from && date <= dates.to) {
+
+                totalCanteen += Number(d.total || 0);
+            }
+        });
+
+        // =========================
+        // EXPENSES
+        // =========================
+
+        expenseSnap.forEach(doc => {
+
+            let d = doc.data();
+
+            let date;
+
+            if (d.created_at?.seconds) {
+                date = new Date(d.created_at.seconds * 1000);
+            } else {
+                date = new Date(d.created_at);
+            }
+
+            if (date >= dates.from && date <= dates.to) {
+
+                totalExpense += Number(d.amount || 0);
+            }
+        });
+
+        // =========================
+        // EASYPAISA
+        // =========================
+
+        easySnap.forEach(doc => {
+
+            let d = doc.data();
+
+            let date;
+
+            if (d.created_at?.seconds) {
+                date = new Date(d.created_at.seconds * 1000);
+            } else {
+                date = new Date(d.created_at);
+            }
+
+            if (date >= dates.from && date <= dates.to) {
+
+                totalEasy += Number(d.amount || 0);
+            }
+        });
+
+        // =========================
+        // NET
+        // =========================
+
+        let gross =
+            totalGame + totalCanteen;
+
+        let net =
+            gross - totalExpense - totalEasy;
+
+        // =========================
+        // HTML
+        // =========================
+
+        let html = `
+            <h2>Game Report</h2>
+
+            <div class="report-card">
+                <b>Game Income:</b>
+                Rs ${totalGame}
+            </div>
+
+            <div class="report-card">
+                <b>Canteen:</b>
+                Rs ${totalCanteen}
+            </div>
+
+            <div class="report-card">
+                <b>Expenses:</b>
+                Rs ${totalExpense}
+            </div>
+
+            <div class="report-card">
+                <b>EasyPaisa:</b>
+                Rs ${totalEasy}
+            </div>
+
+            <hr>
+
+            <h2 style="color:#00ffcc;">
+                Net Profit:
+                Rs ${net}
+            </h2>
+        `;
 
         box.innerHTML = html;
 
     } catch (err) {
+
         console.error(err);
-        box.innerHTML = "Error loading report";
+
+        box.innerHTML =
+            "Error loading report";
     }
 }
 
