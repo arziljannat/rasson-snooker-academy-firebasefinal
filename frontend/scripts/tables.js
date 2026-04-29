@@ -1261,7 +1261,7 @@ t.history.sort((a, b) => {
     
     if (t.history.length === 0) {
         body.innerHTML = `
-            <tr><td colspan="9" style="text-align:center;">No history found.</td></tr>
+            <tr><td colspan="10" style="text-align:center;">No history found.</td></tr>
         `;
     } else {
         t.history.forEach((h, index) => {
@@ -1280,6 +1280,15 @@ t.history.sort((a, b) => {
         ? `<button class="paid-btn" disabled>PAID</button>`
         : `<button class="unpaid-btn" onclick="openBillFromHistory('${id}', ${index})">UNPAID</button>`
     }
+</td>
+
+<td>
+${ROLE === "admin"
+? `<button class="neon-btn red" onclick="softDeleteSession('${id}', ${index})">
+DELETE
+</button>`
+: "-"
+}
 </td>
 
                 </tr>
@@ -2808,6 +2817,7 @@ window.handleRateChange = handleRateChange;
 window.addItem = addItem;
 window.removeItem = removeItem;
 window.openBillFromHistory = openBillFromHistory;
+window.softDeleteSession = softDeleteSession;
 
 
 //thernal bill print 
@@ -2988,10 +2998,11 @@ function listenRunningSessionsRealtime() {
 
 
     const q = query(
-        collection(window.db, "sessions"),
-        where("branch", "==", BRANCH),
-        where("end_time", "==", null)
-    );
+    collection(window.db, "sessions"),
+    where("branch", "==", BRANCH),
+    where("end_time", "==", null),
+    where("is_deleted", "!=", true)
+);
 
     onSnapshot(q, (snapshot) => {
 
@@ -3398,9 +3409,10 @@ function printTableHistoryThermal() {
 async function rebuildHistoryFromSessions() {
 
     const q = query(
-        collection(window.db, "sessions"),
-        where("branch", "==", BRANCH)
-    );
+    collection(window.db, "sessions"),
+    where("branch", "==", BRANCH),
+    where("is_deleted", "!=", true)
+);
 
     const snap = await getDocs(q);
 
@@ -3452,5 +3464,93 @@ if (s.day_id != currentDayId) {
     });
 
     console.log("🔥 ONLY TODAY HISTORY LOADED");
+}
+
+
+/******************************************************
+ * SOFT DELETE SESSION
+ ******************************************************/
+async function softDeleteSession(tableId, historyIndex) {
+
+    if (ROLE !== "admin") {
+        alert("Only admin can delete ❌");
+        return;
+    }
+
+    const confirmDelete = confirm(
+        "Are you sure you want to delete this session?"
+    );
+
+    if (!confirmDelete) return;
+
+    let t = tables.find(x => String(x.id) === String(tableId));
+
+    if (!t) return;
+
+    let h = t.history[historyIndex];
+
+    if (!h) return;
+
+    try {
+
+        const q = query(
+            collection(window.db, "sessions"),
+            where("table_id", "==", t.name),
+            where("branch", "==", BRANCH)
+        );
+
+        const snap = await getDocs(q);
+
+        let targetSession = null;
+
+        snap.forEach(d => {
+
+            const data = d.data();
+
+            const startMatch =
+                new Date(data.start_time).getTime() === h.checkin;
+
+            const endMatch =
+                new Date(data.end_time).getTime() === h.checkout;
+
+            if (startMatch && endMatch) {
+                targetSession = d;
+            }
+        });
+
+        if (!targetSession) {
+            alert("Session not found ❌");
+            return;
+        }
+
+        // 🔥 SOFT DELETE
+        await updateDoc(
+            doc(window.db, "sessions", targetSession.id),
+            {
+                is_deleted: true,
+                deleted_at: new Date().toISOString(),
+                deleted_by: ROLE
+            }
+        );
+
+        // 🔥 LOCAL REMOVE
+        t.history.splice(historyIndex, 1);
+
+        // 🔥 UI REFRESH
+        openHistory(tableId);
+
+        // 🔥 FULL RECALCULATE
+        await rebuildHistoryFromSessions();
+
+        renderTables();
+
+        alert("Session deleted successfully ✅");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Delete failed ❌");
+    }
 }
 //fix deployment issues
