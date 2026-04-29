@@ -290,11 +290,28 @@ function listenTablesRealtime() {
 
 setTimeout(async () => {
 
-    await rebuildHistoryFromSessions(); // 🔥 ADD THIS
+    // 🔥 IMPORTANT
+    if (!tables || tables.length === 0) {
+        console.log("⛔ Tables not ready yet");
+        return;
+    }
+
+    console.log("✅ TABLES READY:", tables.length);
+
+    await rebuildHistoryFromSessions();
+
+    // 🔥 DEBUG
+    console.log(
+        "✅ HISTORY COUNTS:",
+        tables.map(t => ({
+            table: t.name,
+            history: t.history.length
+        }))
+    );
 
     renderTables();
 
-}, 100);
+}, 800);
 });
 }
 
@@ -3430,59 +3447,66 @@ function printTableHistoryThermal() {
 async function rebuildHistoryFromSessions() {
 
     const q = query(
-    collection(window.db, "sessions"),
-    where("branch", "==", BRANCH),
-    where("is_deleted", "==", false)
-);
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH),
+        where("is_deleted", "==", false)
+    );
 
     const snap = await getDocs(q);
 
-    // 🔥 TODAY FILTER
-    // 🔥 FIXED (LOCAL DAY SAFE)
-let now = new Date();
-
-let startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    0, 0, 0, 0
-).getTime();
-
-    // 🔥 RESET
+    // 🔥 RESET ALL HISTORY
     tables.forEach(t => t.history = []);
 
     snap.forEach(docSnap => {
 
         const s = docSnap.data();
 
-        // ❌ ignore running
+        console.log("🔥 SESSION:", s);
+
+        // ❌ ignore running sessions
         if (!s.end_time) return;
 
-  
+        const currentDayId = String(window.currentDayId || "").trim();
+        const sessionDayId = String(s.day_id || "").trim();
 
-const currentDayId = String(window.currentDayId || "").trim();
-const sessionDayId = String(s.day_id || "").trim();
-
-// ✅ ONLY CURRENT ACTIVE DAY
-if (sessionDayId !== currentDayId) {
-    return;
-}
+        // ✅ ONLY CURRENT ACTIVE DAY
+        if (sessionDayId !== currentDayId) {
+            return;
+        }
 
         let t = tables.find(x => x.name === s.table_id);
-        if (!t) return;
+
+        if (!t) {
+            console.log("⛔ TABLE NOT FOUND:", s.table_id);
+            return;
+        }
 
         t.history.push({
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
+
             playSeconds: s.final_seconds || 0,
             amount: s.final_amount || 0,
+
             canteenAmount: s.canteen_total || 0,
+
             total: (s.final_amount || 0) + (s.canteen_total || 0),
+
             paid: s.paid === true,
-          paidTime: s.paid_time ? new Date(s.paid_time).getTime() : null,
-            rate: s.play_type === "century" ? s.century_rate : s.frame_rate,
+
+            paidTime: s.paid_time
+                ? new Date(s.paid_time).getTime()
+                : null,
+
+            rate: s.play_type === "century"
+                ? s.century_rate
+                : s.frame_rate,
+
             canteenItems: s.canteen_items || {}
         });
+
+        console.log("✅ HISTORY PUSHED:", t.name);
+
     });
 
     console.log("🔥 ONLY TODAY HISTORY LOADED");
