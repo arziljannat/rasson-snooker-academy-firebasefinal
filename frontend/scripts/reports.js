@@ -45,12 +45,30 @@ buttons[1].onclick = () => {
     buttons.forEach(btn => btn.classList.remove("active"));
     buttons[1].classList.add("active");
 };
+buttons[2].onclick = () => {
+
+    currentReport = "inventory";
+
+    buttons.forEach(btn =>
+        btn.classList.remove("active")
+    );
+
+    buttons[2].classList.add("active");
+};
 
 document.getElementById("viewReportBtn").onclick = () => {
+
     if (currentReport === "game") {
+
         loadReport();
-    } else {
+
+    } else if (currentReport === "canteen") {
+
         loadCanteenReport();
+
+    } else {
+
+        loadInventoryReport();
     }
 };
 
@@ -258,37 +276,91 @@ async function loadCanteenReport() {
     let dates = getDates();
     if (!dates) return;
 
-    let branch = localStorage.getItem("branch");
-    let box = document.getElementById("reportOutput");
+    let branch =
+        localStorage.getItem("branch");
+
+    let box =
+        document.getElementById("reportOutput");
 
     box.innerHTML = "Loading...";
 
     try {
 
-        const q = query(
-            collection(window.db, "days"),
-            where("branch", "==", branch)
+        const snap = await getDocs(
+
+            query(
+                collection(window.db, "canteen_logs"),
+                where("branch", "==", branch)
+            )
         );
 
-        const snap = await getDocs(q);
-
         let total = 0;
+
+        let itemsHtml = "";
 
         snap.forEach(doc => {
 
             let d = doc.data();
-            let date = new Date(d.date + "T00:00:00");
 
-            if (date >= dates.from && date <= dates.to) {
-                total += d.combined?.canteenTotal || 0;
+            let date;
+
+            if (d.created_at?.seconds) {
+
+                date = new Date(
+                    d.created_at.seconds * 1000
+                );
+
+            } else {
+
+                date = new Date(d.created_at);
             }
+
+            if (
+                date < dates.from ||
+                date > dates.to
+            ) return;
+
+            total += Number(d.total || 0);
+
+            itemsHtml += `
+                <tr>
+                    <td>${d.item_name || "-"}</td>
+                    <td>${d.qty || 0}</td>
+                    <td>${d.total || 0}</td>
+                </tr>
+            `;
         });
 
-        box.innerHTML = "<h3>Canteen Report</h3><h2>Total: Rs " + total + "</h2>";
+        box.innerHTML = `
+
+            <h2>Canteen Report</h2>
+
+            <div class="report-card">
+                <b>Total Canteen Income:</b>
+                Rs ${total}
+            </div>
+
+            <hr>
+
+            <table class="report-table">
+
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                </tr>
+
+                ${itemsHtml}
+
+            </table>
+        `;
 
     } catch (err) {
+
         console.error(err);
-        box.innerHTML = "Error loading canteen report";
+
+        box.innerHTML =
+            "Error loading canteen report";
     }
 }
 
@@ -340,6 +412,162 @@ function printReportThermal() {
     `);
 
     win.document.close();
+}
+async function loadInventoryReport() {
+
+    let dates = getDates();
+    if (!dates) return;
+
+    let branch =
+        localStorage.getItem("branch");
+
+    let box =
+        document.getElementById("reportOutput");
+
+    box.innerHTML = "Loading...";
+
+    try {
+
+        const snap = await getDocs(
+
+            query(
+                collection(window.db, "inventory_logs"),
+                where("branch", "==", branch)
+            )
+        );
+
+        let added = 0;
+        let sold = 0;
+        let deleted = 0;
+
+        let addItems = [];
+        let soldItems = [];
+
+        snap.forEach(doc => {
+
+            let d = doc.data();
+
+            let date;
+
+            if (d.created_at?.seconds) {
+
+                date = new Date(
+                    d.created_at.seconds * 1000
+                );
+
+            } else {
+
+                date = new Date(d.created_at);
+            }
+
+            if (
+                date < dates.from ||
+                date > dates.to
+            ) return;
+
+            // =====================
+            // ADD
+            // =====================
+
+            if (d.type === "add") {
+
+                added += Number(d.qty || 0);
+
+                addItems.push(`
+                    <tr>
+                        <td>${d.item_name}</td>
+                        <td>${d.qty}</td>
+                    </tr>
+                `);
+            }
+
+            // =====================
+            // DELETE
+            // =====================
+
+            if (d.type === "delete") {
+
+                deleted += Number(d.qty || 0);
+            }
+
+            // =====================
+            // SALE
+            // =====================
+
+            if (d.type === "sale") {
+
+                sold += Number(d.qty || 0);
+
+                soldItems.push(`
+                    <tr>
+                        <td>${d.item_name}</td>
+                        <td>${d.qty}</td>
+                    </tr>
+                `);
+            }
+        });
+
+        let remaining =
+            added - sold - deleted;
+
+        box.innerHTML = `
+
+            <h2>Inventory Report</h2>
+
+            <div class="report-card">
+                <b>Total Added:</b>
+                ${added}
+            </div>
+
+            <div class="report-card">
+                <b>Total Sold:</b>
+                  ${sold}
+            </div>
+
+            <div class="report-card">
+                <b>Total Deleted:</b>
+                ${deleted}
+            </div>
+
+            <div class="report-card">
+                <b>Remaining Stock:</b>
+                ${remaining}
+            </div>
+
+            <hr>
+
+            <h3>Added Items</h3>
+
+            <table class="report-table">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                </tr>
+
+                ${addItems.join("")}
+            </table>
+
+            <hr>
+
+            <h3>Sold Items</h3>
+
+            <table class="report-table">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                </tr>
+
+                ${soldItems.join("")}
+            </table>
+        `;
+
+    } catch (err) {
+
+        console.error(err);
+
+        box.innerHTML =
+            "Error loading inventory report";
+    }
 }
 
 document.getElementById("printReportBtn").onclick = printReportThermal;
