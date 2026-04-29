@@ -246,9 +246,9 @@ const isOldMonth =
 
         if (
     role === "admin" ||
-    role === "super_admin" ||
-    !isOldMonth
-) {
+    role === "super_admin"
+)
+{
             actions = `
                 <button class="btn-green"onclick="editExpense(
 '${e.id}',
