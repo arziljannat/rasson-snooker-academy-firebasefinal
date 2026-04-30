@@ -2274,6 +2274,141 @@ function calculateShiftSnapshot(startTime, endTime) {
 }
 
 
+// 🔥 REFRESH CURRENT DAY HISTORY
+async function refreshCurrentDayHistory() {
+
+    try {
+
+        console.log("🔥 Refreshing current day history...");
+
+        // 🔥 GET CURRENT DAY
+        const q = query(
+            collection(window.db, "days"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", window.currentDayId)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            console.log("⚠️ No current day history");
+            return;
+        }
+
+        // 🔥 REBUILD TABLE HISTORY
+        await rebuildHistoryFromSessions();
+
+        // 🔥 GET SHIFTS
+        const shiftsQ = query(
+            collection(window.db, "shifts"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", window.currentDayId)
+        );
+
+        const shiftsSnap = await getDocs(shiftsQ);
+
+        let latestShift1 = null;
+        let latestShift2 = null;
+
+        shiftsSnap.forEach(docSnap => {
+
+            const d = docSnap.data();
+
+            if (d.shift_number === 1) {
+                latestShift1 = d;
+            }
+
+            if (d.shift_number === 2) {
+                latestShift2 = d;
+            }
+        });
+
+        if (!latestShift1 || !latestShift2) {
+            console.log("⚠️ Shift data missing");
+            return;
+        }
+
+        // 🔥 RECALCULATE
+        const newShift1 = calculateShiftSnapshot(
+            latestShift1.start_ms,
+            latestShift1.end_ms
+        );
+
+        const newShift2 = calculateShiftSnapshot(
+            latestShift2.start_ms,
+            latestShift2.end_ms
+        );
+
+        // 🔥 COMBINED
+        const combined = {
+
+            gameTotal:
+                newShift1.gameTotal + newShift2.gameTotal,
+
+            canteenTotal:
+                newShift1.canteenTotal + newShift2.canteenTotal,
+
+            gameCollection:
+                newShift1.gameCollection + newShift2.gameCollection,
+
+            canteenCollection:
+                newShift1.canteenCollection + newShift2.canteenCollection,
+
+            gameBalance:
+                newShift1.gameBalance + newShift2.gameBalance,
+
+            canteenBalance:
+                newShift1.canteenBalance + newShift2.canteenBalance,
+
+            expenses:
+                newShift1.expenses + newShift2.expenses,
+
+            easypaisa:
+                newShift1.easypaisa + newShift2.easypaisa,
+
+            closingCash:
+                newShift1.closingCash + newShift2.closingCash
+        };
+
+        // 🔥 TABLE SNAPSHOT
+        const tablesSnapshot = tables.map(t => ({
+            table_id: t.name,
+            history: t.history.map(h => ({ ...h }))
+        }));
+
+        // 🔥 UPDATE DAY HISTORY
+        snap.forEach(async (d) => {
+
+            await updateDoc(
+                doc(window.db, "days", d.id),
+                {
+
+                    tables: tablesSnapshot,
+
+                    shift1: {
+                        ...latestShift1,
+                        ...newShift1
+                    },
+
+                    shift2: {
+                        ...latestShift2,
+                        ...newShift2
+                    },
+
+                    combined
+                }
+            );
+        });
+
+        console.log("✅ Day history updated");
+
+    } catch (err) {
+
+        console.error("❌ refreshCurrentDayHistory:", err);
+    }
+}
+
+
 /******************************************************
  * HISTORY BUTTON BINDING
  ******************************************************/
@@ -3615,6 +3750,9 @@ console.log("🔥 HISTORY:", h);
         await rebuildHistoryFromSessions();
 
         renderTables();
+
+      // 🔥 REFRESH DAY HISTORY
+        await refreshCurrentDayHistory();
 
       // 🔥 FORCE GLOBAL REFRESH
           setTimeout(() => {
