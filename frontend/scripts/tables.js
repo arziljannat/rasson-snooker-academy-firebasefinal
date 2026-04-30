@@ -2398,6 +2398,17 @@ async function refreshCurrentDayHistory() {
                     combined
                 }
             );
+
+          // 🔥 UPDATE LIVE SHIFT VARIABLES
+                shift1 = {
+                      ...shift1,
+                      ...newShift1
+                              };
+
+                shift2 = {
+                      ...shift2,
+                      ...newShift2
+                              };
         });
 
         console.log("✅ Day history updated");
