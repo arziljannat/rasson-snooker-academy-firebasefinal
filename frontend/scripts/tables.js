@@ -3835,8 +3835,9 @@ console.log("🔥 HISTORY:", h);
 
         renderTables();
 
-      // 🔥 REFRESH DAY HISTORY
-        await refreshCurrentDayHistory();
+      await refreshCurrentDayHistory(
+    targetSession.data().day_id
+);
 
       // 🔥 FORCE RELOAD DAY HISTORY DATA
         await openDayHistory();
