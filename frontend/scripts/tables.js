@@ -2305,11 +2305,16 @@ async function refreshCurrentDayHistory(dayId = null) {
                 );
 
         // 🔥 GET SHIFTS
-        const shiftsQ = query(
-            collection(window.db, "shifts"),
-            where("branch", "==", BRANCH),
-            where("day_id", "==", window.currentDayId)
-        );
+        // 🔥 GET SHIFTS
+const shiftsQ = query(
+    collection(window.db, "shifts"),
+    where("branch", "==", BRANCH),
+    where(
+        "day_id",
+        "==",
+        dayId || window.currentDayId
+    )
+);
 
         const shiftsSnap = await getDocs(shiftsQ);
 
