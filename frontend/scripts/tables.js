@@ -2770,7 +2770,23 @@ dateSel.innerHTML += `
 /******************************************************
  * 🟢 LOAD SUMMARY FOR SELECTED TABLE
  ******************************************************/
-function loadSelectedTableHistory() {
+async function loadSelectedTableHistory() {
+
+    let tableId = document.getElementById("tableHistoryTableSelect").value;
+
+    ...
+
+    let selectedDay = window._daysData[dayIndex];
+
+    // 🔥 FORCE REFRESH DAYS DATA
+    await loadDaySummaryFirebase();
+
+    selectedDay = window._daysData[dayIndex];
+
+    if (!selectedDay) return;
+
+    ...
+}
 
     let tableId = document.getElementById("tableHistoryTableSelect").value;
     let t = tables.find(x => String(x.id) === String(tableId));
@@ -2786,6 +2802,11 @@ if (!window._daysData || dayIndex < 0 || !window._daysData[dayIndex]) {
 }
 
 let selectedDay = window._daysData[dayIndex];
+
+  // 🔥 FORCE REFRESH DAYS DATA
+await loadDaySummaryFirebase();
+
+selectedDay = window._daysData[dayIndex];
 
 if (!selectedDay) return;
 
