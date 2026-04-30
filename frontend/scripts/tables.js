@@ -2285,8 +2285,11 @@ async function refreshCurrentDayHistory(dayId = null) {
         const q = query(
             collection(window.db, "days"),
             where("branch", "==", BRANCH),
-            where("day_id", "==", window.currentDayId)
-        );
+            where(
+    "day_id",
+    "==",
+    dayId || window.currentDayId
+)
 
         const snap = await getDocs(q);
 
