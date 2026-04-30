@@ -3657,6 +3657,69 @@ if (sessionDayId && sessionDayId !== currentDayId) {
     console.log("🔥 ONLY TODAY HISTORY LOADED");
 }
 
+// 🔥 LOAD ALL HISTORY FOR DAY RECALC
+async function rebuildSpecificDayHistory(dayId) {
+
+    const q = query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH)
+    );
+
+    const snap = await getDocs(q);
+
+    // 🔥 RESET
+    tables.forEach(t => t.history = []);
+
+    snap.forEach(docSnap => {
+
+        const s = docSnap.data();
+
+        // 🔥 SKIP DELETED
+        if (s.is_deleted === true) return;
+
+        // 🔥 SKIP RUNNING
+        if (!s.end_time) return;
+
+        // 🔥 IMPORTANT
+        if (String(s.day_id) !== String(dayId)) return;
+
+        let t = tables.find(x => x.name === s.table_id);
+
+        if (!t) return;
+
+        t.history.push({
+
+            checkin: new Date(s.start_time).getTime(),
+            checkout: new Date(s.end_time).getTime(),
+
+            playSeconds: s.final_seconds || 0,
+            amount: s.final_amount || 0,
+
+            canteenAmount: s.canteen_total || 0,
+
+            total:
+                (s.final_amount || 0)
+                + (s.canteen_total || 0),
+
+            paid: s.paid === true,
+
+            paidTime: s.paid_time
+                ? new Date(s.paid_time).getTime()
+                : null,
+
+            rate:
+                s.play_type === "century"
+                ? s.century_rate
+                : s.frame_rate,
+
+            canteenItems: s.canteen_items || {}
+        });
+
+    });
+
+    console.log("✅ SPECIFIC DAY HISTORY LOADED:", dayId);
+}
+
 
 /******************************************************
  * SOFT DELETE SESSION
