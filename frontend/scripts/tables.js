@@ -3765,6 +3765,9 @@ console.log("🔥 HISTORY:", h);
       // 🔥 REFRESH DAY HISTORY
         await refreshCurrentDayHistory();
 
+      // 🔥 FORCE RELOAD DAY HISTORY DATA
+        await openDayHistory();
+
       // 🔥 FORCE GLOBAL REFRESH
           setTimeout(() => {
                     autoRefreshUI();
