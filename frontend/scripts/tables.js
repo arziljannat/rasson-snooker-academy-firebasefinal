@@ -2774,8 +2774,6 @@ async function loadSelectedTableHistory() {
 
     let tableId = document.getElementById("tableHistoryTableSelect").value;
 
-    ...
-
     let selectedDay = window._daysData[dayIndex];
 
     // 🔥 FORCE REFRESH DAYS DATA
