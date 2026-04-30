@@ -2285,11 +2285,7 @@ async function refreshCurrentDayHistory(dayId = null) {
         const q = query(
             collection(window.db, "days"),
             where("branch", "==", BRANCH),
-            where(
-    "day_id",
-    "==",
-    dayId || window.currentDayId
-)
+            where("day_id", "==", window.currentDayId)
         );
 
         const snap = await getDocs(q);
@@ -2304,8 +2300,7 @@ async function refreshCurrentDayHistory(dayId = null) {
             dayId || window.currentDayId
                 );
 
-        // 🔥 GET SHIFTS
-        // 🔥 GET SHIFTS
+       // 🔥 GET SHIFTS
 const shiftsQ = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
