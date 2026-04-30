@@ -2275,22 +2275,18 @@ function calculateShiftSnapshot(startTime, endTime) {
 
 
 // 🔥 REFRESH CURRENT DAY HISTORY
-async function refreshCurrentDayHistory(dayId = null) {
+async function refreshCurrentDayHistory() {
 
     try {
 
         console.log("🔥 Refreshing current day history...");
 
         // 🔥 GET CURRENT DAY
-const q = query(
-    collection(window.db, "days"),
-    where("branch", "==", BRANCH),
-    where(
-        "day_id",
-        "==",
-        dayId || window.currentDayId
-    )
-);
+        const q = query(
+            collection(window.db, "days"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", window.currentDayId)
+        );
 
         const snap = await getDocs(q);
 
@@ -2300,20 +2296,14 @@ const q = query(
         }
 
         // 🔥 REBUILD TABLE HISTORY
-            await rebuildSpecificDayHistory(
-            dayId || window.currentDayId
-                );
+        await rebuildHistoryFromSessions();
 
-       // 🔥 GET SHIFTS
-const shiftsQ = query(
-    collection(window.db, "shifts"),
-    where("branch", "==", BRANCH),
-    where(
-        "day_id",
-        "==",
-        dayId || window.currentDayId
-    )
-);
+        // 🔥 GET SHIFTS
+        const shiftsQ = query(
+            collection(window.db, "shifts"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", window.currentDayId)
+        );
 
         const shiftsSnap = await getDocs(shiftsQ);
 
@@ -2770,151 +2760,75 @@ dateSel.innerHTML += `
 /******************************************************
  * 🟢 LOAD SUMMARY FOR SELECTED TABLE
  ******************************************************/
-async function loadSelectedTableHistory() {
+function loadSelectedTableHistory() {
 
     let tableId = document.getElementById("tableHistoryTableSelect").value;
-
-    let t = tables.find(
-        x => String(x.id) === String(tableId)
-    );
+    let t = tables.find(x => String(x.id) === String(tableId));
 
     if (!t) return;
 
-    let dayIndex =
-        document.getElementById(
-            "tableHistoryDateSelect"
-        ).selectedIndex;
 
-    if (
-        !window._daysData ||
-        dayIndex < 0 ||
-        !window._daysData[dayIndex]
-    ) {
+let dayIndex = document.getElementById("tableHistoryDateSelect").selectedIndex;
 
-        console.log("⚠️ No day data found");
-        return;
+if (!window._daysData || dayIndex < 0 || !window._daysData[dayIndex]) {
+    console.log("⚠️ No day data found");
+    return;
+}
+
+let selectedDay = window._daysData[dayIndex];
+
+if (!selectedDay) return;
+
+// 🔥 find table from firebase day data
+let tableData = selectedDay.tables?.find(tb => tb.table_id === t.name);
+
+// agar data na mile
+if (!tableData) {
+    document.getElementById("tableShift1Body").innerHTML = buildTableHistoryRow(t, {});
+    document.getElementById("tableShift2Body").innerHTML = buildTableHistoryRow(t, {});
+    document.getElementById("tableCombinedBody").innerHTML = buildTableHistoryRow(t, {});
+    return;
+}
+
+// 🔥 calculate from history
+let t1 = { time:0, game:0, canteen:0, total:0 };
+let t2 = { time:0, game:0, canteen:0, total:0 };
+
+// 👉 simple version (full day same data)
+let s1 = selectedDay.shift1;
+let s2 = selectedDay.shift2;
+
+// 🔥 SHIFT 1 CALC
+tableData.history.forEach(h => {
+    if (s1 && h.checkin >= s1.startMs && h.checkout <= s1.endMs) {
+        t1.time += h.playSeconds || 0;
+        t1.game += h.amount || 0;
+        t1.canteen += h.canteenAmount || 0;
+        t1.total += h.total || 0;
     }
+});
 
-    // 🔥 OLD CACHED DAY
-    let selectedDay =
-        window._daysData[dayIndex];
-
-    // 🔥 FORCE REFRESH FIREBASE DATA
-    await loadDaySummaryFirebase();
-
-    // 🔥 GET UPDATED DAY
-    selectedDay =
-        window._daysData[dayIndex];
-
-    if (!selectedDay) return;
-
-    // 🔥 find table from firebase day data
-    let tableData =
-        selectedDay.tables?.find(
-            tb => tb.table_id === t.name
-        );
-
-    // agar data na mile
-    if (!tableData) {
-
-        document.getElementById(
-            "tableShift1Body"
-        ).innerHTML =
-            buildTableHistoryRow(t, {});
-
-        document.getElementById(
-            "tableShift2Body"
-        ).innerHTML =
-            buildTableHistoryRow(t, {});
-
-        document.getElementById(
-            "tableCombinedBody"
-        ).innerHTML =
-            buildTableHistoryRow(t, {});
-
-        return;
+// 🔥 SHIFT 2 CALC
+tableData.history.forEach(h => {
+    if (s2 && h.checkin >= s2.startMs && h.checkout <= s2.endMs) {
+        t2.time += h.playSeconds || 0;
+        t2.game += h.amount || 0;
+        t2.canteen += h.canteenAmount || 0;
+        t2.total += h.total || 0;
     }
+});
 
-    // 🔥 calculate from history
-    let t1 = {
-        time: 0,
-        game: 0,
-        canteen: 0,
-        total: 0
-    };
+let combined = {
+    time: t1.time + t2.time,
+    game: t1.game + t2.game,
+    canteen: t1.canteen + t2.canteen,
+    total: t1.total + t2.total
+};
 
-    let t2 = {
-        time: 0,
-        game: 0,
-        canteen: 0,
-        total: 0
-    };
-
-    // 👉 simple version
-    let s1 = selectedDay.shift1;
-    let s2 = selectedDay.shift2;
-
-    // 🔥 SHIFT 1 CALC
-    tableData.history.forEach(h => {
-
-        if (
-            s1 &&
-            h.checkin >= s1.startMs &&
-            h.checkout <= s1.endMs
-        ) {
-
-            t1.time += h.playSeconds || 0;
-            t1.game += h.amount || 0;
-            t1.canteen += h.canteenAmount || 0;
-            t1.total += h.total || 0;
-        }
-    });
-
-    // 🔥 SHIFT 2 CALC
-    tableData.history.forEach(h => {
-
-        if (
-            s2 &&
-            h.checkin >= s2.startMs &&
-            h.checkout <= s2.endMs
-        ) {
-
-            t2.time += h.playSeconds || 0;
-            t2.game += h.amount || 0;
-            t2.canteen += h.canteenAmount || 0;
-            t2.total += h.total || 0;
-        }
-    });
-
-    let combined = {
-
-        time:
-            t1.time + t2.time,
-
-        game:
-            t1.game + t2.game,
-
-        canteen:
-            t1.canteen + t2.canteen,
-
-        total:
-            t1.total + t2.total
-    };
-
-    document.getElementById(
-        "tableShift1Body"
-    ).innerHTML =
-        buildTableHistoryRow(t, t1);
-
-    document.getElementById(
-        "tableShift2Body"
-    ).innerHTML =
-        buildTableHistoryRow(t, t2);
-
-    document.getElementById(
-        "tableCombinedBody"
-    ).innerHTML =
-        buildTableHistoryRow(t, combined);
+document.getElementById("tableShift1Body").innerHTML = buildTableHistoryRow(t, t1);
+document.getElementById("tableShift2Body").innerHTML = buildTableHistoryRow(t, t2);
+document.getElementById("tableCombinedBody").innerHTML = buildTableHistoryRow(t, combined);
+    
 }
 
 /******************************************************
@@ -3911,9 +3825,8 @@ console.log("🔥 HISTORY:", h);
 
         renderTables();
 
-      await refreshCurrentDayHistory(
-    targetSession.data().day_id
-);
+      // 🔥 REFRESH DAY HISTORY
+        await refreshCurrentDayHistory();
 
       // 🔥 FORCE RELOAD DAY HISTORY DATA
         await openDayHistory();
