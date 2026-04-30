@@ -2275,7 +2275,7 @@ function calculateShiftSnapshot(startTime, endTime) {
 
 
 // 🔥 REFRESH CURRENT DAY HISTORY
-async function refreshCurrentDayHistory() {
+async function refreshCurrentDayHistory(dayId = null) {
 
     try {
 
@@ -2285,7 +2285,11 @@ async function refreshCurrentDayHistory() {
         const q = query(
             collection(window.db, "days"),
             where("branch", "==", BRANCH),
-            where("day_id", "==", window.currentDayId)
+            where(
+    "day_id",
+    "==",
+    dayId || window.currentDayId
+)
         );
 
         const snap = await getDocs(q);
@@ -2296,7 +2300,9 @@ async function refreshCurrentDayHistory() {
         }
 
         // 🔥 REBUILD TABLE HISTORY
-        await rebuildHistoryFromSessions();
+            await rebuildSpecificDayHistory(
+            dayId || window.currentDayId
+                );
 
         // 🔥 GET SHIFTS
         const shiftsQ = query(
