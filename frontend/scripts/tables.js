@@ -2282,14 +2282,15 @@ async function refreshCurrentDayHistory(dayId = null) {
         console.log("🔥 Refreshing current day history...");
 
         // 🔥 GET CURRENT DAY
-        const q = query(
-            collection(window.db, "days"),
-            where("branch", "==", BRANCH),
-            where(
-    "day_id",
-    "==",
-    dayId || window.currentDayId
-)
+const q = query(
+    collection(window.db, "days"),
+    where("branch", "==", BRANCH),
+    where(
+        "day_id",
+        "==",
+        dayId || window.currentDayId
+    )
+);
 
         const snap = await getDocs(q);
 
