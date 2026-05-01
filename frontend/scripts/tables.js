@@ -2744,7 +2744,6 @@ let closeTime = d.shift2?.endMs
 }) 
     : "-";
 
-dateSel.innerHTML += `
 dateSel.innerHTML += `<option value="${i}">${operationalDate.getFullYear()}-${String(operationalDate.getMonth() + 1).padStart(2, "0")}-${String(operationalDate.getDate()).padStart(2, "0")} (${openTime} → ${closeTime})</option>`;
     });
 
