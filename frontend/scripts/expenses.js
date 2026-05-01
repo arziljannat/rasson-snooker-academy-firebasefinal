@@ -218,25 +218,20 @@ function renderTable() {
         // FILTER DAY
         if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
-        if (selectedMonth) {
+       if (selectedMonth) {
 
-    let expenseMonth;
+    const operationalDayId =
+        String(e.day_id || "");
 
-    if (e.created_at?.seconds) {
+    const operationalDate =
+        new Date(Number(operationalDayId));
 
-        const d =
-            new Date(e.created_at.seconds * 1000);
+    if (isNaN(operationalDate.getTime())) return;
 
-        expenseMonth =
-            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-
-    } else {
-
-        const d = new Date(e.created_at);
-
-        expenseMonth =
-            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
+    const expenseMonth =
+        `${operationalDate.getFullYear()}-${String(
+            operationalDate.getMonth() + 1
+        ).padStart(2, "0")}`;
 
     if (expenseMonth !== selectedMonth) return;
 }
