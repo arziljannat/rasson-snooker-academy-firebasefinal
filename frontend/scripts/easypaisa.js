@@ -189,6 +189,39 @@ function renderTable() {
 
 easyData.forEach(e => {
 
+    // ✅ STAFF ONLY CURRENT OPERATIONAL MONTH
+if (role !== "admin" && role !== "super_admin") {
+
+    const operationalDayId =
+        String(e.day_id || "");
+
+    const operationalDate =
+        new Date(Number(operationalDayId));
+
+    if (isNaN(operationalDate.getTime())) return;
+
+    const currentDate = new Date(
+        Number(window.currentDayId)
+    );
+
+    const currentMonth =
+        currentDate.getFullYear() + "-" +
+        String(
+            currentDate.getMonth() + 1
+        ).padStart(2, "0");
+
+    const itemMonth =
+        operationalDate.getFullYear() + "-" +
+        String(
+            operationalDate.getMonth() + 1
+        ).padStart(2, "0");
+
+    if (itemMonth !== currentMonth) {
+        return;
+    }
+}
+
+    
     // 🔥 MONTH FILTER
 if (selectedMonth) {
 
