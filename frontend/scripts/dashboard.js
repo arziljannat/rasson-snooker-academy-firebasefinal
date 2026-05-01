@@ -113,7 +113,10 @@ async function loadOperationalDays(){
         if(isNaN(date.getTime())) return;
 
         // 🔥 ONLY CLOSED DAYS
-if(d.is_closed !== true){
+// 🔥 SKIP ONLY CURRENT RUNNING DAY
+if(
+    String(d.day_id) === String(window.currentDayId)
+){
     return;
 }
 
