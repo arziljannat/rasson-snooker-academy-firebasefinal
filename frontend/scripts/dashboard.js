@@ -650,7 +650,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
+    operational.raw?.is_closed !== false
 ) return;
 
 let d = operational.startDate;
@@ -685,7 +685,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
+    operational.raw?.is_closed !== false
 ) return;
 
 let day = operational.day - 1;
@@ -705,7 +705,7 @@ sessionsData.forEach(s=>{
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
+    operational.raw?.is_closed !== false
 ) return;
 
     let day = operational.day - 1;
@@ -732,7 +732,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
+    operational.raw?.is_closed !== false
 ) return;
 
 let day = operational.day - 1;
@@ -769,7 +769,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
+    operational.raw?.is_closed !== false
 ) return;
 
 let day = operational.day - 1;
