@@ -2493,6 +2493,12 @@ days.sort((a, b) => {
     return new Date(b.created_at) - new Date(a.created_at);
 });
 
+// ✅ OPERATIONAL DATE FIX
+let operationalDate = d.shift1?.startMs
+    ? new Date(d.shift1.startMs)
+    : new Date(d.date);
+  
+  
 // 🔥 AB DROPDOWN BANAO
 days.forEach(d => {
 
@@ -2516,8 +2522,13 @@ days.forEach(d => {
 
     sel.innerHTML += `
 <option>
-    ${d.date} (${openTime} → ${closeTime})
-</option>`;
+    ${operationalDate.getFullYear()}-${
+        String(operationalDate.getMonth() + 1).padStart(2, "0")
+    }-${
+        String(operationalDate.getDate()).padStart(2, "0")
+    }
+    (${openTime} → ${closeTime})
+</option>
 });
 
     window._daysData = days;
@@ -2717,6 +2728,12 @@ function openTableHistory() {
 
     // 🔥 Firebase day history use karo
     (window._daysData || []).forEach((d, i) => {
+
+    // ✅ OPERATIONAL DATE FIX
+    let operationalDate = d.shift1?.startMs
+    ? new Date(d.shift1.startMs)
+    : new Date(d.date);
+    
         let openTime = d.shift1?.startMs 
     ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
     timeZone: 'Asia/Karachi',
@@ -2737,7 +2754,12 @@ let closeTime = d.shift2?.endMs
 
 dateSel.innerHTML += `
 <option value="${i}">
-    ${d.date} (${openTime} → ${closeTime})
+    ${operationalDate.getFullYear()}-${
+        String(operationalDate.getMonth() + 1).padStart(2, "0")
+    }-${
+        String(operationalDate.getDate()).padStart(2, "0")
+    }
+    (${openTime} → ${closeTime})
 </option>`;
     });
 
