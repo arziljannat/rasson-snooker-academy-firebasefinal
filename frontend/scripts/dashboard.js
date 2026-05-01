@@ -112,7 +112,12 @@ async function loadOperationalDays(){
 
         if(isNaN(date.getTime())) return;
 
-        operationalDays[dayId] = {
+        // 🔥 ONLY CLOSED DAYS
+if(d.is_closed !== true){
+    return;
+}
+
+operationalDays[dayId] = {
 
     raw: d,
 
