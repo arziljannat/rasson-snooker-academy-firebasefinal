@@ -2502,6 +2502,11 @@ let operationalDate = d.shift1?.startMs
 // 🔥 AB DROPDOWN BANAO
 days.forEach(d => {
 
+  // ✅ OPERATIONAL DATE FIX
+let operationalDate = d.shift1?.startMs
+    ? new Date(d.shift1.startMs)
+    : new Date(d.date);
+
     let openTime = d.shift1?.startMs 
         ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
     timeZone: 'Asia/Karachi',
@@ -2720,11 +2725,6 @@ function openTableHistory() {
 
     // 🔥 Firebase day history use karo
     (window._daysData || []).forEach((d, i) => {
-
-    // ✅ OPERATIONAL DATE FIX
-    let operationalDate = d.shift1?.startMs
-    ? new Date(d.shift1.startMs)
-    : new Date(d.date);
     
         let openTime = d.shift1?.startMs 
     ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
