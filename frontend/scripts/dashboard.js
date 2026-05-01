@@ -25,6 +25,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     console.log("🔥 DASHBOARD CURRENT DAY:", window.currentDayId);
 
+    await loadOperationalDays();
+
     loadDashboardRealtime();
 
     // ✅ MONTH FILTER
@@ -64,6 +66,44 @@ let realtimeTodayEasy = 0;
 let realtimeMonthlyEasy = 0;
 let selectedMonth = new Date().getMonth();
 let selectedYear = new Date().getFullYear();
+
+let operationalDays = {};
+
+async function loadOperationalDays(){
+
+    operationalDays = {};
+
+    const snap = await getDocs(
+        collection(window.db, "days")
+    );
+
+    snap.forEach(doc => {
+
+        let d = doc.data();
+
+        let dayId =
+            String(d.day_id || "");
+
+        let rawDate =
+            d.start_time ||
+            d.created_at ||
+            d.date;
+
+        if(!rawDate) return;
+
+        let date = new Date(rawDate);
+
+        if(isNaN(date.getTime())) return;
+
+        operationalDays[dayId] = {
+            month: date.getMonth(),
+            year: date.getFullYear(),
+            day: date.getDate()
+        };
+    });
+}
+
+
 
 function loadDashboardRealtime() {
 
@@ -190,7 +230,7 @@ if (
         
       
 
-function updateDashboard() {
+async function updateDashboard() {
 
     let now = new Date();
     const currentDayId = window.currentDayId;
@@ -231,13 +271,16 @@ if (
 const easyYear =
     date.getFullYear();
 
-    if (
-    easyMonth === selectedMonth &&
-    easyYear === selectedYear
-    )
-    {
-        monthly_easy += Number(e.amount || 0);
-    }
+    let operational =
+    operationalDays[String(e.day_id)];
+
+if(
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear
+){
+    monthly_easy += Number(e.amount || 0);
+}
 });
 
     let monthly_canteen=0;
@@ -284,16 +327,25 @@ if(String(sessionDayId) === String(currentDayId)){
 }
 
     // 🔥 MONTHLY (NO DAY FILTER)
-    if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
-        monthly_income += amount;
+    let operational =
+    operationalDays[String(sessionDayId)];
 
-        let hour = date.getHours();
-        if(hour < 18){
-            shift1Monthly += amount;
-        } else {
-            shift2Monthly += amount;
-        }
+if(
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear
+){
+
+    monthly_income += amount;
+
+    let hour = date.getHours();
+
+    if(hour < 18){
+        shift1Monthly += amount;
+    } else {
+        shift2Monthly += amount;
     }
+}
 
 });
 
@@ -312,8 +364,15 @@ if(String(c.day_id) === String(currentDayId)){
 }
 
 // 🔥 MONTHLY (NO FILTER)
-if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
-    monthly_canteen+=amount;
+let operational =
+    operationalDays[String(c.day_id)];
+
+if(
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear
+){
+    monthly_canteen += amount;
 }
 });
 
@@ -333,9 +392,16 @@ if (s.is_deleted === true) return;
     }
 
     // 🔥 MONTHLY (NO DAY FILTER)
-    if(date.getMonth()===selectedMonth && date.getFullYear()===selectedYear){
-        monthly_canteen += canteen;
-    }
+    let operational =
+    operationalDays[String(s.day_id)];
+
+if(
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear
+){
+    monthly_canteen += canteen;
+}
 });
 
     // ================= EXPENSE =================
@@ -359,12 +425,16 @@ if (s.is_deleted === true) return;
     }
 
     // MONTHLY
-    if(
-            date.getMonth() === selectedMonth &&
-            date.getFullYear() === selectedYear
-        ){
-            monthly_expense += amount;
-         }
+    let operational =
+    operationalDays[String(e.day_id)];
+
+if(
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear
+){
+    monthly_expense += amount;
+}
 });
 
     // ================= EASYPAISA =================
