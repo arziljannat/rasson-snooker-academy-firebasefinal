@@ -34,10 +34,27 @@ const monthInput = document.getElementById("dashboardMonthFilter");
 
 if(monthInput){
 
-    let now = new Date();
+    let operationalCurrent =
+        operationalDays[String(window.currentDayId)];
 
-    monthInput.value =
-        `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    if(operationalCurrent){
+
+        selectedMonth =
+            operationalCurrent.month;
+
+        selectedYear =
+            operationalCurrent.year;
+
+        monthInput.value =
+`${selectedYear}-${String(selectedMonth+1).padStart(2,"0")}`;
+
+    }else{
+
+        let now = new Date();
+
+        monthInput.value =
+`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    }
 
     monthInput.addEventListener("change", (e)=>{
 
@@ -315,6 +332,9 @@ let sessionDayId =
     s.current_day_id ||
     0;
 
+ let operational =
+    operationalDays[String(sessionDayId)];       
+
 if(String(sessionDayId) === String(currentDayId)){
 
     if (isNaN(date.getTime())) return;
@@ -334,9 +354,7 @@ if(String(sessionDayId) === String(currentDayId)){
 }
 
     // 🔥 MONTHLY (NO DAY FILTER)
-    let operational =
-    operationalDays[String(sessionDayId)];
-
+    // 🔥 MONTHLY OPERATIONAL LOGIC
 if(
     operational &&
     operational.month === selectedMonth &&
@@ -345,11 +363,15 @@ if(
 
     monthly_income += amount;
 
-    let hour = date.getHours();
+    let startHour =
+        operational.startDate.getHours();
 
-    if(hour < 18){
+    if(startHour < 18){
+
         shift1Monthly += amount;
-    } else {
+
+    }else{
+
         shift2Monthly += amount;
     }
 }
