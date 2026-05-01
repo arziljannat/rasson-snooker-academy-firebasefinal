@@ -96,10 +96,17 @@ async function loadOperationalDays(){
         if(isNaN(date.getTime())) return;
 
         operationalDays[dayId] = {
-            month: date.getMonth(),
-            year: date.getFullYear(),
-            day: date.getDate()
-        };
+
+    raw: d,
+
+    startDate: date,
+
+    month: date.getMonth(),
+
+    year: date.getFullYear(),
+
+    day: date.getDate()
+};
     });
 }
 
@@ -600,13 +607,18 @@ function renderMonthlyCharts(sessionsData, canteenData, expenseData){
         // 🔥 SKIP DELETED SESSIONS
 if (s.is_deleted === true) return;
         
-        let d = new Date(s.start_time || s.startTime || s.created_at);
-        if(
-    d.getMonth() !== selectedMonth ||
-    d.getFullYear() !== selectedYear
+        let operational =
+    operationalDays[String(s.day_id)];
+
+if(
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear
 ) return;
 
-        let day = d.getDate()-1;
+let d = operational.startDate;
+
+let day = operational.day - 1;
         let amount = Number(
     s.final_amount ||
     s.total_amount ||
@@ -627,16 +639,18 @@ if (s.is_deleted === true) return;
         }
     });
 
-    // 🔥 CANTEEN
     // 🔥 CANTEEN (logs)
 canteenData.forEach(c=>{
-    let d = new Date(c.time || c.created_at || c.date);
-    if(
-    d.getMonth() !== selectedMonth ||
-    d.getFullYear() !== selectedYear
+    let operational =
+    operationalDays[String(c.day_id)];
+
+if(
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear
 ) return;
 
-    let day = d.getDate()-1;
+let day = operational.day - 1;
     canteenArr[day] += Number(c.total || c.amount || 0);
 });
 
@@ -647,13 +661,16 @@ sessionsData.forEach(s=>{
 if (s.is_deleted === true) return;
 
     
-    let d = new Date(s.start_time || s.startTime || s.created_at);
-    if(
-    d.getMonth() !== selectedMonth ||
-    d.getFullYear() !== selectedYear
+    let operational =
+    operationalDays[String(s.day_id)];
+
+if(
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear
 ) return;
 
-    let day = d.getDate()-1;
+let day = operational.day - 1;
     canteenArr[day] += Number(s.canteen_total || 0);
 });
 
@@ -669,12 +686,16 @@ if (s.is_deleted === true) return;
     }
 
     if(isNaN(date.getTime())) return;
-        if(
-    date.getMonth() !== selectedMonth ||
-    date.getFullYear() !== selectedYear
+        let operational =
+    operationalDays[String(e.day_id)];
+
+if(
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear
 ) return;
 
-    let day = date.getDate() - 1;
+let day = operational.day - 1;
 
     expenseArr[day] += Number(e.amount || 0);
 });
@@ -701,15 +722,16 @@ easypaisaDocs.forEach(e=>{
 
     if (isNaN(date.getTime())) return;
 
-    const easyMonth = date.getMonth();
-    const easyYear = date.getFullYear();
+    let operational =
+    operationalDays[String(e.day_id)];
 
-    if(
-        easyMonth !== selectedMonth ||
-        easyYear !== selectedYear
-    ) return;
+if(
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear
+) return;
 
-    let day = date.getDate() - 1;
+let day = operational.day - 1;
 
     easyArr[day] += Number(e.amount || 0);
 });
