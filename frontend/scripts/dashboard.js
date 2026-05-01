@@ -301,7 +301,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== false
 ){
     monthly_easy += Number(e.amount || 0);
 }
@@ -359,7 +359,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== false
 ){
 
     monthly_income += amount;
@@ -401,7 +401,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== false
 ){
     monthly_canteen += amount;
 }
@@ -439,7 +439,7 @@ sessionsData.forEach(s=>{
         operational &&
         operational.month === selectedMonth &&
         operational.year === selectedYear &&
-        operational.raw?.is_closed === true
+        operational.raw?.is_closed !== false
     ){
         monthly_canteen += canteen;
     }
@@ -473,7 +473,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== false
 ){
     monthly_expense += amount;
 }
