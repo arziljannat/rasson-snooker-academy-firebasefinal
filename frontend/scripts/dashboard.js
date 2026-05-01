@@ -404,7 +404,7 @@ if(
     operational.year === selectedYear &&
     String(c.day_id) !== String(currentDayId)
 ){
-    monthly_canteen += canteen;
+    monthly_canteen += amount;
 }
 });
 
@@ -687,20 +687,20 @@ let day = operational.day - 1;
 sessionsData.forEach(s=>{
 
     // 🔥 SKIP DELETED SESSIONS
-if (s.is_deleted === true) return;
+    if (s.is_deleted === true) return;
 
-    
     let operational =
-    operationalDays[String(s.day_id)];
+        operationalDays[String(s.day_id)];
 
-if(
-    !operational ||
-    operational.month !== selectedMonth ||
-    operational.year !== selectedYear ||
-    String(c.day_id) === String(window.currentDayId)
-) return;
+    if(
+        !operational ||
+        operational.month !== selectedMonth ||
+        operational.year !== selectedYear ||
+        String(s.day_id) === String(window.currentDayId)
+    ) return;
 
-let day = operational.day - 1;
+    let day = operational.day - 1;
+
     canteenArr[day] += Number(s.canteen_total || 0);
 });
 
