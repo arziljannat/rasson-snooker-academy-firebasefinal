@@ -101,14 +101,19 @@ async function loadOperationalDays(){
         let dayId =
             String(d.day_id || "");
 
-        let rawDate =
+       let rawDate =
             d.start_time ||
             d.created_at ||
             d.date;
 
-        if(!rawDate) return;
+// 🔥 FIX FOR OLD DAYS
+if (!d.start_time && d.shift1?.startMs) {
+    rawDate = d.shift1.startMs;
+}
 
-        let date = new Date(rawDate);
+if(!rawDate) return;
+
+let date = new Date(rawDate);
 
         if(isNaN(date.getTime())) return;
 
