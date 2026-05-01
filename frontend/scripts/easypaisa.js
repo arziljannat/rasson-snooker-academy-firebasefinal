@@ -190,24 +190,26 @@ function renderTable() {
 easyData.forEach(e => {
 
     // 🔥 MONTH FILTER
-    if (selectedMonth) {
+if (selectedMonth) {
 
-        let d;
+    const operationalDayId =
+        String(e.day_id || "");
 
-        if (e.created_at?.seconds) {
-            d = new Date(e.created_at.seconds * 1000);
-        } else {
-            d = new Date(e.created_at);
-        }
+    const operationalDate =
+        new Date(Number(operationalDayId));
 
-        const month =
-            d.getFullYear() + "-" +
-            String(d.getMonth() + 1).padStart(2, "0");
+    if (isNaN(operationalDate.getTime())) return;
 
-        if (month !== selectedMonth) {
-            return;
-        }
+    const month =
+        operationalDate.getFullYear() + "-" +
+        String(
+            operationalDate.getMonth() + 1
+        ).padStart(2, "0");
+
+    if (month !== selectedMonth) {
+        return;
     }
+}
 
     total += Number(e.amount || 0);
 
@@ -270,16 +272,10 @@ snap.forEach(d => {
     }
 
     // ✅ ONLY CURRENT MONTH
-    if (
-        easyDate.getMonth() === now.getMonth() &&
-        easyDate.getFullYear() === now.getFullYear()
-    ) {
-
-        easyData.push({
-            id: d.id,
-            ...data
-        });
-    }
+easyData.push({
+    id: d.id,
+    ...data
+});
 });
 
         renderTable();
