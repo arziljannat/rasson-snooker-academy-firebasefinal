@@ -302,7 +302,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    String(e.day_id) !== String(currentDayId)
+    operational.raw?.is_closed === true
 ){
     monthly_easy += Number(e.amount || 0);
 }
@@ -360,7 +360,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    String(sessionDayId) !== String(currentDayId)
+    operational.raw?.is_closed === true
 ){
 
     monthly_income += amount;
@@ -402,7 +402,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    String(c.day_id) !== String(currentDayId)
+    operational.raw?.is_closed === true
 ){
     monthly_canteen += amount;
 }
@@ -440,7 +440,7 @@ sessionsData.forEach(s=>{
         operational &&
         operational.month === selectedMonth &&
         operational.year === selectedYear &&
-        String(s.day_id) !== String(currentDayId)
+        operational.raw?.is_closed === true
     ){
         monthly_canteen += canteen;
     }
@@ -474,7 +474,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    String(e.day_id) !== String(currentDayId)
+    operational.raw?.is_closed === true
 ){
     monthly_expense += amount;
 }
@@ -650,7 +650,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id) === String(window.currentDayId)
+    operational.raw?.is_closed !== true
 ) return;
 
 let d = operational.startDate;
@@ -685,7 +685,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(c.day_id) === String(window.currentDayId)
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
@@ -702,11 +702,11 @@ sessionsData.forEach(s=>{
         operationalDays[String(s.day_id)];
 
     if(
-        !operational ||
-        operational.month !== selectedMonth ||
-        operational.year !== selectedYear ||
-        String(s.day_id) === String(window.currentDayId)
-    ) return;
+    !operational ||
+    operational.month !== selectedMonth ||
+    operational.year !== selectedYear ||
+    operational.raw?.is_closed !== true
+) return;
 
     let day = operational.day - 1;
 
@@ -732,7 +732,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(e.day_id) === String(window.currentDayId)
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
@@ -769,7 +769,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(e.day_id) === String(window.currentDayId)
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
