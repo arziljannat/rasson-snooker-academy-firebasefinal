@@ -796,7 +796,18 @@ function runTimer(id) {
 
     // FIXED BILLING
     const rate = t.playType === "century" ? t.centuryRate : t.frameRate;
-t.liveAmount = Math.ceil(t.playSeconds / 60) * rate;
+// 🔥 MINIMUM 10 MINUTES BILLING
+let chargeMinutes = Math.ceil(t.playSeconds / 60);
+
+// ✅ minimum 10 minutes
+if (chargeMinutes < 10) {
+    chargeMinutes = 10;
+}
+
+let rawAmount = chargeMinutes * rate;
+
+t.liveAmount = smartRoundAmount(rawAmount);
+
 
     updateDisplay(id);
      
@@ -859,6 +870,24 @@ function formatSeconds(sec){
     let m = Math.floor((sec%3600)/60);
     let s = sec%60;
     return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+// 🔥 SMART ROUNDING SYSTEM
+function smartRoundAmount(amount) {
+
+    let lastDigit = amount % 10;
+
+    // 1 → 5 = DOWN
+    if (lastDigit >= 1 && lastDigit <= 5) {
+        return amount - lastDigit;
+    }
+
+    // 6 → 9 = UP
+    if (lastDigit >= 6 && lastDigit <= 9) {
+        return amount + (10 - lastDigit);
+    }
+
+    return amount;
 }
 
 /******************************************************
