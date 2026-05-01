@@ -404,7 +404,7 @@ if(
     operational.year === selectedYear &&
     String(c.day_id) !== String(currentDayId)
 ){
-    monthly_canteen += amount;
+    monthly_canteen += canteen;
 }
 });
 
@@ -641,7 +641,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
+    String(s.day_id) === String(window.currentDayId)
 ) return;
 
 let d = operational.startDate;
@@ -676,7 +676,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
+    String(c.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -697,7 +697,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
+    String(c.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -723,7 +723,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
+    String(e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -760,7 +760,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
+    String(e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
