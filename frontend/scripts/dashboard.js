@@ -411,30 +411,39 @@ if(
 // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
     // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
 sessionsData.forEach(s=>{
-// 🔥 SKIP DELETED SESSIONS
-if (s.is_deleted === true) return;
-    let date = new Date(s.start_time || s.startTime || s.created_at);
-    let canteen = Number(s.canteen_total || 0);
+
+    // 🔥 SKIP DELETED SESSIONS
+    if (s.is_deleted === true) return;
+
+    let date = new Date(
+        s.start_time ||
+        s.startTime ||
+        s.created_at
+    );
+
+    let canteen =
+        Number(s.canteen_total || 0);
 
     // 🔥 CURRENT DAY
     if(String(s.day_id) === String(currentDayId)){
-        if(date>=todayStart){
+
+        if(date >= todayStart){
             today_canteen_total += canteen;
         }
     }
 
-    // 🔥 MONTHLY (NO DAY FILTER)
+    // 🔥 MONTHLY
     let operational =
-    operationalDays[String(s.day_id)];
+        operationalDays[String(s.day_id)];
 
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    String(c.day_id) !== String(currentDayId)
-){
-    monthly_canteen += amount;
-}
+    if(
+        operational &&
+        operational.month === selectedMonth &&
+        operational.year === selectedYear &&
+        String(s.day_id) !== String(currentDayId)
+    ){
+        monthly_canteen += canteen;
+    }
 });
 
     // ================= EXPENSE =================
