@@ -2492,11 +2492,6 @@ async function openDayHistory() {
 days.sort((a, b) => {
     return new Date(b.created_at) - new Date(a.created_at);
 });
-
-// ✅ OPERATIONAL DATE FIX
-let operationalDate = d.shift1?.startMs
-    ? new Date(d.shift1.startMs)
-    : new Date(d.date);
   
   
 // 🔥 AB DROPDOWN BANAO
@@ -2725,6 +2720,11 @@ function openTableHistory() {
 
     // 🔥 Firebase day history use karo
     (window._daysData || []).forEach((d, i) => {
+
+      // ✅ OPERATIONAL DATE FIX
+let operationalDate = d.shift1?.startMs
+    ? new Date(d.shift1.startMs)
+    : new Date(d.date);
     
         let openTime = d.shift1?.startMs 
     ? new Date(d.shift1.startMs).toLocaleTimeString('en-PK', {
