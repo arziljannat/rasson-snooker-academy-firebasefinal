@@ -3,7 +3,8 @@ import {
   getDocs,
   query,
   where,
-  addDoc
+  addDoc,
+orderBy
 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -45,6 +46,53 @@ buttons[1].onclick = () => {
     buttons.forEach(btn => btn.classList.remove("active"));
     buttons[1].classList.add("active");
 };
+
+
+let operationalDays = {};
+
+async function loadOperationalDays(){
+
+    operationalDays = {};
+
+    const snap = await getDocs(
+        collection(window.db, "days")
+    );
+
+    snap.forEach(doc => {
+
+        let d = doc.data();
+
+        let dayId =
+            String(d.day_id || "");
+
+        let rawDate =
+            d.start_time ||
+            d.created_at ||
+            d.date;
+
+        if(!rawDate) return;
+
+        let date = new Date(rawDate);
+
+        if(isNaN(date.getTime())) return;
+
+        operationalDays[dayId] = {
+
+            raw: d,
+
+            startDate: date,
+
+            month: date.getMonth(),
+
+            year: date.getFullYear(),
+
+            day: date.getDate()
+        };
+    });
+}
+
+
+
 buttons[2].onclick = () => {
 
     currentReport = "inventory";
@@ -56,7 +104,9 @@ buttons[2].onclick = () => {
     buttons[2].classList.add("active");
 };
 
-document.getElementById("viewReportBtn").onclick = () => {
+document.getElementById("viewReportBtn").onclick = async () => {
+
+    await loadOperationalDays();
 
     if (currentReport === "game") {
 
@@ -124,6 +174,7 @@ async function loadReport() {
         let totalCanteen = 0;
         let totalExpense = 0;
         let totalEasy = 0;
+        let dayBoxes = {};
 
         // =========================
         // GAME INCOME
@@ -131,23 +182,60 @@ async function loadReport() {
 
         sessionsSnap.forEach(doc => {
 
-            let d = doc.data();
+    let d = doc.data();
 
-            if (!d.checkout_time) return;
+    if(d.is_deleted === true) return;
 
-            let date;
+    let dayId =
+        String(d.day_id || "");
 
-            if (d.checkout_time.seconds) {
-                date = new Date(d.checkout_time.seconds * 1000);
-            } else {
-                date = new Date(d.checkout_time);
-            }
+    let operational =
+        operationalDays[dayId];
 
-            if (date >= dates.from && date <= dates.to) {
+    if(!operational) return;
 
-                totalGame += Number(d.total_price || 0);
-            }
-        });
+    let opDate =
+        operational.startDate;
+
+    if(
+        opDate < dates.from ||
+        opDate > dates.to
+    ) return;
+
+    if(!dayBoxes[dayId]){
+
+        dayBoxes[dayId] = {
+
+            game: 0,
+            canteen: 0,
+            expense: 0,
+            easy: 0,
+
+            start: operational.raw.start_time,
+            close: operational.raw.end_time,
+
+            label:
+                opDate.toLocaleDateString()
+        };
+    }
+
+    let amount = Number(
+        d.final_amount ||
+        d.total_price ||
+        0
+    );
+
+    totalGame += amount;
+
+    dayBoxes[dayId].game += amount;
+
+    let canteen =
+        Number(d.canteen_total || 0);
+
+    totalCanteen += canteen;
+
+    dayBoxes[dayId].canteen += canteen;
+});
 
         // =========================
         // CANTEEN
@@ -177,21 +265,48 @@ async function loadReport() {
 
         expenseSnap.forEach(doc => {
 
-            let d = doc.data();
+    let d = doc.data();
 
-            let date;
+    let dayId =
+        String(d.day_id || "");
 
-            if (d.created_at?.seconds) {
-                date = new Date(d.created_at.seconds * 1000);
-            } else {
-                date = new Date(d.created_at);
-            }
+    let operational =
+        operationalDays[dayId];
 
-            if (date >= dates.from && date <= dates.to) {
+    if(!operational) return;
 
-                totalExpense += Number(d.amount || 0);
-            }
-        });
+    let opDate =
+        operational.startDate;
+
+    if(
+        opDate < dates.from ||
+        opDate > dates.to
+    ) return;
+
+    if(!dayBoxes[dayId]){
+
+        dayBoxes[dayId] = {
+
+            game: 0,
+            canteen: 0,
+            expense: 0,
+            easy: 0,
+
+            start: operational.raw.start_time,
+            close: operational.raw.end_time,
+
+            label:
+                opDate.toLocaleDateString()
+        };
+    }
+
+    let amount =
+        Number(d.amount || 0);
+
+    totalExpense += amount;
+
+    dayBoxes[dayId].expense += amount;
+});
 
         // =========================
         // EASYPAISA
@@ -199,21 +314,48 @@ async function loadReport() {
 
         easySnap.forEach(doc => {
 
-            let d = doc.data();
+    let d = doc.data();
 
-            let date;
+    let dayId =
+        String(d.day_id || "");
 
-            if (d.created_at?.seconds) {
-                date = new Date(d.created_at.seconds * 1000);
-            } else {
-                date = new Date(d.created_at);
-            }
+    let operational =
+        operationalDays[dayId];
 
-            if (date >= dates.from && date <= dates.to) {
+    if(!operational) return;
 
-                totalEasy += Number(d.amount || 0);
-            }
-        });
+    let opDate =
+        operational.startDate;
+
+    if(
+        opDate < dates.from ||
+        opDate > dates.to
+    ) return;
+
+    if(!dayBoxes[dayId]){
+
+        dayBoxes[dayId] = {
+
+            game: 0,
+            canteen: 0,
+            expense: 0,
+            easy: 0,
+
+            start: operational.raw.start_time,
+            close: operational.raw.end_time,
+
+            label:
+                opDate.toLocaleDateString()
+        };
+    }
+
+    let amount =
+        Number(d.amount || 0);
+
+    totalEasy += amount;
+
+    dayBoxes[dayId].easy += amount;
+});
 
         // =========================
         // NET
@@ -228,7 +370,73 @@ async function loadReport() {
         // =========================
         // HTML
         // =========================
+        let daysHtml = "";
 
+Object.values(dayBoxes).forEach(day => {
+
+    let net =
+        day.game +
+        day.canteen -
+        day.expense -
+        day.easy;
+
+    let start =
+        day.start
+        ? new Date(day.start)
+            .toLocaleString()
+        : "-";
+
+    let close =
+        day.close
+        ? new Date(day.close)
+            .toLocaleString()
+        : "-";
+
+    daysHtml += `
+
+    <div class="report-card"
+    style="margin-bottom:20px;">
+
+        <h3 style="color:#00ffcc;">
+            Operational Day:
+            ${day.label}
+        </h3>
+
+        <div>
+            <b>Open:</b>
+            ${start}
+        </div>
+
+        <div>
+            <b>Close:</b>
+            ${close}
+        </div>
+
+        <hr>
+
+        <div>Game:
+        Rs ${day.game}</div>
+
+        <div>Canteen:
+        Rs ${day.canteen}</div>
+
+        <div>Expenses:
+        Rs ${day.expense}</div>
+
+        <div>EasyPaisa:
+        Rs ${day.easy}</div>
+
+        <h3 style="color:#00ffcc;">
+            Net:
+            Rs ${net}
+        </h3>
+
+    </div>
+    `;
+});
+
+
+      
         let html = `
             <h2>Game Report</h2>
 
@@ -254,10 +462,14 @@ async function loadReport() {
 
             <hr>
 
-            <h2 style="color:#00ffcc;">
-                Net Profit:
-                Rs ${net}
-            </h2>
+${daysHtml}
+
+<hr>
+
+<h2 style="color:#00ffcc;">
+    Net Profit:
+    Rs ${net}
+</h2>
         `;
 
         box.innerHTML = html;
