@@ -301,7 +301,8 @@ const easyYear =
 if(
     operational &&
     operational.month === selectedMonth &&
-    operational.year === selectedYear
+    operational.year === selectedYear &&
+    String(e.day_id) !== String(currentDayId)
 ){
     monthly_easy += Number(e.amount || 0);
 }
@@ -358,7 +359,8 @@ if(String(sessionDayId) === String(currentDayId)){
 if(
     operational &&
     operational.month === selectedMonth &&
-    operational.year === selectedYear
+    operational.year === selectedYear &&
+    String(sessionDayId) !== String(currentDayId)
 ){
 
     monthly_income += amount;
@@ -399,7 +401,8 @@ let operational =
 if(
     operational &&
     operational.month === selectedMonth &&
-    operational.year === selectedYear
+    operational.year === selectedYear &&
+    String(c.day_id) !== String(currentDayId)
 ){
     monthly_canteen += amount;
 }
@@ -427,9 +430,10 @@ if (s.is_deleted === true) return;
 if(
     operational &&
     operational.month === selectedMonth &&
-    operational.year === selectedYear
+    operational.year === selectedYear &&
+    String(c.day_id) !== String(currentDayId)
 ){
-    monthly_canteen += canteen;
+    monthly_canteen += amount;
 }
 });
 
@@ -460,7 +464,8 @@ if(
 if(
     operational &&
     operational.month === selectedMonth &&
-    operational.year === selectedYear
+    operational.year === selectedYear &&
+    String(e.day_id) !== String(currentDayId)
 ){
     monthly_expense += amount;
 }
@@ -635,7 +640,8 @@ if (s.is_deleted === true) return;
 if(
     !operational ||
     operational.month !== selectedMonth ||
-    operational.year !== selectedYear
+    operational.year !== selectedYear ||
+    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
 ) return;
 
 let d = operational.startDate;
@@ -669,7 +675,8 @@ canteenData.forEach(c=>{
 if(
     !operational ||
     operational.month !== selectedMonth ||
-    operational.year !== selectedYear
+    operational.year !== selectedYear ||
+    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -689,7 +696,8 @@ if (s.is_deleted === true) return;
 if(
     !operational ||
     operational.month !== selectedMonth ||
-    operational.year !== selectedYear
+    operational.year !== selectedYear ||
+    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -714,7 +722,8 @@ let day = operational.day - 1;
 if(
     !operational ||
     operational.month !== selectedMonth ||
-    operational.year !== selectedYear
+    operational.year !== selectedYear ||
+    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
@@ -750,7 +759,8 @@ easypaisaDocs.forEach(e=>{
 if(
     !operational ||
     operational.month !== selectedMonth ||
-    operational.year !== selectedYear
+    operational.year !== selectedYear ||
+    String(s.day_id || c.day_id || e.day_id) === String(window.currentDayId)
 ) return;
 
 let day = operational.day - 1;
