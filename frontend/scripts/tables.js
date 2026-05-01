@@ -2520,15 +2520,7 @@ days.forEach(d => {
 }) 
         : "-";
 
-    sel.innerHTML += `
-<option>
-    ${operationalDate.getFullYear()}-${
-        String(operationalDate.getMonth() + 1).padStart(2, "0")
-    }-${
-        String(operationalDate.getDate()).padStart(2, "0")
-    }
-    (${openTime} → ${closeTime})
-</option>
+sel.innerHTML += `<option>${operationalDate.getFullYear()}-${String(operationalDate.getMonth() + 1).padStart(2, "0")}-${String(operationalDate.getDate()).padStart(2, "0")} (${openTime} → ${closeTime})</option>`;
 });
 
     window._daysData = days;
@@ -2753,14 +2745,7 @@ let closeTime = d.shift2?.endMs
     : "-";
 
 dateSel.innerHTML += `
-<option value="${i}">
-    ${operationalDate.getFullYear()}-${
-        String(operationalDate.getMonth() + 1).padStart(2, "0")
-    }-${
-        String(operationalDate.getDate()).padStart(2, "0")
-    }
-    (${openTime} → ${closeTime})
-</option>`;
+dateSel.innerHTML += `<option value="${i}">${operationalDate.getFullYear()}-${String(operationalDate.getMonth() + 1).padStart(2, "0")}-${String(operationalDate.getDate()).padStart(2, "0")} (${openTime} → ${closeTime})</option>`;
     });
 
     let tableSel = document.getElementById("tableHistoryTableSelect");
