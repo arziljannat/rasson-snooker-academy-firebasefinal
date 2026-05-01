@@ -243,7 +243,6 @@ if (
     });
 
     setText("todayEasyPaisa", todayEasy);
-    setText("monthlyEasyPaisa", monthlyEasy || 0);
     
     realtimeTodayEasy = todayEasy;
     realtimeMonthlyEasy = monthlyEasy;
@@ -534,6 +533,7 @@ setText("netIncome", finalTodayNet);
     setText("monthlyIncome", monthly_income);
     setText("monthlycanteen", monthly_canteen);
     setText("monthlyExpenses", monthly_expense);
+    setText("monthlyEasyPaisa", monthly_easy);
 
     const finalMonthlyProfit =
     Number(monthly_income || 0)
