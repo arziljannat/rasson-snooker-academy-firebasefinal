@@ -103,11 +103,15 @@ window.saveExpense = async () => {
         return;
     }
 
-    await addDoc(collection(db, "expenses"), {
-        type,
-        title,
-        amount,
-        branch,
+await addDoc(collection(db, "expenses"), {
+    type,
+    title,
+    amount,
+
+    branch: String(branch)
+        .toLowerCase()
+        .replace(/\s+/g, ""),
+
         day_id: window.currentDayId,
         created_at: selectedDate
     ? new Date(selectedDate).toISOString()
