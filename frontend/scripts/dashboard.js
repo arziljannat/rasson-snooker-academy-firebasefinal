@@ -299,6 +299,7 @@ if(
     
     realtimeTodayEasy = todayEasy;
     realtimeMonthlyEasy = monthlyEasy;
+    updateDashboard();
     
 
 });
