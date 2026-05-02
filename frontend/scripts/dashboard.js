@@ -241,14 +241,27 @@ date = new Date(rawDate);
 if (isNaN(date.getTime())) return;
 
         // TODAY
-        if (String(e.day_id) === String(currentDayId)) {
-            todayEasy += amount;
-        }
-        // MONTHLY
+// TODAY
+let operational =
+    operationalDays[String(e.day_id)];
+
 if (
-    date.getMonth() === selectedMonth &&
-    date.getFullYear() === selectedYear
+    String(e.day_id) === String(currentDayId) &&
+    !operational?.raw?.is_closed
 ) {
+    todayEasy += amount;
+}
+        // MONTHLY
+// MONTHLY
+let operationalMonthly =
+    operationalDays[String(e.day_id)];
+
+if(
+    operationalMonthly &&
+    operationalMonthly.month === selectedMonth &&
+    operationalMonthly.year === selectedYear &&
+    operationalMonthly.raw?.is_closed === true
+){
     monthlyEasy += amount;
 }
 
@@ -357,6 +370,13 @@ let sessionDayId =
 
 if(String(sessionDayId) === String(currentDayId)){
 
+    if(
+    operational &&
+    operational.raw?.is_closed === true
+){
+    return;
+}
+
     if (isNaN(date.getTime())) return;
 
     today_sessions++;
@@ -407,6 +427,15 @@ canteenData.forEach(c=>{
 let amount = Number(c.total || c.amount || 0);
 
 // 🔥 CURRENT DAY
+
+
+if(
+    operational &&
+    operational.raw?.is_closed === true
+){
+    return;
+}
+    
 if(String(c.day_id) === String(currentDayId)){
     if(date>=todayStart){
         today_canteen_total+=amount;
@@ -446,6 +475,16 @@ sessionsData.forEach(s=>{
     // 🔥 CURRENT DAY
     if(String(s.day_id) === String(currentDayId)){
 
+        let operational =
+    operationalDays[String(s.day_id)];
+
+if(
+    operational &&
+    operational.raw?.is_closed === true
+){
+    return;
+}
+
         if(date >= todayStart){
             today_canteen_total += canteen;
         }
@@ -481,9 +520,13 @@ sessionsData.forEach(s=>{
     let amount = Number(e.amount || 0);
 
     // TODAY
-    if(String(e.day_id) === String(currentDayId)){
-        today_expense += amount;
-    }
+
+if(
+    String(e.day_id) === String(currentDayId) &&
+    !operational?.raw?.is_closed
+){
+    today_expense += amount;
+}
 
     // MONTHLY
     let operational =
@@ -493,7 +536,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed === true
+    !todayOperational?.raw?.is_closed
 ){
     monthly_expense += amount;
 }
@@ -726,7 +769,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
@@ -746,7 +789,7 @@ sessionsData.forEach(s=>{
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== true
 ) return;
 
     let day = operational.day - 1;
@@ -773,7 +816,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
@@ -810,7 +853,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== true
 ) return;
 
 let day = operational.day - 1;
