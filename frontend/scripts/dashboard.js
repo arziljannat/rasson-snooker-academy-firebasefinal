@@ -281,7 +281,15 @@ async function updateDashboard() {
     let monthly_income=0;
 
     let today_easy = realtimeTodayEasy || 0;
-    let monthly_easy = 0;
+    // 🔥 RESET TODAY VALUES FOR OPERATIONAL DAY
+            today_sessions = 0;
+            completed_sessions = 0;
+            today_game_total = 0;
+            today_paid = 0;
+            today_unpaid = 0;
+            today_canteen_total = 0;
+            today_expense = 0;
+            let monthly_easy = 0;
 
 (window.latestEasyDocs || []).forEach(e => {
     let rawDate =
@@ -497,11 +505,12 @@ if(
 
     // ================= UI =================
     setText("totalTables", tablesData.length);
-    const activeTablesCount = sessionsData.filter(s => {
+const activeTablesCount = sessionsData.filter(s => {
 
-        // 🔥 SKIP DELETED
-if (s.is_deleted === true) return false;
+    // 🔥 SKIP DELETED
+    if (s.is_deleted === true) return false;
 
+    // 🔥 ONLY CURRENT OPERATIONAL DAY
     const sameDay =
         String(
             s.day_id ||
@@ -510,13 +519,32 @@ if (s.is_deleted === true) return false;
             ""
         ) === String(currentDayId);
 
-       const running =
+    // 🔥 RUNNING SESSION
+    const running =
         !s.end_time &&
         !s.endTime &&
         !s.checkout_time &&
         !s.checkoutTime &&
         !s.closeTime &&
         !s.close_time;
+
+    // 🔥 IGNORE OLD CLOSED DAYS
+    const operational =
+        operationalDays[
+            String(
+                s.day_id ||
+                s.dayId ||
+                s.current_day_id ||
+                ""
+            )
+        ];
+
+    if (
+        operational &&
+        operational.raw?.is_closed !== false
+    ) {
+        return false;
+    }
 
     return sameDay && running;
 
