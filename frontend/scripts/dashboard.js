@@ -321,7 +321,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ){
     monthly_easy += Number(e.amount || 0);
 }
@@ -357,6 +357,17 @@ let sessionDayId =
 
 if(String(sessionDayId) === String(currentDayId)){
 
+    const operational =
+    operationalDays[String(sessionDayId)];
+
+if(
+    operational &&
+    operational.raw?.is_closed === true &&
+    !operational.isCurrent
+){
+    return;
+}
+
     if (isNaN(date.getTime())) return;
 
     today_sessions++;
@@ -379,7 +390,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ){
 
     monthly_income += amount;
@@ -421,7 +432,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ){
     monthly_canteen += amount;
 }
@@ -459,7 +470,7 @@ sessionsData.forEach(s=>{
         operational &&
         operational.month === selectedMonth &&
         operational.year === selectedYear &&
-        operational.raw?.is_closed !== false
+        operational.raw?.is_closed === true
     ){
         monthly_canteen += canteen;
     }
@@ -493,7 +504,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ){
     monthly_expense += amount;
 }
@@ -540,7 +551,7 @@ const activeTablesCount = sessionsData.filter(s => {
 
    if (
     operational &&
-    operational.raw?.is_closed !== false &&
+    operational.raw?.is_closed === true &&
     !operational.isCurrent
 ) {
     return false;
@@ -691,7 +702,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ) return;
 
 let d = operational.startDate;
@@ -726,7 +737,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ) return;
 
 let day = operational.day - 1;
@@ -746,7 +757,7 @@ sessionsData.forEach(s=>{
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ) return;
 
     let day = operational.day - 1;
@@ -773,7 +784,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ) return;
 
 let day = operational.day - 1;
@@ -810,7 +821,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed !== false
+    operational.raw?.is_closed === true
 ) return;
 
 let day = operational.day - 1;
