@@ -119,11 +119,6 @@ let date = new Date(rawDate);
 
         // 🔥 ONLY CLOSED DAYS
 // 🔥 SKIP ONLY CURRENT RUNNING DAY
-if(
-    String(d.day_id) === String(window.currentDayId)
-){
-    return;
-}
 
 operationalDays[dayId] = {
 
@@ -135,7 +130,11 @@ operationalDays[dayId] = {
 
     year: date.getFullYear(),
 
-    day: date.getDate()
+    day: date.getDate(),
+
+    isCurrent:
+        String(d.day_id) ===
+        String(window.currentDayId)
 };
     });
 }
@@ -539,12 +538,13 @@ const activeTablesCount = sessionsData.filter(s => {
             )
         ];
 
-    if (
-        operational &&
-        operational.raw?.is_closed !== false
-    ) {
-        return false;
-    }
+   if (
+    operational &&
+    operational.raw?.is_closed !== false &&
+    !operational.isCurrent
+) {
+    return false;
+}
 
     return sameDay && running;
 
