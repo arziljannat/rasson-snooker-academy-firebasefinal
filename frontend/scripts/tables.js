@@ -3866,11 +3866,6 @@ async function softDeleteSession(tableId, historyIndex) {
         return;
     }
 
-    const confirmDelete = confirm(
-        "Are you sure you want to delete this session?"
-    );
-
-    if (!confirmDelete) return;
 
     let t = tables.find(x => String(x.id) === String(tableId));
 
