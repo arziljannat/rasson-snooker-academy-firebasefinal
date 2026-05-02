@@ -357,17 +357,6 @@ let sessionDayId =
 
 if(String(sessionDayId) === String(currentDayId)){
 
-    const operational =
-    operationalDays[String(sessionDayId)];
-
-if(
-    operational &&
-    operational.raw?.is_closed === true &&
-    !operational.isCurrent
-){
-    return;
-}
-
     if (isNaN(date.getTime())) return;
 
     today_sessions++;
@@ -702,7 +691,7 @@ if(
     !operational ||
     operational.month !== selectedMonth ||
     operational.year !== selectedYear ||
-    operational.raw?.is_closed === true
+    operational.raw?.is_closed !== true
 ) return;
 
 let d = operational.startDate;
