@@ -432,21 +432,20 @@ if(
 
     monthly_income += amount;
 
-// 🔥 REAL SHIFT LOGIC
+// 🔥 SHIFT SPLIT USING SESSION START TIME
 
-const shiftType =
-    (s.shift || s.shift_type || "").toLowerCase();
+let sessionHour = date.getHours();
 
-if(
-    shiftType === "shift2" ||
-    shiftType === "2"
-){
+// 🔥 9 AM → 8 PM = SHIFT 1
+// 🔥 8 PM → NEXT MORNING = SHIFT 2
 
-    shift2Monthly += amount;
+if(sessionHour >= 9 && sessionHour < 20){
+
+    shift1Monthly += amount;
 
 }else{
 
-    shift1Monthly += amount;
+    shift2Monthly += amount;
 }
 
 }
