@@ -1007,6 +1007,7 @@ async function showBill(id) {
     <p><b>Check-in:</b> ${checkin}</p>
     <p><b>Checkout:</b> ${checkout}</p>
     <p><b>Play Time:</b> ${playtime}</p>
+    <p><b>Play Type:</b> ${t.playType}</p>
 
     <hr>
 
@@ -1101,7 +1102,8 @@ if (latestSession) {
     // 🔥 UI UPDATE (IMPORTANT)
     updateButtons(id, "afterCheckout");
 
-    printThermalBill(id);
+    printThermalBill(id, last);
+  
 }
 
 
@@ -1302,6 +1304,8 @@ function openHistory(id) {
     let t = tables.find(x => String(x.id) === String(id));
 
     let body = document.getElementById("historyTableBody");
+  document.getElementById("historyTableTitle").innerText =
+`History - ${t.name}`;
     body.innerHTML = "";
 
     // 🔥 LATEST CHECKOUT FIRST
@@ -1457,6 +1461,7 @@ bill.innerHTML = `
     <p><b>Check-in:</b> ${checkin}</p>
     <p><b>Checkout:</b> ${checkout}</p>
     <p><b>Play Time:</b> ${playtime}</p>
+    <p><b>Play Type:</b> ${h.rate === t.centuryRate ? "century" : "frame"}</p>
 
     <hr>
 
@@ -3168,6 +3173,10 @@ body {
 <div class="row"><span>In</span><span>${checkin}</span></div>
 <div class="row"><span>Out</span><span>${checkout}</span></div>
 <div class="row"><span>Time</span><span>${playtime}</span></div>
+<div class="row">
+<span>Play Type</span>
+<span>${h ? (h.rate ? (h.rate === t.centuryRate ? 'Century' : 'Frame') : 'Frame') : (t.playType || 'frame')}</span>
+</div>
 
 <div class="line"></div>
 
