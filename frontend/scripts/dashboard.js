@@ -432,15 +432,21 @@ if(
 
     monthly_income += amount;
 
-let sessionHour = date.getHours();
+// 🔥 REAL SHIFT LOGIC
 
-if(sessionHour < 18){
+const shiftType =
+    (s.shift || s.shift_type || "").toLowerCase();
 
-    shift1Monthly += amount;
+if(
+    shiftType === "shift2" ||
+    shiftType === "2"
+){
+
+    shift2Monthly += amount;
 
 }else{
 
-    shift2Monthly += amount;
+    shift1Monthly += amount;
 }
 
 }
