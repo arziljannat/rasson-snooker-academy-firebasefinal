@@ -1338,9 +1338,13 @@ t.history.sort((a, b) => {
 
 <td>
 ${ROLE === "admin"
-? `<button class="neon-btn red" onclick="softDeleteSession('${id}', ${index})">
-DELETE
-</button>`
+? `
+<input 
+type="checkbox"
+class="historyDeleteCheck"
+value="${index}"
+>
+`
 : "-"
 }
 </td>
@@ -1354,6 +1358,48 @@ DELETE
 
     document.getElementById("closeHistoryBtn").onclick =
         () => document.getElementById("historyPopup").classList.add("hidden");
+
+  const deleteBtn = document.getElementById("deleteSelectedHistoryBtn");
+
+// 🔥 only admin
+if (ROLE === "admin") {
+
+    deleteBtn.classList.remove("hidden");
+
+    deleteBtn.onclick = async () => {
+
+        const checks = document.querySelectorAll(
+            ".historyDeleteCheck:checked"
+        );
+
+        if (checks.length === 0) {
+            alert("Select history first ❌");
+            return;
+        }
+
+        const ok = confirm(
+            `Delete ${checks.length} sessions ?`
+        );
+
+        if (!ok) return;
+
+        // reverse delete important
+        const indexes = [...checks]
+            .map(c => Number(c.value))
+            .sort((a,b) => b - a);
+
+        for (const i of indexes) {
+            await softDeleteSession(id, i);
+        }
+
+        openHistory(id);
+    };
+
+} else {
+
+    deleteBtn.classList.add("hidden");
+}
+  
 }
 
 function openBillFromHistory(tableId, historyIndex) {
