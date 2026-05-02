@@ -432,17 +432,16 @@ if(
 
     monthly_income += amount;
 
-    let startHour =
-        operational.startDate.getHours();
+let sessionHour = date.getHours();
 
-    if(startHour < 18){
+if(sessionHour < 18){
 
-        shift1Monthly += amount;
+    shift1Monthly += amount;
 
-    }else{
+}else{
 
-        shift2Monthly += amount;
-    }
+    shift2Monthly += amount;
+}}
 }
 
 });
@@ -789,12 +788,22 @@ let day = operational.day - 1;
         
 
         // SHIFT LOGIC (simple split)
-        let hour = d.getHours();
-        if(hour < 18){
-            shift1Arr[day] += amount;
-        } else {
-            shift2Arr[day] += amount;
-        }
+let sessionDate = new Date(
+    s.start_time ||
+    s.startTime ||
+    s.created_at
+);
+
+let hour = sessionDate.getHours();
+
+if(hour < 18){
+
+    shift1Arr[day] += amount;
+
+} else {
+
+    shift2Arr[day] += amount;
+}
     });
 
     // 🔥 CANTEEN (logs)
