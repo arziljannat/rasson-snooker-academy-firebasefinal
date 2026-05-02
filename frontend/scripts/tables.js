@@ -344,11 +344,10 @@ async function loadInventory() {
 
 function listenExpensesRealtime() {
 
-    const q = query(
-        collection(window.db, "expenses"),
-        where("branch", "==", BRANCH),
-        where("day_id", "==", window.currentDayId)
-    );
+const q = query(
+    collection(window.db, "expenses"),
+    where("branch", "==", BRANCH)
+);
 
     onSnapshot(q, (snapshot) => {
 
@@ -366,11 +365,10 @@ function listenExpensesRealtime() {
 
 function listenEasyRealtime() {
 
-    const q = query(
-        collection(window.db, "easypaisa"),
-        where("branch", "==", BRANCH),
-        where("day_id", "==", window.currentDayId)
-    );
+const q = query(
+    collection(window.db, "easypaisa"),
+    where("branch", "==", BRANCH)
+);
 
     onSnapshot(q, (snapshot) => {
 
