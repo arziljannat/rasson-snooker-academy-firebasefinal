@@ -794,13 +794,15 @@ let sessionDate = new Date(
     s.created_at
 );
 
+if(isNaN(sessionDate.getTime())) return;
+
 let hour = sessionDate.getHours();
 
 if(hour < 18){
 
     shift1Arr[day] += amount;
 
-} else {
+}else{
 
     shift2Arr[day] += amount;
 }
