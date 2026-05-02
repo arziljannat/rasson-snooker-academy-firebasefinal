@@ -441,9 +441,9 @@ if(sessionHour < 18){
 }else{
 
     shift2Monthly += amount;
-}}
 }
 
+}
 });
 
     // ================= CANTEEN =================
