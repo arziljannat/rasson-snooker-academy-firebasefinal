@@ -122,7 +122,18 @@ let date = new Date(rawDate);
 
 operationalDays[dayId] = {
 
-    raw: d,
+    raw: {
+
+        ...d,
+
+        // 🔥 AUTO FIX OLD DAYS
+        is_closed:
+            d.is_closed === true ||
+            d.closed === true ||
+            d.day_closed === true ||
+            !!d.close_time ||
+            !!d.end_time
+    },
 
     startDate: date,
 
