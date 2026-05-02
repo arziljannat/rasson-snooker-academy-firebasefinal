@@ -429,9 +429,14 @@ let amount = Number(c.total || c.amount || 0);
 // 🔥 CURRENT DAY
 
 
+// 🔥 CURRENT DAY
+
+let todayOperational =
+    operationalDays[String(c.day_id)];
+
 if(
-    operational &&
-    operational.raw?.is_closed === true
+    todayOperational &&
+    todayOperational.raw?.is_closed === true
 ){
     return;
 }
@@ -519,11 +524,15 @@ if(
 
     let amount = Number(e.amount || 0);
 
-    // TODAY
+
+// TODAY
+
+let todayOperational =
+    operationalDays[String(e.day_id)];
 
 if(
     String(e.day_id) === String(currentDayId) &&
-    !operational?.raw?.is_closed
+    !todayOperational?.raw?.is_closed
 ){
     today_expense += amount;
 }
@@ -536,7 +545,7 @@ if(
     operational &&
     operational.month === selectedMonth &&
     operational.year === selectedYear &&
-    !todayOperational?.raw?.is_closed
+    operational.raw?.is_closed === true
 ){
     monthly_expense += amount;
 }
