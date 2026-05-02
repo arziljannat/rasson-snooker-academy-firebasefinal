@@ -71,7 +71,12 @@ const branchInput = document.getElementById("branchCode").value.trim().toLowerCa
         // ==========================
         localStorage.setItem("username", userData.username);
         localStorage.setItem("role", userData.role);
-        localStorage.setItem("branch", userData.branch);
+        localStorage.setItem(
+    "branch",
+    String(userData.branch || "")
+        .toLowerCase()
+        .replace(/\s+/g, "")
+);
         localStorage.setItem("loginTime", Date.now());
 
         console.log("LOGIN SUCCESS:", userData);
