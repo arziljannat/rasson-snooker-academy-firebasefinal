@@ -1451,13 +1451,17 @@ document.getElementById("paidBtn").onclick = async () => {
     snap.forEach(d => {
         const data = d.data();
 
-        const checkinMatch =
-            new Date(data.start_time).getTime() === h.checkin &&
-            new Date(data.end_time).getTime() === h.checkout;
+const startDiff = Math.abs(
+    new Date(data.start_time).getTime() - h.checkin
+);
 
-        if (checkinMatch) {
-            targetSession = d;
-        }
+const endDiff = Math.abs(
+    new Date(data.end_time).getTime() - h.checkout
+);
+
+if (startDiff < 5000 && endDiff < 5000) {
+    targetSession = d;
+}
     });
 
     if (targetSession) {
