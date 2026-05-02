@@ -187,6 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     listenInventoryRealtime();
     listenTablesRealtime();
     listenRunningSessionsRealtime();
+    listenHistoryRealtime();
 
     bindAddTablePopup();
     bindShiftButtons();
@@ -1388,11 +1389,20 @@ if (ROLE === "admin") {
             .map(c => Number(c.value))
             .sort((a,b) => b - a);
 
-        for (const i of indexes) {
-            await softDeleteSession(id, i);
-        }
+// 🔥 FAST MULTIPLE DELETE
+for (const i of indexes) {
+    await softDeleteSession(id, i);
+}
 
-        openHistory(id);
+// 🔥 ONLY ONE REFRESH
+await rebuildHistoryFromSessions();
+
+renderTables();
+
+openHistory(id);
+
+// 🔥 ONLY ONE SUCCESS ALERT
+alert(`${indexes.length} sessions deleted successfully ✅`);
     };
 
 } else {
@@ -3398,6 +3408,51 @@ setTimeout(() => {
 }
 
 
+// 🔥 REALTIME HISTORY SYNC
+function listenHistoryRealtime() {
+
+    const q = query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH)
+    );
+
+    onSnapshot(q, async () => {
+
+        console.log("🔥 HISTORY REALTIME UPDATE");
+
+        // 🔥 REBUILD HISTORY
+        await rebuildHistoryFromSessions();
+
+        // 🔥 REFRESH UI
+        renderTables();
+
+        // 🔥 AGAR HISTORY POPUP OPEN HAI
+        const popup =
+            document.getElementById("historyPopup");
+
+        if (
+            popup &&
+            !popup.classList.contains("hidden")
+        ) {
+
+            const title =
+                document.getElementById("historyTableTitle")
+                ?.innerText || "";
+
+            const tableName =
+                title.replace("History - ", "").trim();
+
+            const table =
+                tables.find(t => t.name === tableName);
+
+            if (table) {
+                openHistory(table.id);
+            }
+        }
+
+    });
+}
+
 
 function printShiftThermal(title, data, s1 = {}, s2 = {}) {
 
@@ -3947,26 +4002,9 @@ console.log("🔥 HISTORY:", h);
         // 🔥 LOCAL REMOVE
         t.history.splice(historyIndex, 1);
 
-        // 🔥 UI REFRESH
-        openHistory(tableId);
 
-        // 🔥 FULL RECALCULATE
-        await rebuildHistoryFromSessions();
 
-        renderTables();
-
-      // 🔥 REFRESH DAY HISTORY
-        await refreshCurrentDayHistory();
-
-      // 🔥 FORCE RELOAD DAY HISTORY DATA
-        await openDayHistory();
-
-      // 🔥 FORCE GLOBAL REFRESH
-          setTimeout(() => {
-                    autoRefreshUI();
-                                  }, 500);
-
-        alert("Session deleted successfully ✅");
+      
 
     } catch (err) {
 
