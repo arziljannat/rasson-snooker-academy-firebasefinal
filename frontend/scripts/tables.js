@@ -2078,7 +2078,7 @@ const safeShift2 = JSON.parse(JSON.stringify(s2 || {}));
 const safeTables = JSON.parse(JSON.stringify(tablesSnapshot || {}));
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
-      const q = query(
+const q = query(
     collection(window.db, "days"),
     where("branch", "==", BRANCH),
     where("day_id", "==", window.currentDayId)
@@ -2086,8 +2086,53 @@ const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
 const snap = await getDocs(q);
 
-if (!snap.empty) {
-    alert("Day already closed ❌");
+// 🔥 ONLY BLOCK IF DAY REALLY EXISTS
+let alreadyClosed = false;
+
+snap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    // ✅ SAME DAY ONLY
+    if (String(d.day_id) === String(window.currentDayId)) {
+        alreadyClosed = true;
+    }
+});
+
+if (alreadyClosed) {
+
+    // 🔥 BUTTON RESET
+    document.getElementById("shiftCloseBtn").innerText = "Shift 1 Close";
+
+    // 🔥 RESET LOCAL SHIFTS
+    shift1 = null;
+    shift2 = null;
+
+    // 🔥 FORCE NEW DAY
+    const newDayId = Date.now();
+
+    const systemQ = query(
+        collection(window.db, "system"),
+        where("branch", "==", BRANCH),
+        where("type", "==", "current_day")
+    );
+
+    const systemSnap = await getDocs(systemQ);
+
+    for (const d of systemSnap.docs) {
+
+        await updateDoc(doc(window.db, "system", d.id), {
+            day_id: newDayId,
+            created_at: new Date().toISOString()
+        });
+    }
+
+    window.currentDayId = newDayId;
+
+    alert("Previous day already closed ✅ New day started.");
+
+    hidePopup("shiftSummaryPopup");
+
     return;
 }
 
