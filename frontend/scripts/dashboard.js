@@ -114,6 +114,17 @@ if (!d.start_time && d.shift1?.startMs) {
 if(!rawDate) return;
 
 let date = new Date(rawDate);
+        console.log("DAY DEBUG:", {
+    dayId,
+    raw: d,
+    parsed: date,
+    closed:
+        d.is_closed ||
+        d.closed ||
+        d.day_closed ||
+        d.close_time ||
+        d.closeTime
+});
 
         if(isNaN(date.getTime())) return;
 
@@ -126,13 +137,19 @@ operationalDays[dayId] = {
 
         ...d,
 
-        // 🔥 AUTO FIX OLD DAYS
-        is_closed:
-            d.is_closed === true ||
-            d.closed === true ||
-            d.day_closed === true ||
-            !!d.close_time ||
-            !!d.end_time
+// 🔥 AUTO FIX OLD DAYS
+is_closed:
+    d.is_closed === true ||
+    d.closed === true ||
+    d.day_closed === true ||
+    !!d.close_time ||
+    !!d.closeTime ||
+    !!d.end_time ||
+    !!d.endTime ||
+    !!d.shift2?.close_time ||
+    !!d.shift2?.closeTime ||
+    !!d.shift1?.close_time ||
+    !!d.shift1?.closeTime
     },
 
     startDate: date,
