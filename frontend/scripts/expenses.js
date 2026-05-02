@@ -16,7 +16,9 @@ console.log("EXPENSES FIREBASE LOADED");
 
 const db = window.db;
 
-const branch = (localStorage.getItem("branch") || "").toLowerCase();
+const branch = (localStorage.getItem("branch") || "")
+    .toLowerCase()
+    .replace(/\s+/g, "");
 const role = (localStorage.getItem("role") || "").toLowerCase();
 
 let expenseData = [];
