@@ -34,7 +34,9 @@ if (!db) {
     console.error("❌ Firebase DB not loaded");
 }
 
-const branch = (localStorage.getItem("branch") || "").toLowerCase();
+const branch = (localStorage.getItem("branch") || "")
+    .toLowerCase()
+    .replace(/\s+/g, "");
 const role = (localStorage.getItem("role") || "").toLowerCase();
 const currentDayId = window.currentDayId;
 
@@ -83,10 +85,14 @@ window.saveEasy = async () => {
         return;
     }
 
-    await addDoc(collection(db, "easypaisa"), {
-        amount,
-        note,
-        branch,
+await addDoc(collection(db, "easypaisa"), {
+    amount,
+    note,
+
+    branch: String(branch)
+        .toLowerCase()
+        .replace(/\s+/g, ""),
+
         day_id: window.currentDayId,
         created_at: serverTimestamp()
     });
