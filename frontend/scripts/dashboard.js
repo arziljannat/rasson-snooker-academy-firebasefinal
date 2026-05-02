@@ -658,7 +658,10 @@ setText("netIncome", finalTodayNet);
     setText("monthlyIncome", monthly_income);
     setText("monthlycanteen", monthly_canteen);
     setText("monthlyExpenses", monthly_expense);
-    setText("monthlyEasyPaisa", monthly_easy);
+    setText(
+    "monthlyEasyPaisa",
+    realtimeMonthlyEasy || monthly_easy || 0
+);
 
     const finalMonthlyProfit =
     Number(monthly_income || 0)
