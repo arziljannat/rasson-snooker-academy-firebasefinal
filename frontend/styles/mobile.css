@@ -1,0 +1,276 @@
+/* =========================================
+   GLOBAL MOBILE RESPONSIVE
+========================================= */
+
+@media screen and (max-width: 768px){
+
+    *{
+        box-sizing:border-box;
+    }
+
+    body{
+        overflow-x:hidden !important;
+        background-position:center !important;
+        background-size:cover !important;
+    }
+
+    /* =====================================
+       NAVBAR
+    ===================================== */
+
+    .navbar{
+        padding:12px !important;
+        gap:15px !important;
+    }
+
+    .top-title{
+        font-size:28px !important;
+        text-align:center !important;
+        line-height:1.3;
+    }
+
+    .top-tagline{
+        font-size:11px !important;
+        letter-spacing:2px;
+        text-align:center;
+    }
+
+    .nav-wrapper{
+        width:100%;
+        display:flex !important;
+        flex-wrap:wrap !important;
+        justify-content:center !important;
+        gap:10px !important;
+    }
+
+    .nav-btn,
+    .logout-btn,
+    .nav-select{
+        width:47% !important;
+        min-height:48px;
+        font-size:14px !important;
+        border-radius:12px !important;
+    }
+
+    #digitalClock{
+        width:100%;
+        font-size:26px !important;
+        text-align:center;
+        padding:14px 10px;
+    }
+
+    /* =====================================
+       TITLES
+    ===================================== */
+
+    .page-title,
+    .users-title,
+    .tables-heading,
+    .shift-title,
+    .report-title{
+        font-size:24px !important;
+        text-align:center !important;
+        margin-top:120px !important;
+        margin-left:0 !important;
+    }
+
+    /* =====================================
+       DASHBOARD
+    ===================================== */
+
+    .stats-container{
+        width:100% !important;
+        padding:12px !important;
+        margin-top:10px !important;
+    }
+
+    .stats-row{
+        flex-direction:column !important;
+        gap:15px !important;
+    }
+
+    .stat-box{
+        width:100% !important;
+        min-width:100% !important;
+        padding:18px 10px !important;
+    }
+
+    .stat-box h3{
+        font-size:18px !important;
+    }
+
+    .stat-box p{
+        font-size:28px !important;
+    }
+
+    .charts-container{
+        flex-direction:column !important;
+        gap:20px !important;
+        padding:12px !important;
+    }
+
+    .chart-box{
+        width:100% !important;
+        height:auto !important;
+    }
+
+    .chart-box canvas{
+        width:100% !important;
+        height:auto !important;
+    }
+
+    /* =====================================
+       FILTERS + ACTIONS
+    ===================================== */
+
+    .filter-row,
+    .top-actions,
+    .month-filter-box,
+    .dh-filter-box,
+    .filter-box{
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:12px !important;
+    }
+
+    .filter-select,
+    .search-bar,
+    input,
+    select{
+        width:100% !important;
+    }
+
+    /* =====================================
+       BUTTONS
+    ===================================== */
+
+    .btn-green,
+    .btn-red,
+    .green-btn,
+    .red-btn,
+    .neon-btn,
+    .login-btn{
+        width:100%;
+        min-height:48px;
+        font-size:15px !important;
+    }
+
+    /* =====================================
+       TABLES PAGE
+    ===================================== */
+
+    .tables-grid{
+        grid-template-columns:1fr !important;
+        width:100% !important;
+        gap:18px !important;
+        padding:10px !important;
+    }
+
+    .table-box{
+        width:100% !important;
+    }
+
+    .dual-btn-row,
+    .second-row{
+        flex-direction:column !important;
+        gap:10px !important;
+    }
+
+    .small-btn,
+    .big-btn{
+        width:100% !important;
+    }
+
+    /* =====================================
+       TABLE RESPONSIVE
+    ===================================== */
+
+    .table-box,
+    .users-table-wrapper{
+        overflow-x:auto !important;
+    }
+
+    .exp-table,
+    .inv-table,
+    .users-table,
+    .history-table,
+    .summary-table,
+    .neon-table{
+        min-width:700px;
+    }
+
+    table{
+        font-size:13px !important;
+    }
+
+    th,
+    td{
+        padding:10px !important;
+    }
+
+    /* =====================================
+       REPORT PAGE
+    ===================================== */
+
+    .report-container{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:20px;
+    }
+
+    .report-sidebar{
+        width:100% !important;
+        height:auto !important;
+    }
+
+    .report-content{
+        width:100% !important;
+    }
+
+    /* =====================================
+       POPUPS
+    ===================================== */
+
+    .popup-box,
+    .popup-card,
+    .popup-content{
+        width:95% !important;
+        max-width:95% !important;
+        padding:18px !important;
+        max-height:90vh !important;
+        overflow-y:auto !important;
+    }
+
+    .large-popup{
+        width:98% !important;
+    }
+
+    /* =====================================
+       LOGIN PAGE
+    ===================================== */
+
+    .login-box{
+        width:92% !important;
+        padding:24px 18px !important;
+    }
+
+    .login-title{
+        font-size:24px !important;
+    }
+
+    .login-input{
+        width:100% !important;
+        height:48px !important;
+        font-size:16px !important;
+    }
+
+    /* =====================================
+       SETTINGS PAGE
+    ===================================== */
+
+    .settings-container{
+        width:92% !important;
+        padding:20px !important;
+    }
+
+}
