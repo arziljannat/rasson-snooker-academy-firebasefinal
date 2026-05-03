@@ -751,6 +751,23 @@ t.checkoutTime = Date.now();
 t.finalSeconds = t.playSeconds;
 t.finalAmount = t.liveAmount;   // ✅ ADD THIS HERE
 
+  // 🔥 GET CURRENT SELECTED RATE AT CHECKOUT
+const currentSelected =
+document.querySelector(
+`select[onchange="handleRateChange('${t.id}', this)"]`
+);
+
+let selectedValue = currentSelected
+? currentSelected.value
+: `frame-${t.frameRate}`;
+
+const [selectedType, selectedRate] =
+selectedValue.split("-");
+
+// 🔥 FINAL CHECKOUT VALUES
+t.selectedPlayType = selectedType;
+t.selectedRate = Number(selectedRate || 0);
+
   
     // 🔥 FIREBASE UPDATE
     const q = query(
