@@ -274,3 +274,87 @@
     }
 
 }
+
+/* =====================================
+   TABLES PAGE PREMIUM MOBILE FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    .tables-grid{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:22px !important;
+        padding:14px !important;
+    }
+
+    .table-card,
+    .table-box{
+        width:100% !important;
+        padding:16px !important;
+        border-radius:20px !important;
+    }
+
+    .table-buttons,
+    .dual-btn-row,
+    .second-row{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:12px !important;
+    }
+
+    .small-btn,
+    .big-btn,
+    .table-btn{
+        width:100% !important;
+        min-height:54px !important;
+        font-size:18px !important;
+        border-radius:14px !important;
+    }
+
+    .table-info{
+        font-size:18px !important;
+        line-height:1.7 !important;
+    }
+}
+
+/* =====================================
+   POPUP MOBILE FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    .popup,
+    .popup-box{
+        padding:12px !important;
+    }
+
+    .popup-card,
+    .popup-content{
+        width:96% !important;
+        max-width:96% !important;
+
+        max-height:88vh !important;
+        overflow-y:auto !important;
+
+        padding:20px !important;
+        border-radius:18px !important;
+    }
+
+    .popup-input{
+        width:100% !important;
+        min-height:48px !important;
+        font-size:16px !important;
+    }
+
+    .popup-actions{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:12px !important;
+    }
+
+    .popup-actions button{
+        width:100% !important;
+        min-height:50px !important;
+    }
+}
