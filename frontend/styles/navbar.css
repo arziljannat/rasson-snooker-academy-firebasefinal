@@ -110,45 +110,71 @@
     margin-left: 12px;
 }
 
+/* =========================
+   PREMIUM GLASS CLOCK
+========================= */
+
 #digitalClock{
 
-    width: 260px;
-    height: 58px;
+    width: 280px;
+    height: 65px;
 
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
 
-    background: rgba(0,0,0,0.85);
+    background: rgba(15, 15, 15, 0.45);
 
-    color: #00ff66;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
-    font-size: 30px;
-    font-weight: bold;
+    border: 1.5px solid rgba(0, 255, 120, 0.5);
 
-    font-family: 'Courier New', monospace;
-
-    border-radius: 12px;
-
-    border: 2px solid #00ff66;
+    border-radius: 18px;
 
     box-shadow:
-        0 0 8px #00ff66,
-        0 0 18px #00ff66;
+        0 0 10px rgba(0,255,120,0.5),
+        0 0 25px rgba(0,255,120,0.35),
+        inset 0 0 12px rgba(255,255,255,0.05);
 
-    margin-right: 28px;
+    color: #00ff88;
 
-    letter-spacing: 2px;
+    font-size: 34px;
+    font-weight: 700;
+
+    font-family: 'Orbitron', 'Courier New', monospace;
+
+    letter-spacing: 3px;
+
+    margin-right: 35px;
+
+    transition: all 0.3s ease;
 
     white-space: nowrap;
 }
 
+/* AM PM */
+
 #digitalClock span{
 
-    font-size: 18px;
+    font-size: 16px;
 
-    color: #00ff66;
+    color: #7dffbf;
 
-    margin-top: 2px;
+    margin-top: 4px;
+
+    letter-spacing: 1px;
+}
+
+/* HOVER EFFECT */
+
+#digitalClock:hover{
+
+    transform: scale(1.03);
+
+    box-shadow:
+        0 0 15px rgba(0,255,120,0.8),
+        0 0 35px rgba(0,255,120,0.5),
+        inset 0 0 14px rgba(255,255,255,0.08);
 }
