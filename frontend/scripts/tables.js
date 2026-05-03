@@ -646,12 +646,22 @@ window._creatingSession = true;
     t.isRunning = true;
     t.checkinTime = Date.now();
   // 🔥 FREEZE CURRENT SESSION RATE
-t.selectedPlayType = t.playType;
+const currentSelected =
+document.querySelector(
+`select[onchange="handleRateChange('${t.id}', this)"]`
+);
 
-t.selectedRate =
-    t.playType === "century"
-        ? t.centuryRate
-        : t.frameRate;
+let selectedValue = currentSelected
+? currentSelected.value
+: `frame-${t.frameRate}`;
+
+const [selectedType, selectedRate] =
+selectedValue.split("-");
+
+// 🔥 FINAL FREEZE
+t.selectedPlayType = selectedType;
+
+t.selectedRate = Number(selectedRate || 0);
 
   
     
