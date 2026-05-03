@@ -247,3 +247,161 @@
         0 0 35px rgba(0,255,120,0.5),
         inset 0 0 14px rgba(255,255,255,0.08);
 }
+
+/* =========================================
+   MOBILE RESPONSIVE FIX
+========================================= */
+
+@media screen and (max-width: 768px) {
+
+    body{
+        overflow-x:hidden;
+    }
+
+    /* TITLE */
+    .top-title{
+        font-size:58px !important;
+        text-align:center;
+        line-height:1;
+    }
+
+    .top-tagline{
+        font-size:14px !important;
+        text-align:center;
+        letter-spacing:4px;
+    }
+
+    /* CLOCK */
+    #digitalClock{
+        width:90%;
+        font-size:42px !important;
+        padding:18px;
+        margin:20px auto;
+    }
+
+    /* NAVBAR BUTTONS */
+    .nav-wrapper{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:12px;
+        padding:10px;
+    }
+
+    .nav-btn,
+    .logout-btn,
+    .nav-select{
+        width:42%;
+        min-width:140px;
+        height:58px;
+        font-size:16px !important;
+        border-radius:18px;
+    }
+
+    /* BRANCH SELECT */
+    .nav-select{
+        text-align:center;
+    }
+
+    /* DASHBOARD BOXES */
+    .stats-row{
+        display:flex;
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .stat-box{
+        width:92% !important;
+        margin:auto;
+        min-height:120px;
+    }
+
+    .stat-box h3{
+        font-size:28px !important;
+    }
+
+    .stat-box p{
+        font-size:40px !important;
+    }
+
+    /* CHARTS */
+    .charts-container{
+        display:flex;
+        flex-direction:column;
+        gap:20px;
+        padding:10px;
+    }
+
+    .chart-box{
+        width:100% !important;
+    }
+
+    /* FILTERS */
+    .month-filter-box,
+    .filter-row,
+    .top-actions{
+        flex-direction:column;
+        gap:12px;
+        align-items:center;
+    }
+
+    input,
+    select,
+    button{
+        width:92%;
+        max-width:92%;
+    }
+
+    /* TABLE PAGE */
+    .tables-grid{
+        grid-template-columns:1fr !important;
+        padding:10px;
+    }
+
+    /* TABLES */
+    table{
+        font-size:12px;
+    }
+
+    .table-box{
+        overflow-x:auto;
+    }
+
+    /* POPUPS */
+    .popup-box,
+    .popup-card,
+    .popup-content{
+        width:94% !important;
+        max-height:90vh;
+        overflow-y:auto;
+    }
+
+    /* REPORTS */
+    .report-container{
+        flex-direction:column;
+    }
+
+    .report-sidebar{
+        width:100% !important;
+    }
+
+    .report-content{
+        width:100% !important;
+    }
+
+    /* USERS TABLE */
+    .users-table-wrapper{
+        overflow-x:auto;
+    }
+
+    /* INVENTORY */
+    .inv-table{
+        min-width:700px;
+    }
+
+    /* EXPENSE TABLE */
+    .exp-table{
+        min-width:700px;
+    }
+
+}
