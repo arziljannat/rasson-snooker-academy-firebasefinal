@@ -247,6 +247,14 @@ function listenTablesRealtime() {
                 centuryRate: Number(t.century_rate || 10),
 
             playType: t.play_type || "frame",
+
+selectedPlayType: t.play_type || "frame",
+
+selectedRate:
+    t.selected_rate ||
+    (t.play_type === "century"
+        ? Number(t.century_rate || 10)
+        : Number(t.frame_rate || 8)),
                 isRunning: false,
                 checkinTime: null,
                 checkoutTime: null,
@@ -496,12 +504,12 @@ sortedTables.forEach(t => {
 <select onchange="handleRateChange('${t.id}', this)">
 
 <option value="frame-${t.frameRate}" 
-${t.playType === "frame" ? "selected" : ""}>
+${(t.selectedPlayType || "frame") === "frame" ? "selected" : ""}>
 Frame (${t.frameRate})
 </option>
 
 <option value="century-${t.centuryRate}" 
-${t.playType === "century" ? "selected" : ""}>
+${(t.selectedPlayType || "frame") === "century" ? "selected" : ""}>
 Century (${t.centuryRate})
 </option>
 
@@ -637,6 +645,13 @@ window._creatingSession = true;
 
     t.isRunning = true;
     t.checkinTime = Date.now();
+  // 🔥 FREEZE CURRENT SESSION RATE
+t.selectedPlayType = t.playType;
+
+t.selectedRate =
+    t.playType === "century"
+        ? t.centuryRate
+        : t.frameRate;
 
   
     
@@ -689,9 +704,12 @@ try {
     start_time: new Date().toISOString(),
     end_time: null,
 
-    play_type: t.playType,
-    frame_rate: t.frameRate,
-    century_rate: t.centuryRate,
+play_type: t.selectedPlayType,
+
+selected_rate: t.selectedRate,
+
+frame_rate: t.frameRate,
+century_rate: t.centuryRate,
     day_id: window.currentDayId,
 
     is_deleted: false
@@ -755,6 +773,8 @@ if (latestSession) {
     final_amount: t.finalAmount,
     final_seconds: t.finalSeconds,
     canteen_total: t.canteenTotal,
+     selected_rate: t.selectedRate || 0,
+selected_play_type: t.selectedPlayType || t.playType,
 
     canteen_items: t.canteenItems, // 🔥 ADD THIS
 
@@ -772,7 +792,9 @@ t.history.push({
     total: t.finalAmount + t.canteenTotal,
     paid: false,
     paidTime: null,
-    rate: t.playType === "century" ? t.centuryRate : t.frameRate,
+    rate: t.selectedRate || 0,
+
+playType: t.selectedPlayType || t.playType,
     canteenItems: { ...t.canteenItems }
 });
 
@@ -794,7 +816,11 @@ function runTimer(id) {
     t.playSeconds = Math.floor((Date.now() - t.checkinTime) / 1000);
 
     // FIXED BILLING
-    const rate = t.playType === "century" ? t.centuryRate : t.frameRate;
+    const rate = t.selectedRate || (
+    t.playType === "century"
+        ? t.centuryRate
+        : t.frameRate
+);
 // 🔥 MINIMUM 10 MINUTES BILLING
 let chargeMinutes = Math.ceil(t.playSeconds / 60);
 
@@ -1006,7 +1032,9 @@ async function showBill(id) {
     <p><b>Check-in:</b> ${checkin}</p>
     <p><b>Checkout:</b> ${checkout}</p>
     <p><b>Play Time:</b> ${playtime}</p>
-    <p><b>Play Type:</b> ${t.playType}</p>
+    <p><b>Play Type:</b> ${t.selectedPlayType || t.playType}</p>
+
+<p><b>Rate:</b> Rs ${t.selectedRate || 0}</p>
 
     <hr>
 
@@ -1520,6 +1548,7 @@ bill.innerHTML = `
     <p><b>Checkout:</b> ${checkout}</p>
     <p><b>Play Time:</b> ${playtime}</p>
     <p><b>Play Type:</b> ${h.playType || "frame"}</p>
+    <p><b>Rate:</b> Rs ${h.rate || 0}</p>
 
     <hr>
 
@@ -3233,7 +3262,12 @@ body {
 <div class="row"><span>Time</span><span>${playtime}</span></div>
 <div class="row">
 <span>Play Type</span>
-<span>${h ? (h.playType || 'Frame') : (t.playType || 'frame')}</span>
+<span>${h ? (h.playType || 'Frame') : (t.selectedPlayType || t.playType || 'frame')}</span>
+</div>
+
+<div class="row">
+<span>Rate</span>
+<span>Rs ${h ? (h.rate || 0) : (t.selectedRate || 0)}</span>
 </div>
 
 <div class="line"></div>
@@ -3835,11 +3869,18 @@ if (sessionDayId && sessionDayId !== currentDayId) {
                 ? new Date(s.paid_time).getTime()
                 : null,
 
-rate: s.play_type === "century"
-    ? s.century_rate
-    : s.frame_rate,
+rate:
+    s.selected_rate ||
+    (
+        s.play_type === "century"
+            ? s.century_rate
+            : s.frame_rate
+    ),
 
-playType: s.play_type || "frame",
+playType:
+    s.selected_play_type ||
+    s.play_type ||
+    "frame",
 
 canteenItems: s.canteen_items || {}
         });
