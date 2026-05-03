@@ -358,3 +358,51 @@
         min-height:50px !important;
     }
 }
+
+/* =====================================
+   TABLE CARD BUTTON FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    .table-buttons,
+    .dual-btn-row,
+    .second-row{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:16px !important;
+
+        margin-top:18px !important;
+        width:100% !important;
+    }
+
+    .small-btn,
+    .big-btn,
+    .table-btn,
+    .checkin-btn,
+    .history-btn,
+    .edit-btn,
+    .delete-btn{
+        width:100% !important;
+        min-height:58px !important;
+
+        margin:0 !important;
+
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+
+        font-size:20px !important;
+
+        border-radius:16px !important;
+    }
+
+    .table-box button{
+        margin-top:0 !important;
+        margin-bottom:0 !important;
+    }
+
+    .table-box{
+        padding-bottom:24px !important;
+    }
+}
