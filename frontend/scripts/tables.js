@@ -1519,7 +1519,7 @@ bill.innerHTML = `
     <p><b>Check-in:</b> ${checkin}</p>
     <p><b>Checkout:</b> ${checkout}</p>
     <p><b>Play Time:</b> ${playtime}</p>
-    <p><b>Play Type:</b> ${h.rate === t.centuryRate ? "century" : "frame"}</p>
+    <p><b>Play Type:</b> ${h.playType || "frame"}</p>
 
     <hr>
 
@@ -3233,7 +3233,7 @@ body {
 <div class="row"><span>Time</span><span>${playtime}</span></div>
 <div class="row">
 <span>Play Type</span>
-<span>${h ? (h.rate ? (h.rate === t.centuryRate ? 'Century' : 'Frame') : 'Frame') : (t.playType || 'frame')}</span>
+<span>${h ? (h.playType || 'Frame') : (t.playType || 'frame')}</span>
 </div>
 
 <div class="line"></div>
@@ -3835,11 +3835,13 @@ if (sessionDayId && sessionDayId !== currentDayId) {
                 ? new Date(s.paid_time).getTime()
                 : null,
 
-            rate: s.play_type === "century"
-                ? s.century_rate
-                : s.frame_rate,
+rate: s.play_type === "century"
+    ? s.century_rate
+    : s.frame_rate,
 
-            canteenItems: s.canteen_items || {}
+playType: s.play_type || "frame",
+
+canteenItems: s.canteen_items || {}
         });
 
         console.log("✅ HISTORY PUSHED:", t.name);
