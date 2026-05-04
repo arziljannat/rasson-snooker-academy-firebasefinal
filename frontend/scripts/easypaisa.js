@@ -85,6 +85,8 @@ window.saveEasy = async () => {
         return;
     }
 
+const finalDate = new Date();
+
 await addDoc(collection(db, "easypaisa"), {
     amount,
     note,
@@ -93,14 +95,18 @@ await addDoc(collection(db, "easypaisa"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-        day_id: window.currentDayId,
-        created_at: serverTimestamp()
-    });
+    day_id: finalDate.getTime(),
+
+    created_at: finalDate.toISOString()
+});
 
     document.getElementById("easyAmount").value = "";
     document.getElementById("easyNote").value = "";
 
     closeEasyPopup();
+    if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(window.currentDayId);
+}
 };
 
 // =========================
@@ -111,6 +117,9 @@ window.deleteEasy = async (id) => {
     if (!confirm("Delete this entry?")) return;
 
     await deleteDoc(doc(db, "easypaisa", id));
+    if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory();
+}
 };
 
 // =========================
@@ -141,15 +150,25 @@ window.updateEasy = async () => {
         return;
     }
 
-    await updateDoc(
-        doc(db, "easypaisa", window.editId),
-        {
-            amount,
-            note
-        }
-    );
+const finalEditDate = new Date();
+
+await updateDoc(
+    doc(db, "easypaisa", window.editId),
+    {
+        amount,
+        note,
+
+        day_id: finalEditDate.getTime(),
+
+        created_at:
+            finalEditDate.toISOString()
+    }
+);
 
     closeEasyPopup();
+    if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(window.currentDayId);
+}
 };
 
 // =========================
@@ -201,8 +220,22 @@ if (role !== "admin" && role !== "super_admin") {
     const operationalDayId =
         String(e.day_id || "");
 
-    const operationalDate =
-        new Date(Number(operationalDayId));
+let operationalDate;
+
+if (e.day_id) {
+
+    operationalDate =
+        new Date(Number(e.day_id));
+
+} else {
+
+    operationalDate =
+        new Date(e.created_at?.seconds
+            ? e.created_at.seconds * 1000
+            : e.created_at
+        );
+}
+    
 
     if (isNaN(operationalDate.getTime())) return;
 
@@ -234,8 +267,21 @@ if (selectedMonth) {
     const operationalDayId =
         String(e.day_id || "");
 
-    const operationalDate =
-        new Date(Number(operationalDayId));
+let operationalDate;
+
+if (e.day_id) {
+
+    operationalDate =
+        new Date(Number(e.day_id));
+
+} else {
+
+    operationalDate =
+        new Date(e.created_at?.seconds
+            ? e.created_at.seconds * 1000
+            : e.created_at
+        );
+}
 
     if (isNaN(operationalDate.getTime())) return;
 
@@ -321,4 +367,3 @@ easyData.push({
     });
 }
 
-startEasyListener();
