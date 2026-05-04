@@ -433,3 +433,4 @@ if (
 
 await loadCurrentDayId();
 startExpensesListener();
+
