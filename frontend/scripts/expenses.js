@@ -191,14 +191,15 @@ window.saveExpense = async () => {
     const selectedDate =
     document.getElementById("newDate").value;
 
-    if (!title || !amount) {
-        const finalDate =
+const finalDate =
     selectedDate
         ? new Date(selectedDate)
         : new Date();
-        alert("Fill all fields");
-        return;
-    }
+
+if (!title || !amount) {
+    alert("Fill all fields");
+    return;
+}
 
 const selectedClosed =
     document.getElementById("closedDayFilter")?.value
