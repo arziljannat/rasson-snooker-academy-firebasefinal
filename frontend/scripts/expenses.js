@@ -114,7 +114,7 @@ await addDoc(collection(db, "expenses"), {
 
         day_id: window.currentDayId,
     operational_month:
-    String(window.currentDayId)
+    String(window.currentDayId),
         created_at: selectedDate
     ? new Date(selectedDate).toISOString()
     : new Date().toISOString()
