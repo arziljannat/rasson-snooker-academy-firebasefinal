@@ -27,7 +27,7 @@ let editId = null;
 let selectedType = "all";
 let selectedDay = "all";
 let selectedMonth = null;
-let selectedClosedDay = "current";
+let selectedClosedDay = "all";
 let closedDaysData = [];
 
 // =========================
@@ -127,8 +127,15 @@ async function loadClosedDays() {
     const select =
         document.getElementById("closedDayFilter");
 
-    select.innerHTML =
-        `<option value="current">Current/Open Day</option>`;
+select.innerHTML = `
+    <option value="all">
+        All Days
+    </option>
+
+    <option value="current">
+        Current/Open Day
+    </option>
+`;
 
     closedDaysData.forEach((d, index) => {
 
@@ -224,6 +231,11 @@ await addDoc(collection(db, "expenses"), {
     created_at: finalDate.toISOString()
 });
 
+    localStorage.setItem(
+    "forceRefreshClosedDay",
+    finalLinkedDayId
+);
+
     document.getElementById("newTitle").value = "";
     document.getElementById("newAmount").value = "";
     document.getElementById("newDate").value = "";
@@ -315,6 +327,11 @@ await updateDoc(doc(db, "expenses", editId), {
     created_at: finalEditDate.toISOString()
 });
 
+    localStorage.setItem(
+    "forceRefreshClosedDay",
+    finalLinkedDayId
+);
+
     editId = null;
     closeEditPopup();
 if (window.refreshCurrentDayHistory) {
@@ -330,6 +347,10 @@ window.deleteExpense = async (id) => {
     if (!confirm("Delete this expense?")) return;
 
     await deleteDoc(doc(db, "expenses", id));
+    localStorage.setItem(
+    "forceRefreshClosedDay",
+    finalLinkedDayId
+);
 
 const selectedClosed =
     document.getElementById("closedDayFilter")?.value
@@ -361,17 +382,31 @@ function renderTable() {
         if (selectedType !== "all" && e.type !== selectedType) return;
 
         // FILTER DAY
-        // CURRENT OPEN DAY
+// =========================
+// CURRENT OPEN DAY
+// =========================
 if (
-    selectedClosedDay === "current" &&
-    String(
-    e.linked_day_id ||
-    e.day_id ||
-    new Date(e.created_at).setHours(0,0,0,0)
-)
-    !== String(window.currentDayId)
+    selectedClosedDay === "current"
 ) {
-    return;
+
+    if (
+        String(
+            e.linked_day_id ||
+            e.day_id
+        ) !== String(window.currentDayId)
+    ) {
+        return;
+    }
+}
+
+// =========================
+// ALL DAYS
+// =========================
+if (
+    selectedClosedDay === "all"
+) {
+
+    // show everything
 }
 
 // CLOSED DAY FILTER
