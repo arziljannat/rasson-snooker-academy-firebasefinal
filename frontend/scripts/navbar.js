@@ -140,6 +140,13 @@ function updateClock() {
     clock.innerHTML = `${hours}:${minutes}:${seconds}<span>${ampm}</span>`;
 }
 
-setInterval(updateClock, 1000);
+// =========================
+// START CLOCK AFTER PAGE LOAD
+// =========================
+window.addEventListener("load", () => {
 
-updateClock();
+    updateClock();
+
+    setInterval(updateClock, 1000);
+
+});
