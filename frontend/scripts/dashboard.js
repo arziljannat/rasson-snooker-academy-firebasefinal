@@ -284,13 +284,26 @@ if (
 let operationalMonthly =
     operationalDays[String(e.day_id)];
 
+// MONTHLY
+
 if(
-    operationalMonthly &&
-    operationalMonthly.month === selectedMonth &&
-    operationalMonthly.year === selectedYear &&
-    operationalMonthly.raw?.is_closed === true
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear &&
+    operational.raw?.is_closed === true
 ){
+
     monthlyEasy += amount;
+
+}else{
+
+    // 🔥 FALLBACK FOR OLD DATA
+    if(
+        date.getMonth() === selectedMonth &&
+        date.getFullYear() === selectedYear
+    ){
+        monthlyEasy += amount;
+    }
 }
 
     });
@@ -365,7 +378,18 @@ if(
     operational.year === selectedYear &&
     operational.raw?.is_closed === true
 ){
+
     monthly_easy += Number(e.amount || 0);
+
+}else{
+
+    // 🔥 FALLBACK OLD DATA
+    if(
+        date.getMonth() === selectedMonth &&
+        date.getFullYear() === selectedYear
+    ){
+        monthly_easy += Number(e.amount || 0);
+    }
 }
 });
 
@@ -907,11 +931,24 @@ easypaisaDocs.forEach(e=>{
     operationalDays[String(e.day_id)];
 
 if(
-    !operational ||
-    operational.month !== selectedMonth ||
-    operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
-) return;
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear &&
+    operational.raw?.is_closed === true
+){
+
+    // OK
+
+}else{
+
+    // 🔥 FALLBACK OLD DATA
+    if(
+        date.getMonth() !== selectedMonth ||
+        date.getFullYear() !== selectedYear
+    ){
+        return;
+    }
+}
 
 let day = operational.day - 1;
 
