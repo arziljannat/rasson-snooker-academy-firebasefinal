@@ -577,9 +577,21 @@ if (e.created_at?.seconds) {
 
 const now = new Date();
 
+let operationalDate;
+
+if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+} else {
+
+    operationalDate = expenseDate;
+}
+
 const isOldMonth =
-    expenseDate.getMonth() !== now.getMonth() ||
-    expenseDate.getFullYear() !== now.getFullYear();
+    operationalDate.getMonth() !== now.getMonth() ||
+    operationalDate.getFullYear() !== now.getFullYear();
 
         if (
     role === "admin" ||
