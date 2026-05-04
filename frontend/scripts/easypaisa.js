@@ -116,7 +116,7 @@ await addDoc(collection(db, "easypaisa"), {
 
     closeEasyPopup();
     if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(window.currentDayId);
+    await window.refreshCurrentDayHistory(finalLinkedDayId);
 }
 };
 
@@ -202,7 +202,7 @@ await updateDoc(
 
     closeEasyPopup();
     if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(window.currentDayId);
+    await window.refreshCurrentDayHistory(finalLinkedDayId);
 }
 };
 
@@ -257,7 +257,13 @@ if (role !== "admin" && role !== "super_admin") {
 
 let operationalDate;
 
-if (e.day_id) {
+if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+}
+else if (e.day_id) {
 
     operationalDate =
         new Date(Number(e.day_id));
@@ -304,7 +310,13 @@ if (selectedMonth) {
 
 let operationalDate;
 
-if (e.day_id) {
+if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+}
+else if (e.day_id) {
 
     operationalDate =
         new Date(Number(e.day_id));
