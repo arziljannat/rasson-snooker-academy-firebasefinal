@@ -103,6 +103,11 @@ window.saveExpense = async () => {
         return;
     }
 
+const finalDate =
+    selectedDate
+        ? new Date(selectedDate)
+        : new Date();
+
 await addDoc(collection(db, "expenses"), {
     type,
     title,
@@ -112,17 +117,19 @@ await addDoc(collection(db, "expenses"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-        day_id: window.currentDayId,
-        created_at: selectedDate
-    ? new Date(selectedDate).toISOString()
-    : new Date().toISOString()
-    });
+    day_id: finalDate.getTime(),
+
+    created_at: finalDate.toISOString()
+});
 
     document.getElementById("newTitle").value = "";
     document.getElementById("newAmount").value = "";
     document.getElementById("newDate").value = "";
 
     closeAddPopup();
+if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(window.currentDayId);
+}
 };
 
 // =========================
@@ -183,17 +190,26 @@ window.updateExpense = async () => {
     const editDate =
     document.getElementById("editDate").value;
 
-    await updateDoc(doc(db, "expenses", editId), {
+const finalEditDate =
+    editDate
+        ? new Date(editDate)
+        : new Date();
+
+await updateDoc(doc(db, "expenses", editId), {
     title,
     amount,
     type,
-    created_at: editDate
-        ? new Date(editDate).toISOString()
-        : new Date().toISOString()
+
+    day_id: finalEditDate.getTime(),
+
+    created_at: finalEditDate.toISOString()
 });
 
     editId = null;
     closeEditPopup();
+    if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(window.currentDayId);
+}
 };
 
 // =========================
@@ -204,6 +220,10 @@ window.deleteExpense = async (id) => {
     if (!confirm("Delete this expense?")) return;
 
     await deleteDoc(doc(db, "expenses", id));
+
+    if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory();
+}
 };
 
 // =========================
