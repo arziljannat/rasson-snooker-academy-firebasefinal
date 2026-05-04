@@ -376,25 +376,59 @@ if (
             expenseTitle: e.title,
             expenseDay:
                 String(
-    e.linked_day_id ||
-    e.day_id ||
-    new Date(e.created_at).setHours(0,0,0,0)
-),
+                    e.linked_day_id ||
+                    e.day_id
+                ),
             selectedClosedDay:
                 String(selectedClosedDay)
         }
     );
 
-if (
-    String(
-        e.linked_day_id ||
-        e.day_id ||
-        new Date(e.created_at).setHours(0,0,0,0)
-    )
-    !== String(selectedClosedDay)
-) {
-    return;
-}
+    let matched = false;
+
+    // =========================
+    // NEW SYSTEM
+    // =========================
+    if (
+        String(e.linked_day_id) ===
+        String(selectedClosedDay)
+    ) {
+        matched = true;
+    }
+
+    // =========================
+    // OLD DATA FALLBACK
+    // =========================
+    if (!matched) {
+
+        const selectedDayData =
+            closedDaysData.find(
+                d =>
+                    String(d.day_id) ===
+                    String(selectedClosedDay)
+            );
+
+        if (selectedDayData) {
+
+            const expenseDate =
+                new Date(e.created_at);
+
+            const closedDate =
+                new Date(selectedDayData.date);
+
+            if (
+                expenseDate.getDate() === closedDate.getDate() &&
+                expenseDate.getMonth() === closedDate.getMonth() &&
+                expenseDate.getFullYear() === closedDate.getFullYear()
+            ) {
+                matched = true;
+            }
+        }
+    }
+
+    if (!matched) {
+        return;
+    }
 }
 
        if (selectedMonth) {
