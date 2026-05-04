@@ -94,8 +94,6 @@ await addDoc(collection(db, "easypaisa"), {
         .replace(/\s+/g, ""),
 
         day_id: window.currentDayId,
-    operational_month:
-    String(window.currentDayId),
         created_at: serverTimestamp()
     });
 
@@ -113,14 +111,6 @@ window.deleteEasy = async (id) => {
     if (!confirm("Delete this entry?")) return;
 
     await deleteDoc(doc(db, "easypaisa", id));
-    // 🔥 FORCE CLOSED DAY REFRESH
-if (window.selectedClosedDayId) {
-
-    localStorage.setItem(
-        "forceRefreshClosedDay",
-        window.selectedClosedDayId
-    );
-}
 };
 
 // =========================
@@ -158,15 +148,6 @@ window.updateEasy = async () => {
             note
         }
     );
-
-    // 🔥 FORCE CLOSED DAY REFRESH
-    if (window.selectedClosedDayId) {
-
-        localStorage.setItem(
-            "forceRefreshClosedDay",
-            window.selectedClosedDayId
-        );
-    }
 
     closeEasyPopup();
 };
