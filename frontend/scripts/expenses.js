@@ -416,24 +416,28 @@ if (selectedDay === "current") {
 // ALL DAYS = CURRENT MONTH ONLY
 if (selectedDay === "all") {
 
-    let expenseDate;
+    let operationalDate;
 
-    if (e.created_at?.seconds) {
+    if (e.linked_day_id) {
 
-        expenseDate =
-            new Date(e.created_at.seconds * 1000);
+        operationalDate =
+            new Date(Number(e.linked_day_id));
 
     } else {
 
-        expenseDate =
+        operationalDate =
             new Date(e.created_at);
     }
 
-    const now = new Date();
+    const currentOperationalDate =
+        new Date(Number(window.currentDayId));
 
     if (
-        expenseDate.getMonth() !== now.getMonth() ||
-        expenseDate.getFullYear() !== now.getFullYear()
+        operationalDate.getMonth() !==
+        currentOperationalDate.getMonth()
+        ||
+        operationalDate.getFullYear() !==
+        currentOperationalDate.getFullYear()
     ) {
         return;
     }
@@ -521,8 +525,14 @@ if (
 
 let operationalDate;
 
-// priority = created_at
-if (e.created_at) {
+// priority = linked operational day
+if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+}
+else if (e.created_at) {
 
     if (e.created_at.seconds) {
 
@@ -535,14 +545,12 @@ if (e.created_at) {
             new Date(e.created_at);
     }
 
-} else {
+}
+else {
 
     operationalDate =
         new Date(
-            Number(
-                e.linked_day_id ||
-                e.day_id
-            )
+            Number(e.day_id)
         );
 }
 
