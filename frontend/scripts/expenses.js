@@ -27,8 +27,6 @@ let editId = null;
 let selectedType = "all";
 let selectedDay = "all";
 let selectedMonth = null;
-let selectedClosedDay = "all";
-let closedDaysData = [];
 
 // =========================
 // LOAD CURRENT DAY ID
@@ -73,104 +71,6 @@ function formatTime(timestamp) {
         timeZone: "Asia/Karachi"
     });
 }
-// =========================
-// LOAD CLOSED DAYS
-// =========================
-async function loadClosedDays() {
-
-    const monthInput =
-        document.getElementById("monthFilter");
-
-    if (!monthInput) return;
-
-    const selected =
-        monthInput.value;
-
-    if (!selected) return;
-
-    const [year, month] =
-        selected.split("-");
-
-    const q = query(
-        collection(db, "days"),
-        where("branch", "==", branch)
-    );
-
-    const snap = await getDocs(q);
-
-    closedDaysData = [];
-
-    snap.forEach(docSnap => {
-
-        const d = docSnap.data();
-
-        let operationalDate =
-            d.shift1?.startMs
-                ? new Date(d.shift1.startMs)
-                : new Date(d.date);
-
-        const monthStr =
-            `${operationalDate.getFullYear()}-${String(
-                operationalDate.getMonth() + 1
-            ).padStart(2, "0")}`;
-
-        if (monthStr !== selected) return;
-
-        closedDaysData.push(d);
-    });
-
-    // latest first
-    closedDaysData.sort((a, b) => {
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-
-    const select =
-        document.getElementById("closedDayFilter");
-
-select.innerHTML = `
-    <option value="all">
-        All Days
-    </option>
-
-    <option value="current">
-        Current/Open Day
-    </option>
-`;
-
-    closedDaysData.forEach((d, index) => {
-
-        const openTime =
-            d.shift1?.startMs
-                ? new Date(d.shift1.startMs)
-                    .toLocaleTimeString("en-PK", {
-                        timeZone: "Asia/Karachi",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    })
-                : "-";
-
-        const closeTime =
-            d.shift2?.endMs
-                ? new Date(d.shift2.endMs)
-                    .toLocaleTimeString("en-PK", {
-                        timeZone: "Asia/Karachi",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    })
-                : "-";
-
-        const label =
-            `${d.date} (${openTime} → ${closeTime})`;
-
-        select.innerHTML += `
-            <option value="${d.day_id}">
-                ${label}
-            </option>
-        `;
-    });
-}
 
 // =========================
 // POPUP
@@ -192,63 +92,37 @@ window.closeEditPopup = () => {
 // =========================
 window.saveExpense = async () => {
 
-const type = document.getElementById("newType").value;
-
-const shift =
-    document.getElementById("newShift").value;
-
-const title = document.getElementById("newTitle").value;
+    const type = document.getElementById("newType").value;
+    const title = document.getElementById("newTitle").value;
     const amount = Number(document.getElementById("newAmount").value);
     const selectedDate =
     document.getElementById("newDate").value;
 
-const finalDate =
-    selectedDate
-        ? new Date(selectedDate)
-        : new Date();
-
-if (!title || !amount) {
-    alert("Fill all fields");
-    return;
-}
-
-const selectedClosed =
-    document.getElementById("closedDayFilter")?.value
-    || "current";
-
-const finalLinkedDayId =
-    selectedClosed === "current"
-        ? window.currentDayId
-        : selectedClosed;
+    if (!title || !amount) {
+        alert("Fill all fields");
+        return;
+    }
 
 await addDoc(collection(db, "expenses"), {
     type,
-    shift,
     title,
     amount,
-    
+
     branch: String(branch)
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-    linked_day_id: Number(finalLinkedDayId),
-
-    created_at: finalDate.toISOString()
-});
-
-    localStorage.setItem(
-    "forceRefreshClosedDay",
-    finalLinkedDayId
-);
+        day_id: window.currentDayId,
+        created_at: selectedDate
+    ? new Date(selectedDate).toISOString()
+    : new Date().toISOString()
+    });
 
     document.getElementById("newTitle").value = "";
     document.getElementById("newAmount").value = "";
     document.getElementById("newDate").value = "";
 
     closeAddPopup();
-if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(finalLinkedDayId);
-}
 };
 
 // =========================
@@ -259,7 +133,6 @@ window.editExpense = (
     title,
     amount,
     type,
-    shift,
     created_at
 ) => {
 
@@ -268,8 +141,6 @@ window.editExpense = (
     document.getElementById("editTitle").value = title;
     document.getElementById("editAmount").value = amount;
     document.getElementById("editType").value = type;
-    document.getElementById("editShift").value =
-    shift || "shift1";
     if (created_at) {
 
     let d;
@@ -309,46 +180,20 @@ window.updateExpense = async () => {
     const title = document.getElementById("editTitle").value;
     const amount = Number(document.getElementById("editAmount").value);
     const type = document.getElementById("editType").value;
-    const shift =
-    document.getElementById("editShift").value;
-    
     const editDate =
     document.getElementById("editDate").value;
-    const finalEditDate =
-    editDate
-        ? new Date(editDate)
-        : new Date();
 
-const selectedClosed =
-    document.getElementById("closedDayFilter")?.value
-    || "current";
-
-const finalLinkedDayId =
-    selectedClosed === "current"
-        ? window.currentDayId
-        : selectedClosed;
-
-await updateDoc(doc(db, "expenses", editId), {
+    await updateDoc(doc(db, "expenses", editId), {
     title,
     amount,
     type,
-    shift,
-
-    linked_day_id: Number(finalLinkedDayId),
-
-    created_at: finalEditDate.toISOString()
+    created_at: editDate
+        ? new Date(editDate).toISOString()
+        : new Date().toISOString()
 });
-
-    localStorage.setItem(
-    "forceRefreshClosedDay",
-    finalLinkedDayId
-);
 
     editId = null;
     closeEditPopup();
-if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(finalLinkedDayId);
-}
 };
 
 // =========================
@@ -358,28 +203,8 @@ window.deleteExpense = async (id) => {
 
     if (!confirm("Delete this expense?")) return;
 
-    const expenseItem =
-        expenseData.find(e => e.id === id);
-
-    const finalLinkedDayId =
-        expenseItem?.linked_day_id ||
-        window.currentDayId;
-
     await deleteDoc(doc(db, "expenses", id));
-
-    localStorage.setItem(
-        "forceRefreshClosedDay",
-        finalLinkedDayId
-    );
-
-    if (window.refreshCurrentDayHistory) {
-
-        await window.refreshCurrentDayHistory(
-            finalLinkedDayId
-        );
-    }
 };
-
 
 // =========================
 // RENDER
@@ -396,172 +221,25 @@ function renderTable() {
         // FILTER TYPE
         if (selectedType !== "all" && e.type !== selectedType) return;
 
-        // =========================
-// DAY FILTER
-// =========================
-
-// CURRENT DAY ONLY
-if (selectedDay === "current") {
-
-    if (
-        String(
-            e.linked_day_id ||
-            e.day_id
-        ) !== String(window.currentDayId)
-    ) {
-        return;
-    }
-}
-
-// ALL DAYS = CURRENT MONTH ONLY
-if (selectedDay === "all") {
-
-    let operationalDate;
-
-    if (e.linked_day_id) {
-
-        operationalDate =
-            new Date(Number(e.linked_day_id));
-
-    } else {
-
-        operationalDate =
-            new Date(e.created_at);
-    }
-
-    const currentOperationalDate =
-        new Date(Number(window.currentDayId));
-
-    if (
-        operationalDate.getMonth() !==
-        currentOperationalDate.getMonth()
-        ||
-        operationalDate.getFullYear() !==
-        currentOperationalDate.getFullYear()
-    ) {
-        return;
-    }
-}
-
-// =========================
-// ALL DAYS
-// =========================
-if (
-    selectedClosedDay === "all"
-) {
-
-    // show everything
-}
-
-// CLOSED DAY FILTER
-if (
-    selectedClosedDay !== "current"
-    &&
-    selectedClosedDay !== "all"
-) {
-
-    console.log(
-        "CHECKING:",
-        {
-            expenseTitle: e.title,
-            expenseDay:
-                String(
-                    e.linked_day_id ||
-                    e.day_id
-                ),
-            selectedClosedDay:
-                String(selectedClosedDay)
-        }
-    );
-
-    let matched = false;
-
-    // =========================
-    // NEW SYSTEM
-    // =========================
-    if (
-        String(e.linked_day_id) ===
-        String(selectedClosedDay)
-    ) {
-        matched = true;
-    }
-
-    // =========================
-    // OLD DATA FALLBACK
-    // =========================
-    if (!matched) {
-
-        const selectedDayData =
-            closedDaysData.find(
-                d =>
-                    String(d.day_id) ===
-                    String(selectedClosedDay)
-            );
-
-        if (selectedDayData) {
-
-            const expenseDate =
-                new Date(e.created_at);
-
-            const closedDate =
-                new Date(selectedDayData.date);
-
-            if (
-                expenseDate.getDate() === closedDate.getDate() &&
-                expenseDate.getMonth() === closedDate.getMonth() &&
-                expenseDate.getFullYear() === closedDate.getFullYear()
-            ) {
-                matched = true;
-            }
-        }
-    }
-
-    if (!matched) {
-        return;
-    }
-}
+        // FILTER DAY
+        if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
        if (selectedMonth) {
 
-let operationalDate;
+    const operationalDayId =
+        String(e.day_id || "");
 
-// priority = linked operational day
-if (e.linked_day_id) {
+    const operationalDate =
+        new Date(Number(operationalDayId));
 
-    operationalDate =
-        new Date(Number(e.linked_day_id));
+    if (isNaN(operationalDate.getTime())) return;
 
-}
-else if (e.created_at) {
+    const expenseMonth =
+        `${operationalDate.getFullYear()}-${String(
+            operationalDate.getMonth() + 1
+        ).padStart(2, "0")}`;
 
-    if (e.created_at.seconds) {
-
-        operationalDate =
-            new Date(e.created_at.seconds * 1000);
-
-    } else {
-
-        operationalDate =
-            new Date(e.created_at);
-    }
-
-}
-else {
-
-    operationalDate =
-        new Date(
-            Number(e.day_id)
-        );
-}
-
-if (isNaN(operationalDate.getTime())) return;
-
-const expenseMonth =
-    `${operationalDate.getFullYear()}-${String(
-        operationalDate.getMonth() + 1
-    ).padStart(2, "0")}`;
-
-if (expenseMonth !== selectedMonth) return;
+    if (expenseMonth !== selectedMonth) return;
 }
         
         total += Number(e.amount || 0);
@@ -577,21 +255,9 @@ if (e.created_at?.seconds) {
 
 const now = new Date();
 
-let operationalDate;
-
-if (e.linked_day_id) {
-
-    operationalDate =
-        new Date(Number(e.linked_day_id));
-
-} else {
-
-    operationalDate = expenseDate;
-}
-
 const isOldMonth =
-    operationalDate.getMonth() !== now.getMonth() ||
-    operationalDate.getFullYear() !== now.getFullYear();
+    expenseDate.getMonth() !== now.getMonth() ||
+    expenseDate.getFullYear() !== now.getFullYear();
 
         if (
     role === "admin" ||
@@ -604,7 +270,6 @@ const isOldMonth =
 '${e.title}',
 ${e.amount},
 '${e.type}',
-'${e.shift || "shift1"}',
 '${e.created_at || ""}'
 )">Edit</button>
                 <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
@@ -616,7 +281,6 @@ ${e.amount},
                 <td>${e.title}</td>
                 <td>${e.amount}</td>
                 <td>${e.type}</td>
-                <td>${e.shift || "-"}</td>
                 <td>${formatTime(e.created_at)}</td>
                 <td>${actions}</td>
             </tr>
@@ -639,30 +303,14 @@ window.filterByDay = function () {
     renderTable();
 };
 
-window.filterByMonth = async function () {
+window.filterByMonth = function () {
 
     selectedMonth =
         document.getElementById("monthFilter").value;
 
-    await loadClosedDays();
-
     renderTable();
 };
 
-
-
-window.filterByClosedDay = function () {
-
-    selectedClosedDay =
-        document.getElementById("closedDayFilter").value;
-
-    console.log(
-        "SELECTED CLOSED DAY:",
-        selectedClosedDay
-    );
-
-    renderTable();
-};
 
 // =========================
 // SEARCH
@@ -745,10 +393,6 @@ snap.forEach(d => {
     ...data
         });
 });
-        console.log(
-    "EXPENSE DATA:",
-    expenseData
-);
 
         renderTable();
     });
@@ -788,17 +432,4 @@ if (
 }
 
 await loadCurrentDayId();
-
-const now = new Date();
-
-selectedMonth =
-    `${now.getFullYear()}-${String(
-        now.getMonth() + 1
-    ).padStart(2, "0")}`;
-
-document.getElementById("monthFilter").value =
-    selectedMonth;
-
-await loadClosedDays();
-
 startExpensesListener();
