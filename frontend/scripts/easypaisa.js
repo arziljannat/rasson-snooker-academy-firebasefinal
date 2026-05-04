@@ -87,6 +87,15 @@ window.saveEasy = async () => {
 
 const finalDate = new Date();
 
+const selectedClosed =
+    document.getElementById("closedDayFilter")?.value
+    || "current";
+
+const finalLinkedDayId =
+    selectedClosed === "current"
+        ? window.currentDayId
+        : selectedClosed;
+
 await addDoc(collection(db, "easypaisa"), {
     amount,
     note,
@@ -94,6 +103,8 @@ await addDoc(collection(db, "easypaisa"), {
     branch: String(branch)
         .toLowerCase()
         .replace(/\s+/g, ""),
+
+    linked_day_id: Number(finalLinkedDayId),
 
     day_id: finalDate.getTime(),
 
@@ -117,6 +128,19 @@ window.deleteEasy = async (id) => {
     if (!confirm("Delete this entry?")) return;
 
     await deleteDoc(doc(db, "easypaisa", id));
+
+    const easyItem =
+    easyData.find(e => e.id === id);
+
+if (
+    easyItem?.linked_day_id &&
+    window.refreshCurrentDayHistory
+) {
+    await window.refreshCurrentDayHistory(
+        easyItem.linked_day_id
+    );
+}
+    
     if (window.refreshCurrentDayHistory) {
     await window.refreshCurrentDayHistory();
 }
@@ -152,11 +176,22 @@ window.updateEasy = async () => {
 
 const finalEditDate = new Date();
 
+    const selectedClosed =
+    document.getElementById("closedDayFilter")?.value
+    || "current";
+
+const finalLinkedDayId =
+    selectedClosed === "current"
+        ? window.currentDayId
+        : selectedClosed;
+
 await updateDoc(
     doc(db, "easypaisa", window.editId),
     {
         amount,
         note,
+
+        linked_day_id: Number(finalLinkedDayId),
 
         day_id: finalEditDate.getTime(),
 
