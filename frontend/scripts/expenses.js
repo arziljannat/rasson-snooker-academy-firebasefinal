@@ -399,24 +399,41 @@ if (
 
        if (selectedMonth) {
 
-  const operationalDayId =
-        String(
-e.linked_day_id ||
-e.day_id ||
-new Date(e.created_at).setHours(0,0,0,0)
+let operationalDate;
+
+// priority = created_at
+if (e.created_at) {
+
+    if (e.created_at.seconds) {
+
+        operationalDate =
+            new Date(e.created_at.seconds * 1000);
+
+    } else {
+
+        operationalDate =
+            new Date(e.created_at);
+    }
+
+} else {
+
+    operationalDate =
+        new Date(
+            Number(
+                e.linked_day_id ||
+                e.day_id
+            )
         );
+}
 
-    const operationalDate =
-        new Date(Number(operationalDayId));
+if (isNaN(operationalDate.getTime())) return;
 
-    if (isNaN(operationalDate.getTime())) return;
+const expenseMonth =
+    `${operationalDate.getFullYear()}-${String(
+        operationalDate.getMonth() + 1
+    ).padStart(2, "0")}`;
 
-    const expenseMonth =
-        `${operationalDate.getFullYear()}-${String(
-            operationalDate.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-    if (expenseMonth !== selectedMonth) return;
+if (expenseMonth !== selectedMonth) return;
 }
         
         total += Number(e.amount || 0);
