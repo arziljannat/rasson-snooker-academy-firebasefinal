@@ -2484,7 +2484,7 @@ dayId = dayId || window.currentDayId;
 const q = query(
     collection(window.db, "days"),
     where("branch", "==", BRANCH),
-    where("day_id", "==", dayId)
+    where("day_id", "==", Number(dayId))
 );
 
         const snap = await getDocs(q);
@@ -2501,7 +2501,7 @@ const q = query(
 const shiftsQ = query(
     collection(window.db, "shifts"),
     where("branch", "==", BRANCH),
-    where("day_id", "==", dayId)
+    where("day_id", "==", Number(dayId))
 );
 
         const shiftsSnap = await getDocs(shiftsQ);
