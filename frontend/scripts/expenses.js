@@ -113,6 +113,8 @@ await addDoc(collection(db, "expenses"), {
         .replace(/\s+/g, ""),
 
         day_id: window.currentDayId,
+    operational_month:
+    String(window.currentDayId)
         created_at: selectedDate
     ? new Date(selectedDate).toISOString()
     : new Date().toISOString()
@@ -183,14 +185,24 @@ window.updateExpense = async () => {
     const editDate =
     document.getElementById("editDate").value;
 
-    await updateDoc(doc(db, "expenses", editId), {
+await updateDoc(doc(db, "expenses", editId), {
     title,
     amount,
     type,
+
     created_at: editDate
         ? new Date(editDate).toISOString()
         : new Date().toISOString()
 });
+
+// 🔥 FORCE CLOSED DAY REFRESH
+if (window.selectedClosedDayId) {
+
+    localStorage.setItem(
+        "forceRefreshClosedDay",
+        window.selectedClosedDayId
+    );
+}
 
     editId = null;
     closeEditPopup();
@@ -204,6 +216,14 @@ window.deleteExpense = async (id) => {
     if (!confirm("Delete this expense?")) return;
 
     await deleteDoc(doc(db, "expenses", id));
+    // 🔥 FORCE CLOSED DAY REFRESH
+if (window.selectedClosedDayId) {
+
+    localStorage.setItem(
+        "forceRefreshClosedDay",
+        window.selectedClosedDayId
+    );
+}
 };
 
 // =========================
