@@ -393,19 +393,44 @@ function renderTable() {
         // FILTER TYPE
         if (selectedType !== "all" && e.type !== selectedType) return;
 
-        // FILTER DAY
+        // =========================
+// DAY FILTER
 // =========================
-// CURRENT OPEN DAY
-// =========================
-if (
-    selectedClosedDay === "current"
-) {
+
+// CURRENT DAY ONLY
+if (selectedDay === "current") {
 
     if (
         String(
             e.linked_day_id ||
             e.day_id
         ) !== String(window.currentDayId)
+    ) {
+        return;
+    }
+}
+
+// ALL DAYS = CURRENT MONTH ONLY
+if (selectedDay === "all") {
+
+    let expenseDate;
+
+    if (e.created_at?.seconds) {
+
+        expenseDate =
+            new Date(e.created_at.seconds * 1000);
+
+    } else {
+
+        expenseDate =
+            new Date(e.created_at);
+    }
+
+    const now = new Date();
+
+    if (
+        expenseDate.getMonth() !== now.getMonth() ||
+        expenseDate.getFullYear() !== now.getFullYear()
     ) {
         return;
     }
