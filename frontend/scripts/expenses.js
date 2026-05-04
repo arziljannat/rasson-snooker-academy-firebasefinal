@@ -219,7 +219,7 @@ await addDoc(collection(db, "expenses"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-    linked_day_id: String(finalLinkedDayId),
+    linked_day_id: Number(finalLinkedDayId),
 
     created_at: finalDate.toISOString()
 });
@@ -310,7 +310,7 @@ await updateDoc(doc(db, "expenses", editId), {
     amount,
     type,
 
-    linked_day_id: String(finalLinkedDayId),
+    linked_day_id: Number(finalLinkedDayId),
 
     created_at: finalEditDate.toISOString()
 });
