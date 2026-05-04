@@ -367,7 +367,7 @@ const q = query(
 
         console.log("🔥 FIREBASE EXPENSES:", firebaseExpenses);
       // 🔥 AUTO REFRESH DAY HISTORY
-refreshCurrentDayHistory();
+refreshAllDayHistories();
     });
 }
 
@@ -390,8 +390,38 @@ const q = query(
 
         console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
       // 🔥 AUTO REFRESH DAY HISTORY
-refreshCurrentDayHistory();
+refreshAllDayHistories();
     });
+}
+
+
+
+async function refreshAllDayHistories() {
+
+    try {
+
+        const q = query(
+            collection(window.db, "days"),
+            where("branch", "==", BRANCH)
+        );
+
+        const snap = await getDocs(q);
+
+        for (const d of snap.docs) {
+
+            const data = d.data();
+
+            if (!data.day_id) continue;
+
+            console.log("🔄 Refreshing closed day:", data.day_id);
+
+            await refreshCurrentDayHistory(data.day_id);
+        }
+
+    } catch (err) {
+
+        console.error("❌ refreshAllDayHistories:", err);
+    }
 }
 /******************************************************
  * ADD TABLE POPUP BINDING (FIX)
