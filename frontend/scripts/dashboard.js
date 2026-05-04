@@ -249,6 +249,10 @@ getDocs(collection(window.db, "easypaisa")).then(snap => {
     snap.forEach(d => {
 
         let e = d.data();
+
+        // 🔥 SKIP DELETED EASYPAISA
+if (e.is_deleted === true) return;
+        
         window.latestEasyDocs.push(e);
 
         if ((e.branch || "").toLowerCase() !== branch) return;
@@ -346,6 +350,10 @@ async function updateDashboard() {
             let monthly_easy = 0;
 
 (window.latestEasyDocs || []).forEach(e => {
+
+    // 🔥 SKIP DELETED EASYPAISA
+if (e.is_deleted === true) return;
+    
     let rawDate =
     e.created_at?.seconds
     ? e.created_at.seconds * 1000
@@ -568,6 +576,8 @@ if(
 
     // ================= EXPENSE =================
     expenseData.forEach(e=>{
+        // 🔥 SKIP DELETED EXPENSES
+if (e.is_deleted === true) return;
 
     let date;
 
@@ -891,6 +901,8 @@ sessionsData.forEach(s=>{
 
     // 🔥 EXPENSE
     expenseData.forEach(e=>{
+        // 🔥 SKIP DELETED EXPENSES
+if (e.is_deleted === true) return;
 
     let date;
 
@@ -943,6 +955,9 @@ if(operational){
 const easypaisaDocs = window.latestEasyDocs || [];
 
 easypaisaDocs.forEach(e=>{
+
+    // 🔥 SKIP DELETED EASYPAISA
+if (e.is_deleted === true) return;
 
     if (
         (e.branch || "").toLowerCase() !==
