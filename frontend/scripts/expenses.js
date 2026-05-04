@@ -224,19 +224,21 @@ function renderTable() {
         // FILTER DAY
         if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
-       if (selectedMonth) {
+if (selectedMonth) {
 
-    const operationalDayId =
-        String(e.day_id || "");
+    let expenseDate;
 
-    const operationalDate =
-        new Date(Number(operationalDayId));
+    if (e.created_at?.seconds) {
+        expenseDate = new Date(e.created_at.seconds * 1000);
+    } else {
+        expenseDate = new Date(e.created_at);
+    }
 
-    if (isNaN(operationalDate.getTime())) return;
+    if (isNaN(expenseDate.getTime())) return;
 
     const expenseMonth =
-        `${operationalDate.getFullYear()}-${String(
-            operationalDate.getMonth() + 1
+        `${expenseDate.getFullYear()}-${String(
+            expenseDate.getMonth() + 1
         ).padStart(2, "0")}`;
 
     if (expenseMonth !== selectedMonth) return;
