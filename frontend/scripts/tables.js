@@ -2477,8 +2477,8 @@ async function refreshCurrentDayHistory(dayId = null) {
     try {
 
         console.log("🔥 Refreshing current day history...");
-      historyData = [];
-combinedHistoryData = [];
+window.historyData = [];
+window.combinedHistoryData = [];
 
         // 🔥 GET CURRENT DAY
 dayId = dayId || window.currentDayId;
