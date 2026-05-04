@@ -604,7 +604,18 @@ if(
     operational.year === selectedYear &&
     operational.raw?.is_closed === true
 ){
+
     monthly_expense += amount;
+
+}else{
+
+    // 🔥 FALLBACK OLD DATA
+    if(
+        date.getMonth() === selectedMonth &&
+        date.getFullYear() === selectedYear
+    ){
+        monthly_expense += amount;
+    }
 }
 });
 
@@ -894,13 +905,35 @@ sessionsData.forEach(s=>{
     operationalDays[String(e.day_id)];
 
 if(
-    !operational ||
-    operational.month !== selectedMonth ||
-    operational.year !== selectedYear ||
-    operational.raw?.is_closed !== true
-) return;
+    operational &&
+    operational.month === selectedMonth &&
+    operational.year === selectedYear &&
+    operational.raw?.is_closed === true
+){
 
-let day = operational.day - 1;
+    // OK
+
+}else{
+
+    // 🔥 FALLBACK OLD DATA
+    if(
+        date.getMonth() !== selectedMonth ||
+        date.getFullYear() !== selectedYear
+    ){
+        return;
+    }
+}
+
+let day;
+
+if(operational){
+
+    day = operational.day - 1;
+
+}else{
+
+    day = date.getDate() - 1;
+}
 
     expenseArr[day] += Number(e.amount || 0);
 });
@@ -950,7 +983,16 @@ if(
     }
 }
 
-let day = operational.day - 1;
+let day;
+
+if(operational){
+
+    day = operational.day - 1;
+
+}else{
+
+    day = date.getDate() - 1;
+}
 
     easyArr[day] += Number(e.amount || 0);
 });
