@@ -263,12 +263,18 @@ if (e.linked_day_id) {
         new Date(Number(e.linked_day_id));
 
 }
+else if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+}
 else if (e.day_id) {
 
     operationalDate =
         new Date(Number(e.day_id));
 
-} else {
+}else {
 
     operationalDate =
         new Date(e.created_at?.seconds
@@ -311,6 +317,12 @@ if (selectedMonth) {
 let operationalDate;
 
 if (e.linked_day_id) {
+
+    operationalDate =
+        new Date(Number(e.linked_day_id));
+
+}
+else if (e.linked_day_id) {
 
     operationalDate =
         new Date(Number(e.linked_day_id));
