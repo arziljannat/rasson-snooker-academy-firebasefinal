@@ -2493,8 +2493,7 @@ const q = query(
 
 if (snap.empty) {
 
-    console.error("❌ NO DAY FOUND:", dayId);
-    console.log("🔥 SNAPSHOT:", snap);
+    console.log("⏳ Day history not created yet:", dayId);
 
     return;
 }
