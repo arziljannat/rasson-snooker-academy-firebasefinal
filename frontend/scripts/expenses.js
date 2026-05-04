@@ -358,11 +358,27 @@ window.deleteExpense = async (id) => {
 
     if (!confirm("Delete this expense?")) return;
 
+    const expenseItem =
+        expenseData.find(e => e.id === id);
+
+    const finalLinkedDayId =
+        expenseItem?.linked_day_id ||
+        window.currentDayId;
+
     await deleteDoc(doc(db, "expenses", id));
+
     localStorage.setItem(
-    "forceRefreshClosedDay",
-    finalLinkedDayId
-);
+        "forceRefreshClosedDay",
+        finalLinkedDayId
+    );
+
+    if (window.refreshCurrentDayHistory) {
+
+        await window.refreshCurrentDayHistory(
+            finalLinkedDayId
+        );
+    }
+};
 
 const selectedClosed =
     document.getElementById("closedDayFilter")?.value
