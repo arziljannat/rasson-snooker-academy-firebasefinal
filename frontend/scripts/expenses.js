@@ -380,19 +380,6 @@ window.deleteExpense = async (id) => {
     }
 };
 
-const selectedClosed =
-    document.getElementById("closedDayFilter")?.value
-    || "current";
-
-const finalLinkedDayId =
-    selectedClosed === "current"
-        ? window.currentDayId
-        : selectedClosed;
-
-if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(finalLinkedDayId);
-}
-};
 
 // =========================
 // RENDER
