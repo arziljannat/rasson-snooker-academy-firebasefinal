@@ -151,27 +151,22 @@ window.updateEasy = async () => {
         return;
     }
 
-await updateDoc(
-    doc(db, "easypaisa", window.editId),
-    {
-        amount,
-        note
-    }
-);
-
-// 🔥 FORCE CLOSED DAY REFRESH
-if (window.selectedClosedDayId) {
-
-    localStorage.setItem(
-        "forceRefreshClosedDay",
-        window.selectedClosedDayId
-    );
-}
+    await updateDoc(
+        doc(db, "easypaisa", window.editId),
         {
             amount,
             note
         }
     );
+
+    // 🔥 FORCE CLOSED DAY REFRESH
+    if (window.selectedClosedDayId) {
+
+        localStorage.setItem(
+            "forceRefreshClosedDay",
+            window.selectedClosedDayId
+        );
+    }
 
     closeEasyPopup();
 };
