@@ -34,12 +34,20 @@
             </select>
         </div>
 
-        <div class="filter-row">
+<div class="filter-row">
     <label class="filter-label">Day Filter:</label>
 
     <select
         id="dayFilter"
-        <div class="filter-row admin-only" id="closedDayBox">
+        class="filter-select"
+        onchange="filterByDay()"
+    >
+        <option value="all">All Days</option>
+        <option value="current">Current Day</option>
+    </select>
+</div>
+
+<div class="filter-row admin-only" id="closedDayBox">
 
     <label class="filter-label">Closed Day:</label>
 
@@ -48,7 +56,9 @@
         class="filter-select"
         onchange="filterByClosedDay()"
     >
-        <option value="current">Current/Open Day</option>
+        <option value="current">
+            Current/Open Day
+        </option>
     </select>
 
 </div>
