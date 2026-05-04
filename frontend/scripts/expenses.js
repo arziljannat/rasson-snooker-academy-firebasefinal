@@ -27,6 +27,8 @@ let editId = null;
 let selectedType = "all";
 let selectedDay = "all";
 let selectedMonth = null;
+let selectedClosedDay = "current";
+let closedDaysData = [];
 
 // =========================
 // LOAD CURRENT DAY ID
@@ -71,6 +73,97 @@ function formatTime(timestamp) {
         timeZone: "Asia/Karachi"
     });
 }
+// =========================
+// LOAD CLOSED DAYS
+// =========================
+async function loadClosedDays() {
+
+    const monthInput =
+        document.getElementById("monthFilter");
+
+    if (!monthInput) return;
+
+    const selected =
+        monthInput.value;
+
+    if (!selected) return;
+
+    const [year, month] =
+        selected.split("-");
+
+    const q = query(
+        collection(db, "days"),
+        where("branch", "==", branch)
+    );
+
+    const snap = await getDocs(q);
+
+    closedDaysData = [];
+
+    snap.forEach(docSnap => {
+
+        const d = docSnap.data();
+
+        let operationalDate =
+            d.shift1?.startMs
+                ? new Date(d.shift1.startMs)
+                : new Date(d.date);
+
+        const monthStr =
+            `${operationalDate.getFullYear()}-${String(
+                operationalDate.getMonth() + 1
+            ).padStart(2, "0")}`;
+
+        if (monthStr !== selected) return;
+
+        closedDaysData.push(d);
+    });
+
+    // latest first
+    closedDaysData.sort((a, b) => {
+        return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    const select =
+        document.getElementById("closedDayFilter");
+
+    select.innerHTML =
+        `<option value="current">Current/Open Day</option>`;
+
+    closedDaysData.forEach((d, index) => {
+
+        const openTime =
+            d.shift1?.startMs
+                ? new Date(d.shift1.startMs)
+                    .toLocaleTimeString("en-PK", {
+                        timeZone: "Asia/Karachi",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true
+                    })
+                : "-";
+
+        const closeTime =
+            d.shift2?.endMs
+                ? new Date(d.shift2.endMs)
+                    .toLocaleTimeString("en-PK", {
+                        timeZone: "Asia/Karachi",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true
+                    })
+                : "-";
+
+        const label =
+            `${d.date} (${openTime} → ${closeTime})`;
+
+        select.innerHTML += `
+            <option value="${d.day_id}">
+                ${label}
+            </option>
+        `;
+    });
+}
 
 // =========================
 // POPUP
@@ -99,14 +192,22 @@ window.saveExpense = async () => {
     document.getElementById("newDate").value;
 
     if (!title || !amount) {
+        const finalDate =
+    selectedDate
+        ? new Date(selectedDate)
+        : new Date();
         alert("Fill all fields");
         return;
     }
 
-const finalDate =
-    selectedDate
-        ? new Date(selectedDate)
-        : new Date();
+const selectedClosed =
+    document.getElementById("closedDayFilter")?.value
+    || "current";
+
+const finalLinkedDayId =
+    selectedClosed === "current"
+        ? window.currentDayId
+        : selectedClosed;
 
 await addDoc(collection(db, "expenses"), {
     type,
@@ -117,7 +218,7 @@ await addDoc(collection(db, "expenses"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-    day_id: finalDate.getTime(),
+    linked_day_id: String(finalLinkedDayId),
 
     created_at: finalDate.toISOString()
 });
@@ -189,18 +290,26 @@ window.updateExpense = async () => {
     const type = document.getElementById("editType").value;
     const editDate =
     document.getElementById("editDate").value;
-
-const finalEditDate =
+    const finalEditDate =
     editDate
         ? new Date(editDate)
         : new Date();
+
+const selectedClosed =
+    document.getElementById("closedDayFilter")?.value
+    || "current";
+
+const finalLinkedDayId =
+    selectedClosed === "current"
+        ? window.currentDayId
+        : selectedClosed;
 
 await updateDoc(doc(db, "expenses", editId), {
     title,
     amount,
     type,
 
-    day_id: finalEditDate.getTime(),
+    linked_day_id: String(finalLinkedDayId),
 
     created_at: finalEditDate.toISOString()
 });
@@ -242,12 +351,32 @@ function renderTable() {
         if (selectedType !== "all" && e.type !== selectedType) return;
 
         // FILTER DAY
-        if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
+        // CURRENT OPEN DAY
+if (
+    selectedClosedDay === "current" &&
+    String(e.linked_day_id || e.day_id)
+    !== String(window.currentDayId)
+) {
+    return;
+}
+
+// CLOSED DAY FILTER
+if (
+    selectedClosedDay !== "current" &&
+    String(e.linked_day_id || e.day_id)
+    !== String(selectedClosedDay)
+) {
+    return;
+}
 
        if (selectedMonth) {
 
-    const operationalDayId =
-        String(e.day_id || "");
+  const operationalDayId =
+        String(
+            e.linked_day_id ||
+            e.day_id ||
+            ""
+        );
 
     const operationalDate =
         new Date(Number(operationalDayId));
@@ -323,14 +452,25 @@ window.filterByDay = function () {
     renderTable();
 };
 
-window.filterByMonth = function () {
+window.filterByMonth = async function () {
 
     selectedMonth =
         document.getElementById("monthFilter").value;
 
+    await loadClosedDays();
+
     renderTable();
 };
 
+
+
+window.filterByClosedDay = function () {
+
+    selectedClosedDay =
+        document.getElementById("closedDayFilter").value;
+
+    renderTable();
+};
 
 // =========================
 // SEARCH
@@ -452,4 +592,17 @@ if (
 }
 
 await loadCurrentDayId();
+
+const now = new Date();
+
+selectedMonth =
+    `${now.getFullYear()}-${String(
+        now.getMonth() + 1
+    ).padStart(2, "0")}`;
+
+document.getElementById("monthFilter").value =
+    selectedMonth;
+
+await loadClosedDays();
+
 startExpensesListener();
