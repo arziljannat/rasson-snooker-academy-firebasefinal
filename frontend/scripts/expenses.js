@@ -363,11 +363,26 @@ if (
 
 // CLOSED DAY FILTER
 if (
-    selectedClosedDay !== "current" &&
-    String(e.linked_day_id || e.day_id)
-    !== String(selectedClosedDay)
+    selectedClosedDay !== "current"
 ) {
-    return;
+
+    console.log(
+        "CHECKING:",
+        {
+            expenseTitle: e.title,
+            expenseDay:
+                String(e.linked_day_id || e.day_id),
+            selectedClosedDay:
+                String(selectedClosedDay)
+        }
+    );
+
+    if (
+        String(e.linked_day_id || e.day_id)
+        !== String(selectedClosedDay)
+    ) {
+        return;
+    }
 }
 
        if (selectedMonth) {
