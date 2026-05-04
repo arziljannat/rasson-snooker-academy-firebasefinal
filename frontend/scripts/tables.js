@@ -2495,7 +2495,7 @@ const q = query(
         }
 
         // 🔥 REBUILD TABLE HISTORY
-        await rebuildHistoryFromSessions();
+        await rebuildSpecificDayHistory(dayId);
 
         // 🔥 GET SHIFTS
 const shiftsQ = query(
