@@ -39,6 +39,19 @@
 
     <select
         id="dayFilter"
+        <div class="filter-row admin-only" id="closedDayBox">
+
+    <label class="filter-label">Closed Day:</label>
+
+    <select
+        id="closedDayFilter"
+        class="filter-select"
+        onchange="filterByClosedDay()"
+    >
+        <option value="current">Current/Open Day</option>
+    </select>
+
+</div>
         class="filter-select"
         onchange="filterByDay()"
     >
