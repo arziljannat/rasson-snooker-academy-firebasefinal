@@ -2759,6 +2759,36 @@ sel.innerHTML += `<option>${operationalDate.getFullYear()}-${String(operationalD
 });
 
     window._daysData = days;
+  // 🔥 SAVE SELECTED CLOSED DAY
+const daySelect =
+document.getElementById(
+    "dayHistoryDateSelect"
+);
+
+if (daySelect) {
+
+    daySelect.onchange = () => {
+
+        const index =
+            daySelect.selectedIndex;
+
+        const selectedDay =
+            window._daysData[index];
+
+        if (selectedDay?.day_id) {
+
+            window.selectedClosedDayId =
+                selectedDay.day_id;
+        }
+    };
+
+    // 🔥 DEFAULT FIRST
+    if (window._daysData[0]?.day_id) {
+
+        window.selectedClosedDayId =
+            window._daysData[0].day_id;
+    }
+}
 
     loadDaySummaryFirebase();
 
