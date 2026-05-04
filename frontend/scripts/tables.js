@@ -2612,6 +2612,19 @@ const shiftsQ = query(
 
         console.log("✅ Day history updated");
       await loadShiftsFromFirebase();
+      // 🔥 REFRESH DAY HISTORY CACHE
+const latestDaysQ = query(
+    collection(window.db, "days"),
+    where("branch", "==", BRANCH)
+);
+
+const latestDaysSnap = await getDocs(latestDaysQ);
+
+window._daysData = [];
+
+latestDaysSnap.forEach(docSnap => {
+    window._daysData.push(docSnap.data());
+});
 
     } catch (err) {
 
