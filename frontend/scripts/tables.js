@@ -366,6 +366,8 @@ const q = query(
         });
 
         console.log("🔥 FIREBASE EXPENSES:", firebaseExpenses);
+      // 🔥 AUTO REFRESH DAY HISTORY
+refreshCurrentDayHistory();
     });
 }
 
@@ -387,6 +389,8 @@ const q = query(
         });
 
         console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
+      // 🔥 AUTO REFRESH DAY HISTORY
+refreshCurrentDayHistory();
     });
 }
 /******************************************************
