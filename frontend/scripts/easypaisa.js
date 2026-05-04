@@ -85,17 +85,6 @@ window.saveEasy = async () => {
         return;
     }
 
-const finalDate = new Date();
-
-const selectedClosed =
-    document.getElementById("closedDayFilter")?.value
-    || "current";
-
-const finalLinkedDayId =
-    selectedClosed === "current"
-        ? window.currentDayId
-        : selectedClosed;
-
 await addDoc(collection(db, "easypaisa"), {
     amount,
     note,
@@ -104,20 +93,14 @@ await addDoc(collection(db, "easypaisa"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-    linked_day_id: Number(finalLinkedDayId),
-
-    day_id: finalDate.getTime(),
-
-    created_at: finalDate.toISOString()
-});
+        day_id: window.currentDayId,
+        created_at: serverTimestamp()
+    });
 
     document.getElementById("easyAmount").value = "";
     document.getElementById("easyNote").value = "";
 
     closeEasyPopup();
-    if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(finalLinkedDayId);
-}
 };
 
 // =========================
@@ -128,22 +111,6 @@ window.deleteEasy = async (id) => {
     if (!confirm("Delete this entry?")) return;
 
     await deleteDoc(doc(db, "easypaisa", id));
-
-    const easyItem =
-    easyData.find(e => e.id === id);
-
-if (
-    easyItem?.linked_day_id &&
-    window.refreshCurrentDayHistory
-) {
-    await window.refreshCurrentDayHistory(
-        easyItem.linked_day_id
-    );
-}
-    
-    if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory();
-}
 };
 
 // =========================
@@ -174,36 +141,15 @@ window.updateEasy = async () => {
         return;
     }
 
-const finalEditDate = new Date();
-
-    const selectedClosed =
-    document.getElementById("closedDayFilter")?.value
-    || "current";
-
-const finalLinkedDayId =
-    selectedClosed === "current"
-        ? window.currentDayId
-        : selectedClosed;
-
-await updateDoc(
-    doc(db, "easypaisa", window.editId),
-    {
-        amount,
-        note,
-
-        linked_day_id: Number(finalLinkedDayId),
-
-        day_id: finalEditDate.getTime(),
-
-        created_at:
-            finalEditDate.toISOString()
-    }
-);
+    await updateDoc(
+        doc(db, "easypaisa", window.editId),
+        {
+            amount,
+            note
+        }
+    );
 
     closeEasyPopup();
-    if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(finalLinkedDayId);
-}
 };
 
 // =========================
@@ -255,34 +201,8 @@ if (role !== "admin" && role !== "super_admin") {
     const operationalDayId =
         String(e.day_id || "");
 
-let operationalDate;
-
-if (e.linked_day_id) {
-
-    operationalDate =
-        new Date(Number(e.linked_day_id));
-
-}
-else if (e.linked_day_id) {
-
-    operationalDate =
-        new Date(Number(e.linked_day_id));
-
-}
-else if (e.day_id) {
-
-    operationalDate =
-        new Date(Number(e.day_id));
-
-}else {
-
-    operationalDate =
-        new Date(e.created_at?.seconds
-            ? e.created_at.seconds * 1000
-            : e.created_at
-        );
-}
-    
+    const operationalDate =
+        new Date(Number(operationalDayId));
 
     if (isNaN(operationalDate.getTime())) return;
 
@@ -314,33 +234,8 @@ if (selectedMonth) {
     const operationalDayId =
         String(e.day_id || "");
 
-let operationalDate;
-
-if (e.linked_day_id) {
-
-    operationalDate =
-        new Date(Number(e.linked_day_id));
-
-}
-else if (e.linked_day_id) {
-
-    operationalDate =
-        new Date(Number(e.linked_day_id));
-
-}
-else if (e.day_id) {
-
-    operationalDate =
-        new Date(Number(e.day_id));
-
-} else {
-
-    operationalDate =
-        new Date(e.created_at?.seconds
-            ? e.created_at.seconds * 1000
-            : e.created_at
-        );
-}
+    const operationalDate =
+        new Date(Number(operationalDayId));
 
     if (isNaN(operationalDate.getTime())) return;
 
@@ -426,3 +321,4 @@ easyData.push({
     });
 }
 
+startEasyListener();
