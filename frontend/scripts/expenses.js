@@ -355,7 +355,11 @@ function renderTable() {
         // CURRENT OPEN DAY
 if (
     selectedClosedDay === "current" &&
-    String(e.linked_day_id || e.day_id)
+    String(
+    e.linked_day_id ||
+    e.day_id ||
+    new Date(e.created_at).setHours(0,0,0,0)
+)
     !== String(window.currentDayId)
 ) {
     return;
@@ -371,27 +375,35 @@ if (
         {
             expenseTitle: e.title,
             expenseDay:
-                String(e.linked_day_id || e.day_id),
+                String(
+    e.linked_day_id ||
+    e.day_id ||
+    new Date(e.created_at).setHours(0,0,0,0)
+),
             selectedClosedDay:
                 String(selectedClosedDay)
         }
     );
 
-    if (
-        String(e.linked_day_id || e.day_id)
-        !== String(selectedClosedDay)
-    ) {
-        return;
-    }
+if (
+    String(
+        e.linked_day_id ||
+        e.day_id ||
+        new Date(e.created_at).setHours(0,0,0,0)
+    )
+    !== String(selectedClosedDay)
+) {
+    return;
+}
 }
 
        if (selectedMonth) {
 
   const operationalDayId =
         String(
-            e.linked_day_id ||
-            e.day_id ||
-            ""
+e.linked_day_id ||
+e.day_id ||
+new Date(e.created_at).setHours(0,0,0,0)
         );
 
     const operationalDate =
