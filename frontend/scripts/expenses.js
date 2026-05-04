@@ -470,6 +470,11 @@ window.filterByClosedDay = function () {
     selectedClosedDay =
         document.getElementById("closedDayFilter").value;
 
+    console.log(
+        "SELECTED CLOSED DAY:",
+        selectedClosedDay
+    );
+
     renderTable();
 };
 
@@ -554,6 +559,10 @@ snap.forEach(d => {
     ...data
         });
 });
+        console.log(
+    "EXPENSE DATA:",
+    expenseData
+);
 
         renderTable();
     });
