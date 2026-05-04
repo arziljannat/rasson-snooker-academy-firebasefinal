@@ -2477,6 +2477,8 @@ async function refreshCurrentDayHistory(dayId = null) {
     try {
 
         console.log("🔥 Refreshing current day history...");
+      historyData = [];
+combinedHistoryData = [];
 
         // 🔥 GET CURRENT DAY
 dayId = dayId || window.currentDayId;
@@ -2489,10 +2491,13 @@ const q = query(
 
         const snap = await getDocs(q);
 
-        if (snap.empty) {
-            console.log("⚠️ No current day history");
-            return;
-        }
+if (snap.empty) {
+
+    console.error("❌ NO DAY FOUND:", dayId);
+    console.log("🔥 SNAPSHOT:", snap);
+
+    return;
+}
 
         // 🔥 REBUILD TABLE HISTORY
         await rebuildSpecificDayHistory(dayId);
