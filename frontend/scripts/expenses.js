@@ -192,8 +192,12 @@ window.closeEditPopup = () => {
 // =========================
 window.saveExpense = async () => {
 
-    const type = document.getElementById("newType").value;
-    const title = document.getElementById("newTitle").value;
+const type = document.getElementById("newType").value;
+
+const shift =
+    document.getElementById("newShift").value;
+
+const title = document.getElementById("newTitle").value;
     const amount = Number(document.getElementById("newAmount").value);
     const selectedDate =
     document.getElementById("newDate").value;
@@ -219,9 +223,10 @@ const finalLinkedDayId =
 
 await addDoc(collection(db, "expenses"), {
     type,
+    shift,
     title,
     amount,
-
+    
     branch: String(branch)
         .toLowerCase()
         .replace(/\s+/g, ""),
@@ -254,6 +259,7 @@ window.editExpense = (
     title,
     amount,
     type,
+    shift,
     created_at
 ) => {
 
@@ -262,6 +268,8 @@ window.editExpense = (
     document.getElementById("editTitle").value = title;
     document.getElementById("editAmount").value = amount;
     document.getElementById("editType").value = type;
+    document.getElementById("editShift").value =
+    shift || "shift1";
     if (created_at) {
 
     let d;
@@ -301,6 +309,9 @@ window.updateExpense = async () => {
     const title = document.getElementById("editTitle").value;
     const amount = Number(document.getElementById("editAmount").value);
     const type = document.getElementById("editType").value;
+    const shift =
+    document.getElementById("editShift").value;
+    
     const editDate =
     document.getElementById("editDate").value;
     const finalEditDate =
@@ -321,6 +332,7 @@ await updateDoc(doc(db, "expenses", editId), {
     title,
     amount,
     type,
+    shift,
 
     linked_day_id: Number(finalLinkedDayId),
 
@@ -412,6 +424,8 @@ if (
 // CLOSED DAY FILTER
 if (
     selectedClosedDay !== "current"
+    &&
+    selectedClosedDay !== "all"
 ) {
 
     console.log(
@@ -542,6 +556,7 @@ const isOldMonth =
 '${e.title}',
 ${e.amount},
 '${e.type}',
+'${e.shift || "shift1"}',
 '${e.created_at || ""}'
 )">Edit</button>
                 <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
@@ -553,6 +568,7 @@ ${e.amount},
                 <td>${e.title}</td>
                 <td>${e.amount}</td>
                 <td>${e.type}</td>
+                <td>${e.shift || "-"}</td>
                 <td>${formatTime(e.created_at)}</td>
                 <td>${actions}</td>
             </tr>
