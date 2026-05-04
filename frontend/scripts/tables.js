@@ -367,7 +367,7 @@ const q = query(
 
         console.log("🔥 FIREBASE EXPENSES:", firebaseExpenses);
       // 🔥 AUTO REFRESH DAY HISTORY
-refreshAllDayHistories();
+refreshCurrentDayHistory();
     });
 }
 
@@ -390,39 +390,10 @@ const q = query(
 
         console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
       // 🔥 AUTO REFRESH DAY HISTORY
-refreshAllDayHistories();
+refreshCurrentDayHistory();
     });
 }
 
-
-
-async function refreshAllDayHistories() {
-
-    try {
-
-        const q = query(
-            collection(window.db, "days"),
-            where("branch", "==", BRANCH)
-        );
-
-        const snap = await getDocs(q);
-
-        for (const d of snap.docs) {
-
-            const data = d.data();
-
-            if (!data.day_id) continue;
-
-            console.log("🔄 Refreshing closed day:", data.day_id);
-
-            await refreshCurrentDayHistory(data.day_id);
-        }
-
-    } catch (err) {
-
-        console.error("❌ refreshAllDayHistories:", err);
-    }
-}
 /******************************************************
  * ADD TABLE POPUP BINDING (FIX)
  ******************************************************/
@@ -2717,6 +2688,23 @@ function bindHistoryButtons() {
  * 🟢 OPEN DAY HISTORY POPUP
  ******************************************************/
 async function openDayHistory() {
+
+  const forceRefreshDay =
+    localStorage.getItem("forceRefreshClosedDay");
+
+if (forceRefreshDay) {
+
+    console.log(
+        "🔄 Force refreshing closed day:",
+        forceRefreshDay
+    );
+
+    await refreshCurrentDayHistory(forceRefreshDay);
+
+    localStorage.removeItem(
+        "forceRefreshClosedDay"
+    );
+}
 
     const q = query(
         collection(window.db, "days"),
