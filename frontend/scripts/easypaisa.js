@@ -151,9 +151,15 @@ window.updateEasy = async () => {
         return;
     }
 
-    await updateDoc(
-        doc(db, "easypaisa", window.editId),
-        // 🔥 FORCE CLOSED DAY REFRESH
+await updateDoc(
+    doc(db, "easypaisa", window.editId),
+    {
+        amount,
+        note
+    }
+);
+
+// 🔥 FORCE CLOSED DAY REFRESH
 if (window.selectedClosedDayId) {
 
     localStorage.setItem(
