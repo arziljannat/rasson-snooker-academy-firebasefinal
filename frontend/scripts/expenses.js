@@ -230,7 +230,7 @@ await addDoc(collection(db, "expenses"), {
 
     closeAddPopup();
 if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(window.currentDayId);
+    await window.refreshCurrentDayHistory(finalLinkedDayId);
 }
 };
 
@@ -317,8 +317,8 @@ await updateDoc(doc(db, "expenses", editId), {
 
     editId = null;
     closeEditPopup();
-    if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory(window.currentDayId);
+if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(finalLinkedDayId);
 }
 };
 
@@ -331,8 +331,17 @@ window.deleteExpense = async (id) => {
 
     await deleteDoc(doc(db, "expenses", id));
 
-    if (window.refreshCurrentDayHistory) {
-    await window.refreshCurrentDayHistory();
+const selectedClosed =
+    document.getElementById("closedDayFilter")?.value
+    || "current";
+
+const finalLinkedDayId =
+    selectedClosed === "current"
+        ? window.currentDayId
+        : selectedClosed;
+
+if (window.refreshCurrentDayHistory) {
+    await window.refreshCurrentDayHistory(finalLinkedDayId);
 }
 };
 
