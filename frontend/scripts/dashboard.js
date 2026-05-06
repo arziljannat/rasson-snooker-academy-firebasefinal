@@ -830,19 +830,29 @@ function renderTableSalesBoxes(){
             }
         }
 
-        // ADMIN = MONTHLY
-        if(
-            role === "admin" ||
-            role === "super_admin"
-        ){
+// ADMIN = OPERATIONAL MONTH
+if(
+    role === "admin" ||
+    role === "super_admin"
+){
 
-            if(
-                sessionDate.getMonth() !== selectedMonth ||
-                sessionDate.getFullYear() !== selectedYear
-            ){
-                return;
-            }
-        }
+    let operational =
+        operationalDays[
+            String(
+                s.day_id ||
+                s.dayId ||
+                s.current_day_id
+            )
+        ];
+
+    if(
+        !operational ||
+        operational.month !== selectedMonth ||
+        operational.year !== selectedYear
+    ){
+        return;
+    }
+}
 
         // SHIFT SPLIT
         let hour = sessionDate.getHours();
@@ -859,26 +869,50 @@ function renderTableSalesBoxes(){
         tableStats[tableName].total += amount;
     });
 
-    // UI
-    Object.keys(tableStats).forEach(table=>{
+// SORT TABLES FIRST THEN ROOMS
+let sortedTables = Object.keys(tableStats).sort((a,b)=>{
 
-        let t = tableStats[table];
+    const aIsRoom =
+        a.toLowerCase().includes("room");
 
-        container.innerHTML += `
+    const bIsRoom =
+        b.toLowerCase().includes("room");
 
-        <div class="table-sale-box">
+    // TABLES FIRST
+    if(aIsRoom && !bIsRoom) return 1;
 
-            <h2>${table}</h2>
+    if(!aIsRoom && bIsRoom) return -1;
 
-            <p>Shift1 : ${t.shift1}</p>
+    // NUMBER SORT
+    let aNum =
+        parseInt(a.match(/\d+/)?.[0] || 0);
 
-            <p>Shift2 : ${t.shift2}</p>
+    let bNum =
+        parseInt(b.match(/\d+/)?.[0] || 0);
 
-            <p>Total : ${t.total}</p>
+    return aNum - bNum;
+});
 
-        </div>
-        `;
-    });
+// UI
+sortedTables.forEach(table=>{
+
+    let t = tableStats[table];
+
+    container.innerHTML += `
+
+    <div class="table-sale-box">
+
+        <h2>${table}</h2>
+
+        <p>Shift1 : ${t.shift1}</p>
+
+        <p>Shift2 : ${t.shift2}</p>
+
+        <p>Total : ${t.total}</p>
+
+    </div>
+    `;
+});
 }
 
 
