@@ -406,3 +406,32 @@
         padding-bottom:24px !important;
     }
 }
+
+
+/* =====================================
+   MOBILE BACKGROUND PREMIUM FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    body{
+
+        background-position:center top !important;
+
+        background-size:cover !important;
+
+        background-repeat:no-repeat !important;
+
+        background-attachment:scroll !important;
+
+        min-height:100vh !important;
+
+        overflow-x:hidden !important;
+    }
+
+    body::before{
+
+        background:rgba(0,0,0,0.45) !important;
+    }
+
+}
