@@ -760,6 +760,7 @@ function renderTableSalesBoxes(){
 
     let tableStats = {};
 
+    // TABLES
     tablesData.forEach(t=>{
 
         let tableName =
@@ -775,8 +776,10 @@ function renderTableSalesBoxes(){
         };
     });
 
+    // SESSIONS
     sessionsData.forEach(s=>{
 
+        // SKIP DELETED
         if(s.is_deleted === true) return;
 
         let tableName =
@@ -785,6 +788,7 @@ function renderTableSalesBoxes(){
             s.table_name ||
             "Unknown Table";
 
+        // AUTO CREATE
         if(!tableStats[tableName]){
 
             tableStats[tableName] = {
@@ -813,8 +817,13 @@ function renderTableSalesBoxes(){
         // STAFF = CURRENT DAY
         if(role === "staff"){
 
+            let dayId =
+                s.day_id ||
+                s.dayId ||
+                s.current_day_id;
+
             if(
-                String(s.day_id) !==
+                String(dayId) !==
                 String(window.currentDayId)
             ){
                 return;
@@ -822,20 +831,20 @@ function renderTableSalesBoxes(){
         }
 
         // ADMIN = MONTHLY
-        if(role === "admin" || role === "super_admin"){
-
-            let operational =
-                operationalDays[String(s.day_id)];
+        if(
+            role === "admin" ||
+            role === "super_admin"
+        ){
 
             if(
-                !operational ||
-                operational.month !== selectedMonth ||
-                operational.year !== selectedYear
+                sessionDate.getMonth() !== selectedMonth ||
+                sessionDate.getFullYear() !== selectedYear
             ){
                 return;
             }
         }
 
+        // SHIFT SPLIT
         let hour = sessionDate.getHours();
 
         if(hour >= 9 && hour < 20){
@@ -850,6 +859,7 @@ function renderTableSalesBoxes(){
         tableStats[tableName].total += amount;
     });
 
+    // UI
     Object.keys(tableStats).forEach(table=>{
 
         let t = tableStats[table];
