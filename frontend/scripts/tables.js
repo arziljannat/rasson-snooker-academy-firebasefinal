@@ -2573,13 +2573,12 @@ originalGame - Number(h.discount || 0);
 let c = Number(h.canteenAmount || 0);
 
 let d = Number(h.discount || 0);
-
+ if (h.checkout >= startTime && h.checkout <= endTime) {
 discount += d;
 
             // =========================
             // 🔥 TOTAL (checkout based)
             // =========================
-            if (h.checkout >= startTime && h.checkout <= endTime) {
 
               gameTotal += originalGame;
               
