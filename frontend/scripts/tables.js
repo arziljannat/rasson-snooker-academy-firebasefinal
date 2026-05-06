@@ -119,6 +119,7 @@ onSnapshot(q, (snapshot) => {
                 canteenCollection: d.canteen_collection,
                 expenses: d.expenses,
                 easypaisa: d.easypaisa || 0,
+                discount: d.discount || 0,
                 closingCash: d.closing_cash,
                 gameBalance:
                 (
@@ -144,6 +145,7 @@ onSnapshot(q, (snapshot) => {
                 canteenCollection: d.canteen_collection,
                 expenses: d.expenses,
                 easypaisa: d.easypaisa || 0,
+                discount: d.discount || 0,
                 closingCash: d.closing_cash,
                 gameBalance:
                 (
