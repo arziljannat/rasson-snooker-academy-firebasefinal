@@ -27,7 +27,8 @@ let editId = null;
 
 let selectedType = "all";
 let selectedDay = "all";
-let selectedMonth = null;
+let fromDate = null;
+let toDate = null;
 
 // =========================
 // LOAD CURRENT DAY ID
@@ -286,88 +287,41 @@ function renderTable() {
         // FILTER DAY
         if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
 
-if (selectedMonth) {
+let expenseDate;
 
-    let expenseMonth = "";
+if (e.created_at?.seconds) {
 
-    // NEW SYSTEM
-    if (e.operational_month) {
+    expenseDate =
+        new Date(
+            e.created_at.seconds * 1000
+        );
 
-        expenseMonth =
-            e.operational_month;
-    }
+} else {
 
-    // OLD SYSTEM
-    else {
-
-const dayData =
-    operationalDayMap[
-        String(e.day_id)
-    ];
-
- let d;
-
-// FIRST PRIORITY
-if (
-    dayData?.opened_at?.seconds
-) {
-
-    d = new Date(
-        dayData.opened_at.seconds
-        * 1000
-    );
+    expenseDate =
+        new Date(e.created_at);
 }
 
-// SECOND PRIORITY
-else if (
-    dayData?.created_at?.seconds
-) {
+// FROM DATE FILTER
+if (fromDate) {
 
-    d = new Date(
-        dayData.created_at.seconds
-        * 1000
-    );
+    let from =
+        new Date(fromDate);
+
+    from.setHours(0,0,0,0);
+
+    if (expenseDate < from) return;
 }
 
-// THIRD PRIORITY
-else if (
-    dayData?.opened_at
-) {
+// TO DATE FILTER
+if (toDate) {
 
-    d = new Date(
-        dayData.opened_at
-    );
-}
+    let to =
+        new Date(toDate);
 
-// FOURTH PRIORITY
-else if (
-    dayData?.created_at
-) {
+    to.setHours(23,59,59,999);
 
-    d = new Date(
-        dayData.created_at
-    );
-}
-
-// LAST FALLBACK
-else {
-
-    d = new Date(
-        e.created_at?.seconds
-        ? e.created_at.seconds * 1000
-        : e.created_at
-    );
-}
-
-        expenseMonth =
-            `${d.getFullYear()}-${String(
-                d.getMonth() + 1
-            ).padStart(2, "0")}`;
-    }
-
-    if (
-        expenseMonth !== selectedMonth
-    ) return;
+    if (expenseDate > to) return;
 }
         
         total += Number(e.amount || 0);
@@ -380,12 +334,6 @@ if (e.created_at?.seconds) {
 } else {
     expenseDate = new Date(e.created_at);
 }
-
-const now = new Date();
-
-const isOldMonth =
-    expenseDate.getMonth() !== now.getMonth() ||
-    expenseDate.getFullYear() !== now.getFullYear();
 
         if (
     role === "admin" ||
@@ -448,10 +396,13 @@ window.filterByDay = function () {
     renderTable();
 };
 
-window.filterByMonth = function () {
+window.filterByDateRange = function () {
 
-    selectedMonth =
-        document.getElementById("monthFilter").value;
+    fromDate =
+        document.getElementById("fromDate").value;
+
+    toDate =
+        document.getElementById("toDate").value;
 
     renderTable();
 };
@@ -508,80 +459,11 @@ function startExpensesListener() {
 
         const now = new Date();
 
-        if (!selectedMonth) {
-
-    selectedMonth =
-        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
-    const monthInput =
-        document.getElementById("monthFilter");
-
-    if (monthInput) {
-        monthInput.value = selectedMonth;
-    }
-}
 
 snap.forEach(d => {
 
     let data = d.data();
 
-// 🔥 FILTER USING OPERATIONAL MONTH
-
-let expenseOperationalMonth = "";
-
-if (data.operational_month) {
-
-    expenseOperationalMonth =
-        data.operational_month;
-}
-else {
-
-    let createdDate;
-
-    // FIRST PRIORITY
-    if (data.day_created_at?.seconds) {
-
-        createdDate =
-            new Date(
-                data.day_created_at.seconds * 1000
-            );
-    }
-
-    // SECOND PRIORITY
-    else if (data.day_created_at) {
-
-        createdDate =
-            new Date(data.day_created_at);
-    }
-
-    // FALLBACK OLD RECORDS
-    else if (data.created_at?.seconds) {
-
-        createdDate =
-            new Date(
-                data.created_at.seconds * 1000
-            );
-    }
-
-    else {
-
-        createdDate =
-            new Date(data.created_at);
-    }
-
-    expenseOperationalMonth =
-        `${createdDate.getFullYear()}-${String(
-            createdDate.getMonth() + 1
-        ).padStart(2, "0")}`;
-}
-
-// ONLY CURRENT SELECTED MONTH
-if (
-    selectedMonth &&
-    expenseOperationalMonth !== selectedMonth
-) {
-    return;
-}
     expenseData.push({
         id: d.id,
         ...data
