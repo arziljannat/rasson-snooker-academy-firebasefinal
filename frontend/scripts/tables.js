@@ -121,10 +121,14 @@ onSnapshot(q, (snapshot) => {
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
-                gameBalance:
-                (d.game_total || 0)
-                -
-                (d.game_collection || 0),
+                  gameBalance:
+                  (d.game_total || 0)
+                  -
+                  (
+                  (d.game_collection || 0)
+                  +
+                  (d.discount || 0)
+                  ),
                 canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
             };
         }
@@ -146,7 +150,11 @@ onSnapshot(q, (snapshot) => {
                 gameBalance:
                 (d.game_total || 0)
                 -
-                (d.game_collection || 0),
+                (
+                (d.game_collection || 0)
+                +
+                (d.discount || 0)
+                ),
                 canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
             };
         }
