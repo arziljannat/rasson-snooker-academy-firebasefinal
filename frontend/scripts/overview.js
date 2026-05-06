@@ -40,9 +40,14 @@ document.addEventListener(
         await getDocs(
             collection(window.db,"sessions")
         );
+        const operationalSnap =
+    await getDocs(
+        collection(window.db,"central_day_system")
+    );
 
     let tables = [];
     let sessions = [];
+    let operationalDays = [];
 
     tablesSnap.forEach(doc=>{
 
@@ -60,6 +65,37 @@ document.addEventListener(
 
         sessions.push(s);
     });
+
+        operationalSnap.forEach(doc=>{
+
+    let d = doc.data();
+
+    operationalDays.push(d);
+});
+
+
+    // =====================
+// CURRENT OPERATIONAL DAYS
+// =====================
+
+let currentOperationalMap = {};
+
+operationalDays.forEach(d=>{
+
+    let branch =
+        (d.branch || "")
+        .toLowerCase();
+
+    if(!branch) return;
+
+    // ONLY RUNNING DAYS
+    if(d.is_closed === true)
+        return;
+
+    currentOperationalMap[branch] =
+        d.day_id ||
+        d.id;
+});    
 
     // =====================
     // RENDER BRANCHES
@@ -159,12 +195,25 @@ let branchTables =
                             s.table === tableName
                         )
 
-                        &&
+&&
 
-                        !s.end_time
-                        && !s.endTime
-                        && !s.checkout_time
-                        && !s.close_time
+(
+    s.is_paid === false ||
+    s.payment_status === "unpaid"
+)
+
+&&
+
+String(
+    s.day_id ||
+    s.dayId ||
+    s.current_day_id
+)
+===
+
+String(
+    currentOperationalMap[branch]
+)
                     );
                 });
 
