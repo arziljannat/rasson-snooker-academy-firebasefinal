@@ -93,6 +93,49 @@
 
 <div id="billDetails" class="bill-print-box"></div>
 
+        <div
+    id="discountSection"
+    style="
+        margin-top:15px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+    "
+>
+
+<label
+    style="
+        color:#00ffcc;
+        font-weight:bold;
+    "
+>
+    Discount
+</label>
+
+<input
+    type="number"
+    id="discountInput"
+    min="0"
+    value="0"
+    style="
+        padding:10px;
+        border-radius:10px;
+        border:2px solid #00ffcc;
+        background:#111;
+        color:#00ffcc;
+        font-size:18px;
+    "
+>
+
+<button
+    id="applyDiscountBtn"
+    class="neon-btn"
+>
+    Apply Discount
+</button>
+
+</div>
+
 
         <div class="popup-buttons">
             <button id="paidBtn" class="neon-btn">Paid</button>
@@ -129,6 +172,7 @@
                 <th>Play</th>
                 <th>Rate</th>
                 <th>Amount</th>
+                <th>Discount</th>
                 <th>Canteen</th>
                 <th>Total</th>
                 <th>Paid</th>
@@ -167,6 +211,7 @@
                     <th>Canteen Collection</th>
                     <th>Game Balance</th>
                     <th>Canteen Balance</th>
+                    <th>Discount</th>
                     <th>Expenses</th>
                     <th>EasyPaisa</th>
                     <th>Closing Cash</th>
@@ -205,10 +250,13 @@
             <tbody id="dayShift2Body"></tbody>
         </table>
 
-        <h3>Combined</h3>
-        <table class="history-table neon-table">
-            <tbody id="dayCombinedBody"></tbody>
-        </table>
+<h3>Combined</h3>
+
+<table class="history-table neon-table">
+
+<tbody id="dayCombinedBody"></tbody>
+
+</table>
 
         <div class="popup-buttons">
             <button id="printDayHistoryBtn" class="neon-btn">Print</button>
