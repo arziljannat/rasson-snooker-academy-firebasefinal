@@ -1506,7 +1506,7 @@ t.history.sort((a, b) => {
                     <td>${formatTime(h.checkout)}</td>
                     <td>${formatSeconds(h.playSeconds)}</td>
                     <td>${h.rate}</td>
-                    <td>${h.amount}</td>
+                    <td>${h.originalAmount || h.amount}</td>
                     <td>${h.canteenAmount}</td>
                     <td>${h.total}</td>
                     <td>
@@ -1995,6 +1995,7 @@ summaryBody.innerHTML = `
     <td>${s1?.canteenCollection || 0}</td>
     <td>${s1?.gameBalance || 0}</td>
     <td>${s1?.canteenBalance || 0}</td>
+    <td>${s1?.discount || 0}</td>
     <td>${s1?.expenses || 0}</td>
     <td>${s1?.easypaisa || 0}</td>
     <td>${s1?.closingCash || 0}</td>
@@ -2010,6 +2011,7 @@ summaryBody.innerHTML = `
     <td>${s2?.canteenCollection || 0}</td>
     <td>${s2?.gameBalance || 0}</td>
     <td>${s2?.canteenBalance || 0}</td>
+    <td>${s2?.discount || 0}</td>
     <td>${s2?.expenses || 0}</td>
     <td>${s2?.easypaisa || 0}</td>
     <td>${s2?.closingCash || 0}</td>
@@ -2026,6 +2028,7 @@ ${combined ? (
 "<td>" + combined.canteenCollection + "</td>" +
 "<td>" + combined.gameBalance + "</td>" +
 "<td>" + combined.canteenBalance + "</td>" +
+"<td>" + combined.discount + "</td>" +
 "<td>" + combined.expenses + "</td>" +
 "<td>" + combined.easypaisa + "</td>" +
 "<td>" + combined.closingCash + "</td>" +
