@@ -250,11 +250,54 @@ function renderTable() {
 
 if (selectedMonth) {
 
-    if (
-        (e.operational_month || "")
-        !==
-        selectedMonth
-    ) return;
+    let expenseMonth = "";
+
+    // NEW DATA
+    if (e.operational_month) {
+
+        expenseMonth =
+            e.operational_month;
+
+    }
+
+    // OLD DATA FALLBACK
+    else {
+
+        let d;
+
+        if (e.day_created_at?.seconds) {
+
+            d = new Date(
+                e.day_created_at.seconds * 1000
+            );
+
+        } else if (e.day_created_at) {
+
+            d = new Date(
+                e.day_created_at
+            );
+
+        } else if (e.created_at?.seconds) {
+
+            d = new Date(
+                e.created_at.seconds * 1000
+            );
+
+        } else {
+
+            d = new Date(
+                e.created_at
+            );
+        }
+
+        expenseMonth =
+            `${d.getFullYear()}-${String(
+                d.getMonth() + 1
+            ).padStart(2, "0")}`;
+    }
+
+    if (expenseMonth !== selectedMonth)
+        return;
 }
         
         total += Number(e.amount || 0);
