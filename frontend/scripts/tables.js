@@ -1506,10 +1506,15 @@ t.history.sort((a, b) => {
                     <td>${formatTime(h.checkout)}</td>
                     <td>${formatSeconds(h.playSeconds)}</td>
                     <td>${h.rate}</td>
-                    <td>${h.originalAmount || h.amount}</td>
-                    <td>${h.canteenAmount}</td>
-                    <td>${h.total}</td>
-                    <td>
+                    
+                    <td>${h.originalAmount || h.amount || 0}</td>
+                    
+                    <td>${h.discount || 0}</td>
+                    
+                    <td>${h.canteenAmount || 0}</td>
+                    
+                    <td>${h.total || 0}</td>
+                                          <td>
     ${h.paid
         ? `<button class="paid-btn" disabled>PAID</button>`
         : `<button class="unpaid-btn" onclick="openBillFromHistory('${id}', ${index})">UNPAID</button>`
@@ -1971,8 +1976,15 @@ if (s1 && s2) {
         gameCollection: s1.gameCollection + s2.gameCollection,
         canteenCollection: s1.canteenCollection + s2.canteenCollection,
 
-       expenses: (s1.expenses || 0) + (s2.expenses || 0),
-easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
+        expenses: (s1.expenses || 0) + (s2.expenses || 0),
+
+        easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
+
+        // 🔥 ADD THIS
+        discount:
+        (s1.discount || 0)
+        +
+        (s2.discount || 0),
     };
 
     combined.gameBalance = combined.gameTotal - combined.gameCollection;
