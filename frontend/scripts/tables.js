@@ -1156,9 +1156,50 @@ originalAmount - discount;
     document.getElementById("billPopup").classList.remove("hidden");
 
     document.getElementById("paidBtn").onclick = () => completePayment(id);
+
+  document.getElementById("applyDiscountBtn").onclick =
+() => applyDiscount(id);
+  
     document.getElementById("cancelBillBtn").onclick =
         () => document.getElementById("billPopup").classList.add("hidden");
 }
+
+
+function applyDiscount(tableId) {
+
+    let t = tables.find(x => String(x.id) === String(tableId));
+
+    if (!t) return;
+
+    let input = document.getElementById("discountInput");
+
+    let discount = Number(input.value || 0);
+
+    let original =
+        t.finalAmount || t.liveAmount || 0;
+
+    // ❌ negative block
+    if (discount < 0) {
+        discount = 0;
+    }
+
+    // ❌ over-discount block
+    if (discount > original) {
+        alert("Discount too high ❌");
+        return;
+    }
+
+    // ✅ SAVE
+    t.discount = discount;
+
+    // ✅ LIVE BILL REFRESH
+    showBill(tableId);
+
+    // ✅ VISUAL MESSAGE
+    alert("Discount Applied ✅");
+}
+
+
 
 async function completePayment(id) {
 
