@@ -2580,7 +2580,7 @@ discount += d;
             // =========================
             if (h.checkout >= startTime && h.checkout <= endTime) {
 
-              gameTotal += finalGame;
+              gameTotal += originalGame;
               
               canteenTotal += c;
 
