@@ -38,9 +38,14 @@ async function loadCurrentDayId() {
     snap.forEach(d => {
         const data = d.data();
 
-        if (data.type === "current_day" && data.branch === branch) {
-            window.currentDayId = data.day_id;
-        }
+if (data.type === "current_day" && data.branch === branch) {
+
+    window.currentDayId =
+        data.day_id;
+
+    window.currentDayCreatedAt =
+        data.created_at || null;
+}
     });
 
     console.log("✅ CURRENT DAY ID LOADED:", window.currentDayId);
@@ -112,11 +117,16 @@ await addDoc(collection(db, "expenses"), {
         .toLowerCase()
         .replace(/\s+/g, ""),
 
-        day_id: window.currentDayId,
-        created_at: selectedDate
-    ? new Date(selectedDate).toISOString()
-    : new Date().toISOString()
-    });
+    day_id: window.currentDayId,
+
+    // operational day opening date
+    day_created_at:
+        window.currentDayCreatedAt || null,
+
+    created_at: selectedDate
+        ? new Date(selectedDate).toISOString()
+        : new Date().toISOString()
+});
 
     document.getElementById("newTitle").value = "";
     document.getElementById("newAmount").value = "";
@@ -226,22 +236,48 @@ function renderTable() {
 
 if (selectedMonth) {
 
-    let expenseDate;
+    let operationalDate;
 
-    if (e.created_at?.seconds) {
-        expenseDate = new Date(e.created_at.seconds * 1000);
+    // current operational/open day ki date use karo
+    if (e.day_created_at?.seconds) {
+
+        operationalDate =
+            new Date(
+                e.day_created_at.seconds * 1000
+            );
+
+    } else if (e.day_created_at) {
+
+        operationalDate =
+            new Date(e.day_created_at);
+
     } else {
-        expenseDate = new Date(e.created_at);
+
+        // fallback old data
+        if (e.created_at?.seconds) {
+
+            operationalDate =
+                new Date(
+                    e.created_at.seconds * 1000
+                );
+
+        } else {
+
+            operationalDate =
+                new Date(e.created_at);
+        }
     }
 
-    if (isNaN(expenseDate.getTime())) return;
+    if (isNaN(operationalDate.getTime()))
+        return;
 
-    const expenseMonth =
-        `${expenseDate.getFullYear()}-${String(
-            expenseDate.getMonth() + 1
+    const operationalMonth =
+        `${operationalDate.getFullYear()}-${String(
+            operationalDate.getMonth() + 1
         ).padStart(2, "0")}`;
 
-    if (expenseMonth !== selectedMonth) return;
+    if (operationalMonth !== selectedMonth)
+        return;
 }
         
         total += Number(e.amount || 0);
