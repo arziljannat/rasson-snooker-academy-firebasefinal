@@ -121,7 +121,6 @@ onSnapshot(q, (snapshot) => {
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
-                  gameBalance:
 gameBalance:
 (d.game_total || 0)
 -
@@ -144,7 +143,6 @@ gameBalance:
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
-                gameBalance:
 gameBalance:
 (d.game_total || 0)
 -
