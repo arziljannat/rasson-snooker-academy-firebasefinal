@@ -40,11 +40,12 @@ document.addEventListener(
         await getDocs(
             collection(window.db,"sessions")
         );
-        const operationalSnap =
-    await getDocs(
-        collection(window.db,"central_day_system")
-    );
+    const systemSnap =
+        await getDocs(
+            collection(window.db,"system")
+        );
 
+        
     let tables = [];
     let sessions = [];
     let operationalDays = [];
@@ -66,21 +67,14 @@ document.addEventListener(
         sessions.push(s);
     });
 
-        operationalSnap.forEach(doc=>{
+let currentOperationalMap = {};
+
+systemSnap.forEach(doc=>{
 
     let d = doc.data();
 
-    operationalDays.push(d);
-});
-
-
-    // =====================
-// CURRENT OPERATIONAL DAYS
-// =====================
-
-let currentOperationalMap = {};
-
-operationalDays.forEach(d=>{
+    if(d.type !== "current_day")
+        return;
 
     let branch =
         (d.branch || "")
@@ -88,14 +82,11 @@ operationalDays.forEach(d=>{
 
     if(!branch) return;
 
-    // ONLY RUNNING DAYS
-    if(d.is_closed === true)
-        return;
-
     currentOperationalMap[branch] =
-        d.day_id ||
-        d.id;
-});    
+        String(d.day_id || "");
+});
+
+   
 
     // =====================
     // RENDER BRANCHES
