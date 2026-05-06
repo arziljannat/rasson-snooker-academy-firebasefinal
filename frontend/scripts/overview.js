@@ -185,25 +185,20 @@ let branchTables =
 
                         &&
 
-                        (
-                            s.table_id === tableName
-                            ||
-                            s.table === tableName
-                        )
+(
+    s.table_id === tableName
+    ||
+    s.table === tableName
+)
 
 &&
 
 (
-    s.end_time == null
+    s.check_in_time
     ||
-    s.checkout_time == null
-    ||
-    s.is_paid === false
-    ||
-    s.payment_status === "unpaid"
+    s.start_time
 )
-
-&&
+&&                       
 
 String(
     s.day_id ||
