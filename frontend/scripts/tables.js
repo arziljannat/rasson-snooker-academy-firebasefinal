@@ -1992,8 +1992,15 @@ if (s1 && s2) {
         (s2.discount || 0),
     };
 
-    combined.gameBalance = combined.gameTotal - combined.gameCollection;
-    combined.canteenBalance = combined.canteenTotal - combined.canteenCollection;
+combined.gameBalance =
+(s1.gameBalance || 0)
++
+(s2.gameBalance || 0);
+
+combined.canteenBalance =
+(s1.canteenBalance || 0)
++
+(s2.canteenBalance || 0);
 
     combined.closingCash =
     (combined.gameCollection + combined.canteenCollection)
