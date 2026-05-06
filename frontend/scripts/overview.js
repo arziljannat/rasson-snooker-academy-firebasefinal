@@ -174,49 +174,41 @@ let branchTables =
                 table.name ||
                 "Table";
 
-            let running =
-                sessions.some(s=>{
+let running =
+    sessions.some(s=>{
 
-                    return (
+        return (
 
-                        (s.branch || "")
-                        .toLowerCase()
-                        === branch
+            (s.branch || "")
+            .toLowerCase()
+            === branch
 
-                        &&
+            &&
 
-(
-    s.table_id === tableName
-    ||
-    s.table === tableName
-)
+            (
+                s.table_id === tableName
+                ||
+                s.table === tableName
+            )
 
-&&
+            &&
 
-(
-    s.check_in_time
-    ||
-    s.start_time
-)
-&&                       
+            (
+                s.check_in_time
+                ||
+                s.start_time
+            )
 
-String(
-    s.day_id ||
-    s.dayId ||
-    s.current_day_id ||
-    window.currentDayId ||
-    ""
-).trim()
+            &&
 
-===
+            !s.end_time
+            &&
+            !s.checkout_time
+            &&
+            !s.close_time
 
-String(
-    currentOperationalMap[branch] ||
-    ""
-).trim()
-                    );
-                });
-
+        );
+    });
             if(running)
                 activeTables++;
 
