@@ -70,9 +70,9 @@ async function loadOperationalDays() {
             !== branch
         ) return;
 
-        operationalDayMap[
-            data.day_id
-        ] = data;
+operationalDayMap[
+    String(data.day_id)
+] = data;
     });
 
     console.log(
@@ -291,10 +291,10 @@ if (selectedMonth) {
     // OLD SYSTEM
     else {
 
-        const dayData =
-            operationalDayMap[
-                e.day_id
-            ];
+const dayData =
+    operationalDayMap[
+        String(e.day_id)
+    ];
 
         let d;
 
