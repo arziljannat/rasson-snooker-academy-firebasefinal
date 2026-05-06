@@ -40,7 +40,6 @@ document.addEventListener(
 
 const sessionsQuery = query(
     collection(window.db, "sessions"),
-    where("end_time", "==", null),
     where("is_deleted", "==", false)
 );
 
@@ -195,7 +194,12 @@ let branchTables =
 &&
 
 (
-    s.is_paid === false ||
+    s.end_time == null
+    ||
+    s.checkout_time == null
+    ||
+    s.is_paid === false
+    ||
     s.payment_status === "unpaid"
 )
 
