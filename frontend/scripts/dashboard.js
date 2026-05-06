@@ -796,21 +796,33 @@ function renderTableSalesBoxes(){
 
         if(isNaN(sessionDate.getTime())) return;
 
-        // STAFF = CURRENT DAY
-        if(role === "staff"){
+// STAFF = CURRENT OPERATIONAL DAY
+if(role === "staff"){
 
-            let dayId =
-                s.day_id ||
-                s.dayId ||
-                s.current_day_id;
+    let dayId =
+        s.day_id ||
+        s.dayId ||
+        s.current_day_id;
 
-            if(
-                String(dayId) !==
-                String(window.currentDayId)
-            ){
-                return;
-            }
-        }
+    let operational =
+        operationalDays[String(dayId)];
+
+    // ONLY CURRENT RUNNING DAY
+    if(
+        String(dayId) !==
+        String(window.currentDayId)
+    ){
+        return;
+    }
+
+    // SKIP CLOSED DAYS
+    if(
+        operational &&
+        operational.raw?.is_closed === true
+    ){
+        return;
+    }
+}
 
 // ADMIN = OPERATIONAL MONTH
 if(
