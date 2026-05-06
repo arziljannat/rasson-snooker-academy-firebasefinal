@@ -733,8 +733,7 @@ setText(
     Math.round(monthlyAvg)
 );
 
-    // 🔥 REALTIME CHARTS
-    renderMonthlyCharts(sessionsData, canteenData, expenseData);
+renderTableSalesBoxes();
 
     // 🔥 ROLE CONTROL
     if(role==="staff"){
@@ -778,6 +777,131 @@ function renderCharts(g,c,p,u){
         }
     });
 }
+
+function renderTableSalesBoxes(){
+
+    const container =
+        document.getElementById("tableSalesContainer");
+
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    let tableStats = {};
+
+    tablesData.forEach(t=>{
+
+        let tableName =
+            t.table_id ||
+            t.name ||
+            "Unknown Table";
+
+        tableStats[tableName] = {
+
+            shift1:0,
+            shift2:0,
+            total:0
+        };
+    });
+
+    sessionsData.forEach(s=>{
+
+        if(s.is_deleted === true) return;
+
+        let tableName =
+            s.table_id ||
+            s.table ||
+            s.table_name ||
+            "Unknown Table";
+
+        if(!tableStats[tableName]){
+
+            tableStats[tableName] = {
+
+                shift1:0,
+                shift2:0,
+                total:0
+            };
+        }
+
+        let amount = Number(
+            s.final_amount ||
+            s.total_amount ||
+            s.amount ||
+            0
+        );
+
+        let sessionDate = new Date(
+            s.start_time ||
+            s.startTime ||
+            s.created_at
+        );
+
+        if(isNaN(sessionDate.getTime())) return;
+
+        // STAFF = CURRENT DAY
+        if(role === "staff"){
+
+            if(
+                String(s.day_id) !==
+                String(window.currentDayId)
+            ){
+                return;
+            }
+        }
+
+        // ADMIN = MONTHLY
+        if(role === "admin" || role === "super_admin"){
+
+            let operational =
+                operationalDays[String(s.day_id)];
+
+            if(
+                !operational ||
+                operational.month !== selectedMonth ||
+                operational.year !== selectedYear
+            ){
+                return;
+            }
+        }
+
+        let hour = sessionDate.getHours();
+
+        if(hour >= 9 && hour < 20){
+
+            tableStats[tableName].shift1 += amount;
+
+        }else{
+
+            tableStats[tableName].shift2 += amount;
+        }
+
+        tableStats[tableName].total += amount;
+    });
+
+    Object.keys(tableStats).forEach(table=>{
+
+        let t = tableStats[table];
+
+        container.innerHTML += `
+
+        <div class="table-sale-box">
+
+            <h2>${table}</h2>
+
+            <p>Shift1 : ${t.shift1}</p>
+
+            <p>Shift2 : ${t.shift2}</p>
+
+            <p>Total : ${t.total}</p>
+
+        </div>
+        `;
+    });
+}
+
+
+
 
 // ================= SAFE TEXT =================
 
