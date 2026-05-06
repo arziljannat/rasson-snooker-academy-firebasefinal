@@ -299,17 +299,7 @@ if(
 
     monthlyEasy += amount;
 
-}else{
-
-    // 🔥 FALLBACK FOR OLD DATA
-    if(
-        date.getMonth() === selectedMonth &&
-        date.getFullYear() === selectedYear
-    ){
-        monthlyEasy += amount;
-    }
 }
-
     });
 
     setText("todayEasyPaisa", todayEasy);
@@ -389,15 +379,6 @@ if(
 
     monthly_easy += Number(e.amount || 0);
 
-}else{
-
-    // 🔥 FALLBACK OLD DATA
-    if(
-        date.getMonth() === selectedMonth &&
-        date.getFullYear() === selectedYear
-    ){
-        monthly_easy += Number(e.amount || 0);
-    }
 }
 });
 
@@ -617,15 +598,6 @@ if(
 
     monthly_expense += amount;
 
-}else{
-
-    // 🔥 FALLBACK OLD DATA
-    if(
-        date.getMonth() === selectedMonth &&
-        date.getFullYear() === selectedYear
-    ){
-        monthly_expense += amount;
-    }
 }
 });
 
@@ -719,14 +691,24 @@ setText("netProfit", finalMonthlyProfit);
     setText("shift1Monthly", shift1Monthly);
     setText("shift2Monthly", shift2Monthly);
 
-    let totalMonthDays = new Date(
-    selectedYear,
-    selectedMonth + 1,
-    0
-).getDate();
+let operationalMonthDays =
+    Object.values(operationalDays).filter(d=>{
+
+        return (
+            d.month === selectedMonth &&
+            d.year === selectedYear &&
+            d.raw?.is_closed === true
+        );
+
+    }).length;
+
+if(operationalMonthDays <= 0){
+    operationalMonthDays = 1;
+}
 
 let monthlyAvg =
-    Number(monthly_income || 0) / totalMonthDays;
+    Number(monthly_income || 0)
+    / operationalMonthDays;
 
 setText(
     "monthlyAverage",
