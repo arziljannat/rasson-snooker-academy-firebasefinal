@@ -495,21 +495,23 @@ function startExpensesListener() {
     }
 }
 
-let data = d.data();
+snap.forEach(d => {
 
-// 🔥 SKIP CURRENT OPEN DAY IN MONTHLY VIEW
+    let data = d.data();
 
-if (
-    selectedMonth &&
-    String(data.day_id) === String(window.currentDayId)
-) {
-    return;
-}
+    // 🔥 SKIP CURRENT OPEN DAY IN MONTHLY VIEW
 
-expenseData.push({
-    id: d.id,
-    ...data
-});
+    if (
+        selectedMonth &&
+        String(data.day_id) === String(window.currentDayId)
+    ) {
+        return;
+    }
+
+    expenseData.push({
+        id: d.id,
+        ...data
+    });
 });
 
         renderTable();
