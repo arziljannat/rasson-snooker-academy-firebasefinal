@@ -1195,6 +1195,22 @@ function applyDiscount(tableId) {
     // ✅ LIVE BILL REFRESH
     showBill(tableId);
 
+  // 🔥 LIVE HISTORY UPDATE
+if (t.history && t.history.length > 0) {
+
+    let last = t.history[t.history.length - 1];
+
+    last.discount = discount;
+
+    last.originalAmount = original;
+
+    last.amount = original - discount;
+
+    last.total =
+        (original - discount)
+        + (last.canteenAmount || 0);
+}
+
     // ✅ VISUAL MESSAGE
     alert("Discount Applied ✅");
 }
@@ -1239,10 +1255,24 @@ snap.forEach(d => {
 });
 
 if (latestSession) {
-    await updateDoc(doc(window.db, "sessions", latestSession.id), {
-        paid: true,
-      paid_time: new Date().toISOString()
-    });
+await updateDoc(doc(window.db, "sessions", latestSession.id), {
+    paid: true,
+    paid_time: new Date().toISOString(),
+
+    // 🔥 IMPORTANT
+    discount: t.discount || 0,
+
+    original_game_amount:
+        t.finalAmount || 0,
+
+    final_game_amount:
+        (t.finalAmount || 0)
+        - (t.discount || 0),
+
+    final_amount:
+        (t.finalAmount || 0)
+        - (t.discount || 0)
+});
 }
 
      
