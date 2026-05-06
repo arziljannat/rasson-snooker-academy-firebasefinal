@@ -495,22 +495,21 @@ function startExpensesListener() {
     }
 }
 
-snap.forEach(d => {
+let data = d.data();
 
-    let data = d.data();
+// 🔥 SKIP CURRENT OPEN DAY IN MONTHLY VIEW
 
-    let expenseDate;
+if (
+    selectedMonth &&
+    String(data.day_id) === String(window.currentDayId)
+) {
+    return;
+}
 
-    if (data.created_at?.seconds) {
-        expenseDate = new Date(data.created_at.seconds * 1000);
-    } else {
-        expenseDate = new Date(data.created_at);
-    }
-
-    expenseData.push({
+expenseData.push({
     id: d.id,
     ...data
-        });
+});
 });
 
         renderTable();
