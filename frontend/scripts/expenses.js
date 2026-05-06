@@ -131,6 +131,8 @@ window.saveExpense = async () => {
     const amount = Number(document.getElementById("newAmount").value);
     const selectedDate =
     document.getElementById("newDate").value;
+    const shift =
+document.getElementById("newShift").value;
 
     if (!title || !amount) {
         alert("Fill all fields");
@@ -141,6 +143,7 @@ await addDoc(collection(db, "expenses"), {
     type,
     title,
     amount,
+    shift,
 
     branch: String(branch)
         .toLowerCase()
@@ -186,6 +189,7 @@ window.editExpense = (
     title,
     amount,
     type,
+    shift,
     created_at
 ) => {
 
@@ -194,6 +198,8 @@ window.editExpense = (
     document.getElementById("editTitle").value = title;
     document.getElementById("editAmount").value = amount;
     document.getElementById("editType").value = type;
+    document.getElementById("editShift").value =
+    shift || "shift1";
     if (created_at) {
 
     let d;
@@ -233,6 +239,8 @@ window.updateExpense = async () => {
     const title = document.getElementById("editTitle").value;
     const amount = Number(document.getElementById("editAmount").value);
     const type = document.getElementById("editType").value;
+    const shift =
+document.getElementById("editShift").value;
     const editDate =
     document.getElementById("editDate").value;
 
@@ -240,6 +248,7 @@ window.updateExpense = async () => {
     title,
     amount,
     type,
+    shift,
     created_at: editDate
         ? new Date(editDate).toISOString()
         : new Date().toISOString()
@@ -389,21 +398,38 @@ const isOldMonth =
 '${e.title}',
 ${e.amount},
 '${e.type}',
+'${e.shift || "shift1"}',
 '${e.created_at || ""}'
 )">Edit</button>
                 <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
             `;
         }
 
-        body.innerHTML += `
-            <tr>
-                <td>${e.title}</td>
-                <td>${e.amount}</td>
-                <td>${e.type}</td>
-                <td>${formatTime(e.created_at)}</td>
-                <td>${actions}</td>
-            </tr>
-        `;
+body.innerHTML += `
+    <tr>
+        <td>${e.title || "-"}</td>
+
+        <td>${e.amount || 0}</td>
+
+        <td>${e.type || "-"}</td>
+
+        <td>
+            ${
+                e.shift === "shift2"
+                ? "Shift 2"
+                : "Shift 1"
+            }
+        </td>
+
+        <td>
+            ${formatTime(e.created_at)}
+        </td>
+
+        <td>
+            ${actions}
+        </td>
+    </tr>
+`;
     });
 
     document.getElementById("todayTotal").innerText = total + " PKR";
