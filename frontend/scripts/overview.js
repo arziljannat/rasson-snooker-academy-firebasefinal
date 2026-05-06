@@ -1,6 +1,8 @@
 import {
     collection,
-    getDocs
+    getDocs,
+    query,
+    where
 }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -36,10 +38,14 @@ document.addEventListener(
             collection(window.db,"tables")
         );
 
-    const sessionsSnap =
-        await getDocs(
-            collection(window.db,"sessions")
-        );
+const sessionsQuery = query(
+    collection(window.db, "sessions"),
+    where("end_time", "==", null),
+    where("is_deleted", "==", false)
+);
+
+const sessionsSnap =
+    await getDocs(sessionsQuery);
     const systemSnap =
         await getDocs(
             collection(window.db,"system")
@@ -198,13 +204,17 @@ let branchTables =
 String(
     s.day_id ||
     s.dayId ||
-    s.current_day_id
-)
+    s.current_day_id ||
+    window.currentDayId ||
+    ""
+).trim()
+
 ===
 
 String(
-    currentOperationalMap[branch]
-)
+    currentOperationalMap[branch] ||
+    ""
+).trim()
                     );
                 });
 
