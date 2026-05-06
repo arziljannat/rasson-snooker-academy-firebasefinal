@@ -121,11 +121,8 @@ onSnapshot(q, (snapshot) => {
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
-gameBalance:
-(d.game_total || 0)
--
-(d.game_collection || 0),
-                canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+                gameBalance: d.game_balance || 0,
+               canteenBalance: d.canteen_balance || 0
             };
         }
 
@@ -143,11 +140,8 @@ gameBalance:
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
-gameBalance:
-(d.game_total || 0)
--
-(d.game_collection || 0),
-                canteenBalance: (d.canteen_total || 0) - (d.canteen_collection || 0)
+                gameBalance: d.game_balance || 0,
+                canteenBalance: d.canteen_balance || 0
             };
         }
     });
@@ -2585,10 +2579,13 @@ discount += d;
               canteenTotal += c;
 
                 // ❗ UNPAID → balance
-                if (!h.paid) {
-                   gameBalance += finalGame;
-                    canteenBalance += c;
-                }
+              // 🔥 ONLY UNPAID BILLS GO TO BALANCE
+              if (!h.paid) {
+              
+                 gameBalance += Number(h.amount || 0);
+              
+                 canteenBalance += Number(h.canteenAmount || 0);
+              }
             }
 
             // =========================
