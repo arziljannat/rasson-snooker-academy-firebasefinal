@@ -86,6 +86,16 @@ let selectedYear = new Date().getFullYear();
 
 let operationalDays = {};
 
+function setText(id, value){
+
+    const el = document.getElementById(id);
+
+    if(el){
+
+        el.innerText = value ?? 0;
+    }
+}
+
 async function loadOperationalDays(){
 
     operationalDays = {};
