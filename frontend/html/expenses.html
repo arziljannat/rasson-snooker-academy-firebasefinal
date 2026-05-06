@@ -54,36 +54,36 @@
 
     </div>
 
-    <!-- CLOSED DAYS -->
-    <div class="filter-row admin-only" id="closedDayBox">
-
-        <label class="filter-label">Closed Day:</label>
-
-        <select
-            id="closedDayFilter"
-            class="filter-select"
-            onchange="filterByClosedDay()"
-        >
-            <option value="current">
-                Current/Open Day
-            </option>
-        </select>
-
-    </div>
-
     <!-- MONTH FILTER -->
-    <div class="filter-row admin-only" id="monthFilterBox">
+<div class="filter-row admin-only" id="monthFilterBox">
 
-        <label class="filter-label">Month:</label>
+    <label class="filter-label">
+        From Date:
+    </label>
 
-        <input
-            type="month"
-            id="monthFilter"
-            class="filter-select"
-            onchange="filterByMonth()"
-        >
+    <input
+        type="date"
+        id="fromDate"
+        class="filter-select"
+        onchange="filterByDateRange()"
+    >
 
-    </div>
+</div>
+
+<div class="filter-row admin-only">
+
+    <label class="filter-label">
+        To Date:
+    </label>
+
+    <input
+        type="date"
+        id="toDate"
+        class="filter-select"
+        onchange="filterByDateRange()"
+    >
+
+</div>
 
     <!-- ACTIONS -->
     <div class="top-actions">
