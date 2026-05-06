@@ -499,15 +499,35 @@ snap.forEach(d => {
 
     let data = d.data();
 
-    // 🔥 SKIP CURRENT OPEN DAY IN MONTHLY VIEW
+// 🔥 FILTER USING OPERATIONAL MONTH
 
-    if (
-        selectedMonth &&
-        String(data.day_id) === String(window.currentDayId)
-    ) {
-        return;
-    }
+let expenseOperationalMonth = "";
 
+if (data.operational_month) {
+
+    expenseOperationalMonth =
+        data.operational_month;
+}
+else {
+
+    const createdDate =
+        data.day_created_at?.seconds
+        ? new Date(data.day_created_at.seconds * 1000)
+        : new Date(data.day_created_at);
+
+    expenseOperationalMonth =
+        `${createdDate.getFullYear()}-${String(
+            createdDate.getMonth() + 1
+        ).padStart(2, "0")}`;
+}
+
+// ONLY CURRENT SELECTED MONTH
+if (
+    selectedMonth &&
+    expenseOperationalMonth !== selectedMonth
+) {
+    return;
+}
     expenseData.push({
         id: d.id,
         ...data
