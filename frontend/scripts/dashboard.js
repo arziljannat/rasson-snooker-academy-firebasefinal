@@ -733,16 +733,39 @@ renderTableSalesBoxes();
 
 function renderTableSalesBoxes(){
 
-    const container =
-        document.getElementById("tableSalesContainer");
+    // =========================
+    // STAFF CONTAINER
+    // =========================
 
-    if(!container) return;
+    const staffContainer =
+        document.getElementById(
+            "staffTableSalesContainer"
+        );
 
-    container.innerHTML = "";
+    // =========================
+    // ADMIN CONTAINER
+    // =========================
 
-    let tableStats = {};
+    const adminContainer =
+        document.getElementById(
+            "tableSalesContainer"
+        );
 
-    // TABLES
+    if(staffContainer){
+        staffContainer.innerHTML = "";
+    }
+
+    if(adminContainer){
+        adminContainer.innerHTML = "";
+    }
+
+    let staffStats = {};
+    let adminStats = {};
+
+    // =========================
+    // TABLE CREATE
+    // =========================
+
     tablesData.forEach(t=>{
 
         let tableName =
@@ -750,18 +773,25 @@ function renderTableSalesBoxes(){
             t.name ||
             "Unknown Table";
 
-        tableStats[tableName] = {
+        staffStats[tableName] = {
+            shift1:0,
+            shift2:0,
+            total:0
+        };
 
+        adminStats[tableName] = {
             shift1:0,
             shift2:0,
             total:0
         };
     });
 
-    // SESSIONS
+    // =========================
+    // SESSION LOOP
+    // =========================
+
     sessionsData.forEach(s=>{
 
-        // SKIP DELETED
         if(s.is_deleted === true) return;
 
         let tableName =
@@ -770,11 +800,18 @@ function renderTableSalesBoxes(){
             s.table_name ||
             "Unknown Table";
 
-        // AUTO CREATE
-        if(!tableStats[tableName]){
+        if(!staffStats[tableName]){
 
-            tableStats[tableName] = {
+            staffStats[tableName] = {
+                shift1:0,
+                shift2:0,
+                total:0
+            };
+        }
 
+        if(!adminStats[tableName]){
+
+            adminStats[tableName] = {
                 shift1:0,
                 shift2:0,
                 total:0
@@ -796,125 +833,150 @@ function renderTableSalesBoxes(){
 
         if(isNaN(sessionDate.getTime())) return;
 
-// STAFF = CURRENT OPERATIONAL DAY
-if(role === "staff"){
-
-    let dayId =
-        s.day_id ||
-        s.dayId ||
-        s.current_day_id;
-
-    let operational =
-        operationalDays[String(dayId)];
-
-    // ONLY CURRENT RUNNING DAY
-    if(
-        String(dayId) !==
-        String(window.currentDayId)
-    ){
-        return;
-    }
-
-    // SKIP CLOSED DAYS
-    if(
-        operational &&
-        operational.raw?.is_closed === true
-    ){
-        return;
-    }
-}
-
-// ADMIN = OPERATIONAL MONTH
-if(
-    role === "admin" ||
-    role === "super_admin"
-){
-
-    let operational =
-        operationalDays[
-            String(
-                s.day_id ||
-                s.dayId ||
-                s.current_day_id
-            )
-        ];
-
-    if(
-        !operational ||
-        operational.month !== selectedMonth ||
-        operational.year !== selectedYear
-    ){
-        return;
-    }
-}
-
-        // SHIFT SPLIT
         let hour = sessionDate.getHours();
 
-        if(hour >= 9 && hour < 20){
+        let shiftKey =
+            (hour >= 9 && hour < 20)
+            ? "shift1"
+            : "shift2";
 
-            tableStats[tableName].shift1 += amount;
+        let dayId =
+            s.day_id ||
+            s.dayId ||
+            s.current_day_id;
 
-        }else{
+        let operational =
+            operationalDays[String(dayId)];
 
-            tableStats[tableName].shift2 += amount;
+        // =========================
+        // STAFF = CURRENT RUNNING DAY
+        // =========================
+
+        if(
+            String(dayId) ===
+            String(window.currentDayId)
+        ){
+
+            if(
+                !operational?.raw?.is_closed
+            ){
+
+                staffStats[tableName][shiftKey]
+                    += amount;
+
+                staffStats[tableName].total
+                    += amount;
+            }
         }
 
-        tableStats[tableName].total += amount;
+        // =========================
+        // ADMIN = OPERATIONAL MONTH
+        // =========================
+
+        if(
+            operational &&
+            operational.month === selectedMonth &&
+            operational.year === selectedYear &&
+            operational.raw?.is_closed === true
+        ){
+
+            adminStats[tableName][shiftKey]
+                += amount;
+
+            adminStats[tableName].total
+                += amount;
+        }
     });
 
-// SORT TABLES FIRST THEN ROOMS
-let sortedTables = Object.keys(tableStats).sort((a,b)=>{
+    // =========================
+    // SORT FUNCTION
+    // =========================
 
-    const aIsRoom =
-        a.toLowerCase().includes("room");
+    function sortTables(obj){
 
-    const bIsRoom =
-        b.toLowerCase().includes("room");
+        return Object.keys(obj).sort((a,b)=>{
 
-    // TABLES FIRST
-    if(aIsRoom && !bIsRoom) return 1;
+            const aIsRoom =
+                a.toLowerCase()
+                .includes("room");
 
-    if(!aIsRoom && bIsRoom) return -1;
+            const bIsRoom =
+                b.toLowerCase()
+                .includes("room");
 
-    // NUMBER SORT
-    let aNum =
-        parseInt(a.match(/\d+/)?.[0] || 0);
+            if(aIsRoom && !bIsRoom)
+                return 1;
 
-    let bNum =
-        parseInt(b.match(/\d+/)?.[0] || 0);
+            if(!aIsRoom && bIsRoom)
+                return -1;
 
-    return aNum - bNum;
-});
+            let aNum =
+                parseInt(
+                    a.match(/\d+/)?.[0] || 0
+                );
 
-// UI
-sortedTables.forEach(table=>{
+            let bNum =
+                parseInt(
+                    b.match(/\d+/)?.[0] || 0
+                );
 
-    let t = tableStats[table];
+            return aNum - bNum;
+        });
+    }
 
-    container.innerHTML += `
+    // =========================
+    // STAFF UI
+    // =========================
 
-    <div class="table-sale-box">
+    if(staffContainer){
 
-        <h2>${table}</h2>
+        sortTables(staffStats)
+        .forEach(table=>{
 
-        <p>Shift1 : ${t.shift1}</p>
+            let t = staffStats[table];
 
-        <p>Shift2 : ${t.shift2}</p>
+            staffContainer.innerHTML += `
 
-        <p>Total : ${t.total}</p>
+            <div class="table-sale-box">
 
-    </div>
-    `;
-});
-}
+                <h2>${table}</h2>
 
+                <p>Shift1 : ${t.shift1}</p>
 
-function setText(id, value){
+                <p>Shift2 : ${t.shift2}</p>
 
-    const el = document.getElementById(id);
+                <p>Total : ${t.total}</p>
 
-    if(!el) return;
+            </div>
+            `;
+        });
+    }
 
-    el.innerText = value ?? 0;
+    // =========================
+    // ADMIN UI
+    // =========================
+
+    if(adminContainer){
+
+        sortTables(adminStats)
+        .forEach(table=>{
+
+            let t = adminStats[table];
+
+            adminContainer.innerHTML += `
+
+            <div class="table-sale-box">
+
+                <h2>${table}</h2>
+
+                <p>Shift1 : ${t.shift1}</p>
+
+                <p>Shift2 : ${t.shift2}</p>
+
+                <p>Total : ${t.total}</p>
+
+            </div>
+            `;
+        });
+    }
 }
