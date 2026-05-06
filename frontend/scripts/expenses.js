@@ -452,6 +452,37 @@ function startExpensesListener() {
 
         const now = new Date();
 
+        // ✅ DEFAULT CURRENT MONTH FILTER
+
+if (!fromDate && !toDate) {
+
+    fromDate =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}-01`;
+
+    toDate =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}-${new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0
+        ).getDate()}`;
+
+    const fromInput =
+        document.getElementById("fromDate");
+
+    const toInput =
+        document.getElementById("toDate");
+
+    if (fromInput)
+        fromInput.value = fromDate;
+
+    if (toInput)
+        toInput.value = toDate;
+}
+
 
 snap.forEach(d => {
 
