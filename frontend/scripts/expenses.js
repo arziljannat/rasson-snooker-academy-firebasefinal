@@ -22,6 +22,7 @@ const branch = (localStorage.getItem("branch") || "")
 const role = (localStorage.getItem("role") || "").toLowerCase();
 
 let expenseData = [];
+let operationalDayMap = {};
 let editId = null;
 
 let selectedType = "all";
@@ -51,6 +52,34 @@ if (data.type === "current_day" && data.branch === branch) {
     console.log("✅ CURRENT DAY ID LOADED:", window.currentDayId);
 }
 
+async function loadOperationalDays() {
+
+    const snap =
+        await getDocs(
+            collection(db, "day_history")
+        );
+
+    snap.forEach(doc => {
+
+        const data = doc.data();
+
+        if (
+            (data.branch || "")
+            .toLowerCase()
+            .replace(/\s+/g, "")
+            !== branch
+        ) return;
+
+        operationalDayMap[
+            data.day_id
+        ] = data;
+    });
+
+    console.log(
+        "✅ OPERATIONAL DAYS:",
+        operationalDayMap
+    );
+}
 // =========================
 // TIME FORMAT
 // =========================
@@ -252,41 +281,46 @@ if (selectedMonth) {
 
     let expenseMonth = "";
 
-    // NEW DATA
+    // NEW SYSTEM
     if (e.operational_month) {
 
         expenseMonth =
             e.operational_month;
-
     }
 
-    // OLD DATA FALLBACK
+    // OLD SYSTEM
     else {
+
+        const dayData =
+            operationalDayMap[
+                e.day_id
+            ];
 
         let d;
 
-        if (e.day_created_at?.seconds) {
+        if (
+            dayData?.created_at?.seconds
+        ) {
 
             d = new Date(
-                e.day_created_at.seconds * 1000
+                dayData.created_at.seconds
+                * 1000
             );
 
-        } else if (e.day_created_at) {
+        } else if (
+            dayData?.created_at
+        ) {
 
             d = new Date(
-                e.day_created_at
-            );
-
-        } else if (e.created_at?.seconds) {
-
-            d = new Date(
-                e.created_at.seconds * 1000
+                dayData.created_at
             );
 
         } else {
 
             d = new Date(
-                e.created_at
+                e.created_at?.seconds
+                ? e.created_at.seconds * 1000
+                : e.created_at
             );
         }
 
@@ -296,8 +330,9 @@ if (selectedMonth) {
             ).padStart(2, "0")}`;
     }
 
-    if (expenseMonth !== selectedMonth)
-        return;
+    if (
+        expenseMonth !== selectedMonth
+    ) return;
 }
         
         total += Number(e.amount || 0);
@@ -490,5 +525,6 @@ if (
 }
 
 await loadCurrentDayId();
+await loadOperationalDays();
 startExpensesListener();
 
