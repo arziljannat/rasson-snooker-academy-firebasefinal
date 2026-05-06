@@ -6,7 +6,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial;
-    background: url("../assets/background.jpeg") center/cover no-repeat fixed;
+    background: url("../assets/icon.png") center/cover no-repeat fixed;
     color: var(--neon);
 }
 
