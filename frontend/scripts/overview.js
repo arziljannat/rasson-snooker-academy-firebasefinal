@@ -67,12 +67,32 @@ document.addEventListener(
 
     branches.forEach(branch=>{
 
-        let branchTables =
-            tables.filter(t=>
+let rawBranchTables =
+    tables.filter(t=>
 
-                (t.branch || "")
-                .toLowerCase() === branch
-            );
+        (t.branch || "")
+        .toLowerCase() === branch
+    );
+
+// REMOVE DUPLICATES
+let uniqueTablesMap = {};
+
+rawBranchTables.forEach(t=>{
+
+    let tableName =
+        (
+            t.table_id ||
+            t.name ||
+            ""
+        ).trim().toLowerCase();
+
+    if(!tableName) return;
+
+    uniqueTablesMap[tableName] = t;
+});
+
+let branchTables =
+    Object.values(uniqueTablesMap);
 
         let activeTables = 0;
 
