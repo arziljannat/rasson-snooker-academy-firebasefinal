@@ -296,33 +296,59 @@ const dayData =
         String(e.day_id)
     ];
 
-        let d;
+ let d;
 
-        if (
-            dayData?.created_at?.seconds
-        ) {
+// FIRST PRIORITY
+if (
+    dayData?.opened_at?.seconds
+) {
 
-            d = new Date(
-                dayData.created_at.seconds
-                * 1000
-            );
+    d = new Date(
+        dayData.opened_at.seconds
+        * 1000
+    );
+}
 
-        } else if (
-            dayData?.created_at
-        ) {
+// SECOND PRIORITY
+else if (
+    dayData?.created_at?.seconds
+) {
 
-            d = new Date(
-                dayData.created_at
-            );
+    d = new Date(
+        dayData.created_at.seconds
+        * 1000
+    );
+}
 
-        } else {
+// THIRD PRIORITY
+else if (
+    dayData?.opened_at
+) {
 
-            d = new Date(
-                e.created_at?.seconds
-                ? e.created_at.seconds * 1000
-                : e.created_at
-            );
-        }
+    d = new Date(
+        dayData.opened_at
+    );
+}
+
+// FOURTH PRIORITY
+else if (
+    dayData?.created_at
+) {
+
+    d = new Date(
+        dayData.created_at
+    );
+}
+
+// LAST FALLBACK
+else {
+
+    d = new Date(
+        e.created_at?.seconds
+        ? e.created_at.seconds * 1000
+        : e.created_at
+    );
+}
 
         expenseMonth =
             `${d.getFullYear()}-${String(
