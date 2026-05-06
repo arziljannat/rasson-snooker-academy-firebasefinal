@@ -1211,6 +1211,9 @@ if (t.history && t.history.length > 0) {
         + (last.canteenAmount || 0);
 }
 
+// 🔥 RESET INPUT
+input.value = 0;
+  
     // ✅ VISUAL MESSAGE
     alert("Discount Applied ✅");
 }
@@ -2552,7 +2555,11 @@ function calculateShiftSnapshot(startTime, endTime) {
     tables.forEach(t => {
         t.history.forEach(h => {
 
-let g = Number(h.amount || 0);
+let originalGame =
+Number(h.originalAmount || h.amount || 0);
+
+let finalGame =
+originalGame - Number(h.discount || 0);
 
 let c = Number(h.canteenAmount || 0);
 
@@ -2565,12 +2572,13 @@ discount += d;
             // =========================
             if (h.checkout >= startTime && h.checkout <= endTime) {
 
-                gameTotal += g;
-                canteenTotal += c;
+              gameTotal += originalGame;
+              
+              canteenTotal += c;
 
                 // ❗ UNPAID → balance
                 if (!h.paid) {
-                    gameBalance += g;
+                   gameBalance += finalGame;
                     canteenBalance += c;
                 }
             }
@@ -2581,7 +2589,7 @@ discount += d;
             if (h.paid && h.paidTime) {
         if (h.paidTime >= (startTime - 1000) && h.paidTime <= endTime) {
 
-        gameCollection += g;
+       gameCollection += finalGame;
         canteenCollection += c;
         }
       }
