@@ -123,6 +123,20 @@ await addDoc(collection(db, "expenses"), {
     day_created_at:
         window.currentDayCreatedAt || null,
 
+    operational_month:
+    (() => {
+
+        let d =
+            new Date(
+                window.currentDayCreatedAt
+            );
+
+        return `${d.getFullYear()}-${String(
+            d.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+    })(),
+
     created_at: selectedDate
         ? new Date(selectedDate).toISOString()
         : new Date().toISOString()
@@ -236,48 +250,11 @@ function renderTable() {
 
 if (selectedMonth) {
 
-    let operationalDate;
-
-    // current operational/open day ki date use karo
-    if (e.day_created_at?.seconds) {
-
-        operationalDate =
-            new Date(
-                e.day_created_at.seconds * 1000
-            );
-
-    } else if (e.day_created_at) {
-
-        operationalDate =
-            new Date(e.day_created_at);
-
-    } else {
-
-        // fallback old data
-        if (e.created_at?.seconds) {
-
-            operationalDate =
-                new Date(
-                    e.created_at.seconds * 1000
-                );
-
-        } else {
-
-            operationalDate =
-                new Date(e.created_at);
-        }
-    }
-
-    if (isNaN(operationalDate.getTime()))
-        return;
-
-    const operationalMonth =
-        `${operationalDate.getFullYear()}-${String(
-            operationalDate.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-    if (operationalMonth !== selectedMonth)
-        return;
+    if (
+        (e.operational_month || "")
+        !==
+        selectedMonth
+    ) return;
 }
         
         total += Number(e.amount || 0);
