@@ -510,10 +510,38 @@ if (data.operational_month) {
 }
 else {
 
-    const createdDate =
-        data.day_created_at?.seconds
-        ? new Date(data.day_created_at.seconds * 1000)
-        : new Date(data.day_created_at);
+    let createdDate;
+
+    // FIRST PRIORITY
+    if (data.day_created_at?.seconds) {
+
+        createdDate =
+            new Date(
+                data.day_created_at.seconds * 1000
+            );
+    }
+
+    // SECOND PRIORITY
+    else if (data.day_created_at) {
+
+        createdDate =
+            new Date(data.day_created_at);
+    }
+
+    // FALLBACK OLD RECORDS
+    else if (data.created_at?.seconds) {
+
+        createdDate =
+            new Date(
+                data.created_at.seconds * 1000
+            );
+    }
+
+    else {
+
+        createdDate =
+            new Date(data.created_at);
+    }
 
     expenseOperationalMonth =
         `${createdDate.getFullYear()}-${String(
