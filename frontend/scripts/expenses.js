@@ -326,14 +326,7 @@ if (toDate) {
         
         total += Number(e.amount || 0);
 
-        let actions = "";
-        let expenseDate;
-
-if (e.created_at?.seconds) {
-    expenseDate = new Date(e.created_at.seconds * 1000);
-} else {
-    expenseDate = new Date(e.created_at);
-}
+let actions = "";
 
         if (
     role === "admin" ||
