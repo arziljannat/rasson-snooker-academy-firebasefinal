@@ -42,6 +42,8 @@ const currentDayId = window.currentDayId;
 
 let easyData = [];
 let selectedMonth = null;
+let fromDate = null;
+let toDate = null;
 
 // =========================
 // POPUP
@@ -50,10 +52,13 @@ window.openEasyPopup = () => {
     document.getElementById("easyPopup").classList.remove("hide");
 };
 
-window.filterEasyByMonth = () => {
+window.filterEasyByDateRange = () => {
 
-    selectedMonth =
-        document.getElementById("monthFilter").value;
+    fromDate =
+        document.getElementById("fromDate").value;
+
+    toDate =
+        document.getElementById("toDate").value;
 
     renderTable();
 };
@@ -195,59 +200,43 @@ function renderTable() {
 
 easyData.forEach(e => {
 
-    // ✅ STAFF ONLY CURRENT OPERATIONAL MONTH
-if (role !== "admin" && role !== "super_admin") {
-
-    const operationalDayId =
-        String(e.day_id || "");
-
-    const operationalDate =
-        new Date(Number(operationalDayId));
-
-    if (isNaN(operationalDate.getTime())) return;
-
-    const currentDate = new Date(
-        Number(window.currentDayId)
-    );
-
-    const currentMonth =
-        currentDate.getFullYear() + "-" +
-        String(
-            currentDate.getMonth() + 1
-        ).padStart(2, "0");
-
-    const itemMonth =
-        operationalDate.getFullYear() + "-" +
-        String(
-            operationalDate.getMonth() + 1
-        ).padStart(2, "0");
-
-    if (itemMonth !== currentMonth) {
-        return;
-    }
-}
-
     
     // 🔥 MONTH FILTER
-if (selectedMonth) {
+let easyDate;
 
-    const operationalDayId =
-        String(e.day_id || "");
+if (e.created_at?.seconds) {
 
-    const operationalDate =
-        new Date(Number(operationalDayId));
+    easyDate =
+        new Date(
+            e.created_at.seconds * 1000
+        );
 
-    if (isNaN(operationalDate.getTime())) return;
+} else {
 
-    const month =
-        operationalDate.getFullYear() + "-" +
-        String(
-            operationalDate.getMonth() + 1
-        ).padStart(2, "0");
+    easyDate =
+        new Date(e.created_at);
+}
 
-    if (month !== selectedMonth) {
-        return;
-    }
+// FROM DATE
+if (fromDate) {
+
+    let from =
+        new Date(fromDate);
+
+    from.setHours(0,0,0,0);
+
+    if (easyDate < from) return;
+}
+
+// TO DATE
+if (toDate) {
+
+    let to =
+        new Date(toDate);
+
+    to.setHours(23,59,59,999);
+
+    if (easyDate > to) return;
 }
 
     total += Number(e.amount || 0);
@@ -297,6 +286,37 @@ function startEasyListener() {
         easyData = [];
 
         const now = new Date();
+
+        // ✅ DEFAULT CURRENT MONTH
+
+if (!fromDate && !toDate) {
+
+    fromDate =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}-01`;
+
+    toDate =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}-${new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0
+        ).getDate()}`;
+
+    const fromInput =
+        document.getElementById("fromDate");
+
+    const toInput =
+        document.getElementById("toDate");
+
+    if (fromInput)
+        fromInput.value = fromDate;
+
+    if (toInput)
+        toInput.value = toDate;
+}
 
 snap.forEach(d => {
 
