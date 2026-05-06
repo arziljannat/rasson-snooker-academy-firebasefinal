@@ -290,6 +290,8 @@ selectedRate:
         finalAmount: old?.finalAmount || 0,
         finalSeconds: old?.finalSeconds || 0,
 
+        discount: old?.discount || 0,
+
         canteenTotal: old?.canteenTotal || 0,
         canteenItems: old?.canteenItems || {},
 
@@ -680,6 +682,9 @@ updateButtons(id, "idle");
     t.checkoutTime = null;
     t.playSeconds = 0;
     t.liveAmount = 0;
+
+    t.discount = 0;
+  
     t.canteenTotal = 0;
     t.canteenItems = {};
 
@@ -756,6 +761,11 @@ t.checkoutTime = Date.now();
 t.finalSeconds = t.playSeconds;
 t.finalAmount = t.liveAmount;   // ✅ ADD THIS HERE
 
+  // 🔥 DEFAULT DISCOUNT
+if (!t.discount) {
+    t.discount = 0;
+}
+
   // 🔥 GET CURRENT SELECTED RATE AT CHECKOUT
 const currentSelected =
 document.querySelector(
@@ -802,9 +812,19 @@ if (latestSession) {
    await updateDoc(doc(window.db, "sessions", latestSession.id), {
     end_time: new Date().toISOString(),
 
-    final_amount: t.finalAmount,
-    final_seconds: t.finalSeconds,
-    canteen_total: t.canteenTotal,
+original_game_amount: t.finalAmount,
+
+discount: t.discount || 0,
+
+final_game_amount:
+    t.finalAmount - (t.discount || 0),
+
+final_amount:
+    t.finalAmount - (t.discount || 0),
+
+final_seconds: t.finalSeconds,
+
+canteen_total: t.canteenTotal,
      selected_rate: t.selectedRate || 0,
 selected_play_type: t.selectedPlayType || t.playType,
 
@@ -819,9 +839,20 @@ t.history.push({
     checkin: t.checkinTime,
     checkout: t.checkoutTime,
     playSeconds: t.finalSeconds,
-    amount: t.finalAmount,
+    originalAmount: t.finalAmount,
+
+discount: t.discount || 0,
+
+amount:
+    t.finalAmount - (t.discount || 0),
     canteenAmount: t.canteenTotal,
-    total: t.finalAmount + t.canteenTotal,
+    total:
+(
+    t.finalAmount -
+    (t.discount || 0)
+)
++
+t.canteenTotal,
     paid: false,
     paidTime: null,
     rate: t.selectedRate || 0,
@@ -896,9 +927,16 @@ function updateDisplay(id) {
     playtimeEl.innerText =
         formatSeconds(t.afterCheckout ? t.finalSeconds : t.playSeconds);
 
-    let amount = t.afterCheckout
-        ? (t.finalAmount + t.canteenTotal)
-        : (t.liveAmount + t.canteenTotal);
+let finalGame = t.afterCheckout
+? (
+    (t.finalAmount || 0)
+    -
+    (t.discount || 0)
+)
+: (t.liveAmount || 0);
+
+let amount =
+finalGame + (t.canteenTotal || 0);
 
     amountEl.innerText = amount;
 
@@ -1047,7 +1085,14 @@ async function showBill(id) {
 
     if (!canteenDetails) canteenDetails = `<p>No items</p>`;
 
-    let gameAmount = t.finalAmount || t.liveAmount;
+    let originalAmount =
+t.finalAmount || t.liveAmount;
+
+let discount =
+t.discount || 0;
+
+let gameAmount =
+originalAmount - discount;
 
     bill.innerHTML = `
 <div style="width:300px; margin:auto; font-family:monospace; color:#000; background:#fff; padding:15px; border-radius:10px;">
@@ -1070,8 +1115,13 @@ async function showBill(id) {
 
     <hr>
 
-    <p><b>Game Charges</b></p>
-    <p>Rs ${gameAmount}</p>
+<p><b>Game Charges</b></p>
+
+<p>Original: Rs ${originalAmount}</p>
+
+<p>Discount: Rs ${discount}</p>
+
+<p>Final: Rs ${gameAmount}</p>
 
     <hr>
 
@@ -1559,8 +1609,17 @@ canteenItems.forEach(item => {
 
 if (!canteenHTML) canteenHTML = "<p>No items</p>";
 
-const gameAmount = h.amount || 0;
-const finalTotal = gameAmount + canteenTotal;
+const originalAmount =
+h.originalAmount || h.amount || 0;
+
+const discount =
+h.discount || 0;
+
+const gameAmount =
+originalAmount - discount;
+
+const finalTotal =
+gameAmount + canteenTotal;
 
 bill.innerHTML = `
 <div style="width:300px; margin:auto; font-family:monospace; color:#000; background:#fff; padding:15px; border-radius:10px;">
@@ -1596,10 +1655,20 @@ bill.innerHTML = `
     <hr>
 
     <!-- 🔥 GAME -->
-    <div style="display:flex; justify-content:space-between;">
-        <span>Game Charges</span>
-        <span>Rs ${gameAmount}</span>
-    </div>
+<div style="display:flex; justify-content:space-between;">
+    <span>Original</span>
+    <span>Rs ${originalAmount}</span>
+</div>
+
+<div style="display:flex; justify-content:space-between;">
+    <span>Discount</span>
+    <span>Rs ${discount}</span>
+</div>
+
+<div style="display:flex; justify-content:space-between;">
+    <span>Final Game</span>
+    <span>Rs ${gameAmount}</span>
+</div>
 
     <hr>
 
@@ -1998,8 +2067,11 @@ const docRef = await addDoc(collection(window.db, "shifts"), {
     canteen_collection: shiftData.canteenCollection,
 
     expenses: shiftData.expenses,
-    easypaisa: shiftData.easypaisa, // 🔥 ADD
-    closing_cash: shiftData.closingCash,
+easypaisa: shiftData.easypaisa,
+
+discount: shiftData.discount || 0,
+
+closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
 });
@@ -2130,7 +2202,10 @@ game_collection: shiftData.gameCollection,
 canteen_collection: shiftData.canteenCollection,
 
 expenses: shiftData.expenses,
-easypaisa: shiftData.easypaisa, // 🔥 ADD
+easypaisa: shiftData.easypaisa,
+
+discount: shiftData.discount || 0,
+
 closing_cash: shiftData.closingCash,
 
     created_at: new Date().toISOString()
@@ -2168,7 +2243,11 @@ async function closeDay() {
         canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
 
         expenses: (s1.expenses || 0) + (s2.expenses || 0),
-easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
+        
+      
+        discount:(s1.discount || 0)+(s2.discount || 0),
+      
+        easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
     };
 
     combined.closingCash =
@@ -2382,12 +2461,18 @@ function calculateShiftSnapshot(startTime, endTime) {
     let canteenCollection = 0;
     let gameBalance = 0;
     let canteenBalance = 0;
+    let discount = 0;
 
     tables.forEach(t => {
         t.history.forEach(h => {
 
-            let g = Number(h.amount || 0);
-            let c = Number(h.canteenAmount || 0);
+let g = Number(h.amount || 0);
+
+let c = Number(h.canteenAmount || 0);
+
+let d = Number(h.discount || 0);
+
+discount += d;
 
             // =========================
             // 🔥 TOTAL (checkout based)
@@ -2467,6 +2552,7 @@ function calculateShiftSnapshot(startTime, endTime) {
         canteenBalance,
         expenses,
         easypaisa,
+        discount,
         closingCash
     };
 }
@@ -2568,10 +2654,15 @@ const shiftsQ = query(
                 newShift1.expenses + newShift2.expenses,
 
             easypaisa:
-                newShift1.easypaisa + newShift2.easypaisa,
-
+            newShift1.easypaisa + newShift2.easypaisa,
+            
+            discount:
+            (newShift1.discount || 0)
+            +
+            (newShift2.discount || 0),
+            
             closingCash:
-                newShift1.closingCash + newShift2.closingCash
+            newShift1.closingCash + newShift2.closingCash
         };
 
         // 🔥 TABLE SNAPSHOT
@@ -2846,6 +2937,11 @@ document.getElementById("dayShift1Body").innerHTML = `
             <span>📲 EasyPaisa</span>
             <span>${s1.easypaisa || 0}</span>
         </div>
+      
+              <div class="summary-row">
+          <span>🎁 Discount</span>
+          <span>${s1.discount || 0}</span>
+      </div>
 
         <div class="summary-row total">
             <span>💵 Cash</span>
@@ -2897,6 +2993,11 @@ document.getElementById("dayShift2Body").innerHTML = `
             <span>${s2.easypaisa || 0}</span>
         </div>
 
+        <div class="summary-row">
+    <span>🎁 Discount</span>
+    <span>${s2.discount || 0}</span>
+</div>
+
         <div class="summary-row total">
             <span>💵 Cash</span>
             <span>${s2.closingCash || 0}</span>
@@ -2917,6 +3018,7 @@ document.getElementById("dayShift2Body").innerHTML = `
         <td>${c.canteenBalance || 0}</td>
         <td>${c.expenses || 0}</td>
         <td>${c.easypaisa || 0}</td>
+        <td>${c.discount || 0}</td>
         <td>${c.closingCash || 0}</td>
 
         <!-- ✅ MAIN FIX -->
@@ -3283,7 +3385,22 @@ function printThermalBill(id, historyData = null) {
     let checkout = h ? formatTime(h.checkout) : (t.checkoutTime ? formatTime(t.checkoutTime) : "--");
     let playtime = h ? formatSeconds(h.playSeconds) : formatSeconds(t.finalSeconds || t.playSeconds);
 
-    let gameAmount = Number(h ? h.amount : (t.finalAmount || t.liveAmount)) || 0;
+    let originalAmount =
+Number(
+h
+? (h.originalAmount || h.amount)
+: (t.finalAmount || t.liveAmount)
+) || 0;
+
+let discount =
+Number(
+h
+? (h.discount || 0)
+: (t.discount || 0)
+);
+
+let gameAmount =
+originalAmount - discount;
 
     let itemsSource = h ? h.canteenItems : t.canteenItems;
 
@@ -3372,7 +3489,12 @@ body {
 <div class="line"></div>
 
 <div class="big">GAME</div>
-<div>Rs ${gameAmount}</div>
+
+<div>Original: Rs ${originalAmount}</div>
+
+<div>Discount: Rs ${discount}</div>
+
+<div>Final: Rs ${gameAmount}</div>
 
 <div class="line"></div>
 
@@ -3761,6 +3883,9 @@ function printDayHistoryThermal(d) {
 <div class="row">Balance : Rs ${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s1.expenses || 0}</div>
 <div class="row">EasyPaisa : Rs ${s1.easypaisa || 0}</div>
+
+<div class="row">Discount : Rs ${s1.discount || 0}</div>
+
 <div class="row"><b>Cash</b><b>Rs ${s1.closingCash || 0}</b></div>
 
 <hr>
@@ -3778,6 +3903,9 @@ function printDayHistoryThermal(d) {
 <div class="row">Balance : Rs ${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s2.expenses || 0}</div>
 <div class="row">EasyPaisa : Rs ${s2.easypaisa || 0}</div>
+
+<div class="row">Discount : Rs ${s2.discount || 0}</div>
+
 <div class="row"><b>Cash</b><b>Rs ${s2.closingCash || 0}</b></div>
 
 <hr>
@@ -3794,6 +3922,8 @@ function printDayHistoryThermal(d) {
 <div class="row"><span>Balance : Rs ${(c.gameBalance||0)+(c.canteenBalance||0)}</div>
 <div class="row"><span>Expenses : Rs ${c.expenses || 0}</div>
 <div class="row"><span>EasyPaisa : Rs ${c.easypaisa || 0}</div>
+
+<div class="row"><span>Discount : Rs ${c.discount || 0}</div>
 
 <hr>
 
@@ -3956,7 +4086,18 @@ if (sessionDayId && sessionDayId !== currentDayId) {
             checkout: new Date(s.end_time).getTime(),
 
             playSeconds: s.final_seconds || 0,
-            amount: s.final_amount || 0,
+            originalAmount:
+s.original_game_amount ||
+s.final_amount ||
+0,
+
+discount:
+s.discount || 0,
+
+amount:
+s.final_game_amount ||
+s.final_amount ||
+0,
 
             canteenAmount: s.canteen_total || 0,
 
@@ -4027,7 +4168,18 @@ async function rebuildSpecificDayHistory(dayId) {
             checkout: new Date(s.end_time).getTime(),
 
             playSeconds: s.final_seconds || 0,
-            amount: s.final_amount || 0,
+            originalAmount:
+s.original_game_amount ||
+s.final_amount ||
+0,
+
+discount:
+s.discount || 0,
+
+amount:
+s.final_game_amount ||
+s.final_amount ||
+0,
 
             canteenAmount: s.canteen_total || 0,
 
@@ -4041,10 +4193,18 @@ async function rebuildSpecificDayHistory(dayId) {
                 ? new Date(s.paid_time).getTime()
                 : null,
 
-            rate:
-                s.play_type === "century"
-                ? s.century_rate
-                : s.frame_rate,
+rate:
+    s.selected_rate ||
+    (
+        s.play_type === "century"
+        ? s.century_rate
+        : s.frame_rate
+    ),
+
+playType:
+    s.selected_play_type ||
+    s.play_type ||
+    "frame",
 
             canteenItems: s.canteen_items || {}
         });
