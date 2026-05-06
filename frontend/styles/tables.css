@@ -193,13 +193,25 @@ body * {
 }
 
 .popup-box {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.92);
     border: 2px solid #00ff88;
-    padding: 20px;
-    border-radius: 15px;
-    width: 400px;
+    padding: 25px;
+    border-radius: 22px;
+
+    width: 420px;
+    max-width: 95%;
+
     color: #ccffee;
-    box-shadow: 0 0 20px #00ff88, inset 0 0 15px #00ff88;
+
+    box-shadow:
+        0 0 25px rgba(0,255,136,0.8),
+        inset 0 0 20px rgba(0,255,136,0.25);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 18px;
 }
 
 .large-popup {
@@ -372,9 +384,20 @@ body * {
 .bill-print-box {
     font-size: 15px;
     line-height: 22px;
-    text-align: center;      /* center entire content */
-    width: 260px;            /* 58mm thermal */
+    text-align: center;
+    width: 260px;
     margin: auto;
+
+    background: #ffffff;
+    color: #000;
+
+    padding: 18px;
+    border-radius: 14px;
+
+    box-shadow:
+        0 0 15px rgba(0,255,170,0.5);
+
+    border: 3px solid #eaeaea;
 }
 
 .bill-print-box p {
@@ -645,5 +668,78 @@ body * {
     text-align: center;
     width: 100%;
     display: block;
+}
+
+/* =========================================
+   🔥 BILL POPUP PREMIUM STYLE
+========================================= */
+
+#billPopup .popup-box{
+    width: 380px !important;
+    padding: 22px !important;
+}
+
+/* DISCOUNT SECTION */
+#discountSection{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* LABEL */
+#discountSection label{
+    font-size: 16px;
+    font-weight: bold;
+    color: #00ffcc;
+}
+
+/* INPUT */
+#discountInput{
+    width: 110px !important;
+    height: 42px !important;
+
+    text-align: center;
+
+    font-size: 20px !important;
+    font-weight: bold;
+
+    border-radius: 12px !important;
+
+    background: rgba(0,0,0,0.85) !important;
+    color: #00ffcc !important;
+
+    border: 2px solid #00ffcc !important;
+
+    box-shadow:
+        0 0 12px rgba(0,255,204,0.5),
+        inset 0 0 8px rgba(0,255,204,0.2);
+}
+
+/* APPLY BUTTON */
+#applyDiscountBtn{
+    width: 100%;
+    padding: 12px;
+
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* PAID + CANCEL */
+#billPopup .popup-buttons{
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+
+    margin-top: 5px;
+}
+
+/* RECEIPT CENTER */
+#billDetails{
+    display: flex;
+    justify-content: center;
 }
 
