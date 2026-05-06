@@ -260,6 +260,23 @@ body {
    TABLE SALES BOXES
 ====================================== */
 
+/* STAFF TABLE BOXES */
+
+#staffTableSalesContainer{
+
+    width:95%;
+    margin:20px auto;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(230px,1fr));
+
+    gap:20px;
+}
+
+
+
 #tableSalesContainer{
 
     width:95%;
