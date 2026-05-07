@@ -3624,8 +3624,13 @@ Scan & Pay
 
 <script>
 window.onload = function(){
+
     window.print();
-    window.close();
+
+    setTimeout(() => {
+        window.close();
+    }, 800);
+
 }
 </script>
 
@@ -3910,8 +3915,13 @@ function printShiftThermal(title, data, s1 = {}, s2 = {}) {
             win.focus();
 
             setTimeout(() => {
+            
                 win.print();
-                win.close();
+            
+                setTimeout(() => {
+                    win.close();
+                }, 800);
+            
             }, 300);
         }
     }, 50);
@@ -4051,8 +4061,13 @@ function printDayHistoryThermal(d) {
     win.document.close();
 
     setTimeout(() => {
+    
         win.print();
-        win.close();
+    
+        setTimeout(() => {
+            win.close();
+        }, 800);
+    
     }, 300);
 }
 
@@ -4138,10 +4153,15 @@ function printTableHistoryThermal() {
     win.document.write(html);
     win.document.close();
 
-    setTimeout(() => {
-        win.print();
-        win.close();
-    }, 300);
+      setTimeout(() => {
+      
+          win.print();
+      
+          setTimeout(() => {
+              win.close();
+          }, 800);
+      
+      }, 300);
 }
 
 async function rebuildHistoryFromSessions() {
