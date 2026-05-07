@@ -628,11 +628,10 @@ body * {
 
 /* ❌ SCROLL FIX */
 #shiftSummaryPopup table {
-    width: 100% !important;   /* 🔥 yahan fix */
-    table-layout: fixed;
-    font-size: 18px !important;
+    width: max-content !important;
+    min-width: 1200px !important;
+    border-collapse: collapse !important;
 }
-
 /* HEADINGS */
 #shiftSummaryPopup th {
     font-size: 18px !important;
