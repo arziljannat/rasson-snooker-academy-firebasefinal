@@ -165,7 +165,9 @@
     <div class="popup-box large-popup">
         <h2 id="historyTableTitle">Table History</h2>
 
-        <table class="history-table">
+        <div class="table-mobile-wrapper">
+
+<table class="history-table">
             <thead>
             <tr>
                 <th>#</th>
@@ -182,6 +184,7 @@
             </thead>
             <tbody id="historyTableBody"></tbody>
         </table>
+        </div>
 
        <div class="popup-buttons">
 
@@ -203,27 +206,31 @@
     <div class="popup-box large-popup">
         <h2 id="shiftSummaryTitle">Shift Summary</h2>
 
-        <table class="history-table neon-table">
-            <thead>
-                <tr>
-                    <th>Shift</th>
-                    <th>Game Total</th>
-                    <th>Canteen Total</th>
-                    <th>Game Collection</th>
-                    <th>Canteen Collection</th>
-                    <th>Game Balance</th>
-                    <th>Canteen Balance</th>
-                    <th>Discount</th>
-                    <th>Expenses</th>
-                    <th>EasyPaisa</th>
-                    <th>Closing Cash</th>
-                    <th>Open Time</th>
-                    <th>Close Time</th>
-                </tr>
-            </thead>
+<div class="table-mobile-wrapper">
 
-            <tbody id="shiftSummaryBody"></tbody>
-        </table>
+<table class="history-table neon-table">
+    <thead>
+        <tr>
+            <th>Shift</th>
+            <th>Game Total</th>
+            <th>Canteen Total</th>
+            <th>Game Collection</th>
+            <th>Canteen Collection</th>
+            <th>Game Balance</th>
+            <th>Canteen Balance</th>
+            <th>Discount</th>
+            <th>Expenses</th>
+            <th>EasyPaisa</th>
+            <th>Closing Cash</th>
+            <th>Open Time</th>
+            <th>Close Time</th>
+        </tr>
+    </thead>
+
+    <tbody id="shiftSummaryBody"></tbody>
+</table>
+
+</div>
 
         <div class="popup-buttons">
             <button id="confirmShiftCloseBtn" class="neon-btn">Close Shift</button>
@@ -243,22 +250,28 @@
         <p id="dayHistoryBranch"></p>
 
         <h3>Shift 1 Summary</h3>
-        <table class="history-table neon-table">
-            <tbody id="dayShift1Body"></tbody>
-        </table>
+        
+        <div class="table-mobile-wrapper">
+            <table class="history-table neon-table">
+                <tbody id="dayShift1Body"></tbody>
+            </table>
+        </div>
 
         <h3>Shift 2 Summary</h3>
-        <table class="history-table neon-table">
-            <tbody id="dayShift2Body"></tbody>
-        </table>
+        
+        <div class="table-mobile-wrapper">
+            <table class="history-table neon-table">
+                <tbody id="dayShift2Body"></tbody>
+            </table>
+        </div>
 
-<h3>Combined</h3>
-
-<table class="history-table neon-table">
-
-<tbody id="dayCombinedBody"></tbody>
-
-</table>
+        <h3>Combined</h3>
+        
+        <div class="table-mobile-wrapper">
+            <table class="history-table neon-table">
+                <tbody id="dayCombinedBody"></tbody>
+            </table>
+        </div>
 
         <div class="popup-buttons">
             <button id="printDayHistoryBtn" class="neon-btn">Print</button>
@@ -281,19 +294,28 @@
         <p id="tableHistoryBranch"></p>
 
         <h3>Shift 1</h3>
+        
+        <div class="table-mobile-wrapper">
         <table class="history-table neon-table">
             <tbody id="tableShift1Body"></tbody>
         </table>
+        </div>
 
         <h3>Shift 2</h3>
+
+        <div class="table-mobile-wrapper">
         <table class="history-table neon-table">
             <tbody id="tableShift2Body"></tbody>
         </table>
-
+        </div>
+        
         <h3>Combined</h3>
+
+        <div class="table-mobile-wrapper">
         <table class="history-table neon-table">
             <tbody id="tableCombinedBody"></tbody>
         </table>
+        </div>
 
         <div class="popup-buttons">
             <button id="printTableHistoryBtn" class="neon-btn">Print</button>
