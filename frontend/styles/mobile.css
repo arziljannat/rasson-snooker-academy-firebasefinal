@@ -432,3 +432,79 @@
     }
 
 }
+
+/* =====================================
+   HISTORY TABLE MOBILE FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    .history-container,
+    .day-history-container,
+    .table-history-container,
+    .report-table-wrapper{
+
+        width:100% !important;
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .history-table,
+    .day-history-table,
+    .table-history-table{
+
+        min-width:1100px !important;
+        border-collapse:collapse !important;
+    }
+
+    .history-table th,
+    .history-table td,
+    .day-history-table th,
+    .day-history-table td,
+    .table-history-table th,
+    .table-history-table td{
+
+        white-space:nowrap !important;
+        font-size:14px !important;
+        padding:10px !important;
+    }
+
+}
+
+
+/* =====================================
+   MOBILE POPUP SCROLL FIX
+===================================== */
+
+@media screen and (max-width:768px){
+
+    .popup,
+    .modal,
+    .popup-overlay{
+
+        position:fixed !important;
+        inset:0 !important;
+
+        overflow-y:auto !important;
+
+        padding:15px !important;
+
+        align-items:flex-start !important;
+    }
+
+    .popup-box,
+    .popup-content,
+    .modal-content{
+
+        width:100% !important;
+        max-width:100% !important;
+
+        max-height:none !important;
+
+        margin-top:20px !important;
+        margin-bottom:20px !important;
+
+        overflow:visible !important;
+    }
+
+}
