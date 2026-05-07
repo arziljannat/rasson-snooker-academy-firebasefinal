@@ -415,176 +415,98 @@
 
 }
 
-
-
 /* =====================================================
-   HISTORY + SHIFT POPUP MOBILE FIX
+   FINAL HISTORY POPUP FIX
 ===================================================== */
 
 @media screen and (max-width:768px){
 
-    /* OVERLAY */
-    .popup,
-    .popup-overlay{
-
-        align-items:flex-start !important;
-
-        overflow-y:auto !important;
-
-        padding:10px !important;
-    }
-
-    /* POPUP BOX */
-    .popup-box,
-    .popup-content,
-    .history-popup,
-    .day-history-popup,
-    .table-history-popup{
-
-        width:100% !important;
-        max-width:100% !important;
-
-        margin-top:20px !important;
-
-        max-height:92vh !important;
-
-        overflow-y:auto !important;
-
-        border-radius:16px !important;
-
-        padding:12px !important;
-
-        box-sizing:border-box !important;
-    }
-
-    /* TABLE WRAPPER */
-    .table-wrapper,
-    .history-table-wrapper,
-    .summary-wrapper{
-
-        width:100% !important;
-
-        overflow-x:auto !important;
-
-        -webkit-overflow-scrolling:touch !important;
-    }
-
-    /* ALL TABLES */
-    table{
-
-        min-width:850px !important;
-
-        border-collapse:collapse !important;
-    }
-
-    th,
-    td{
-
-        font-size:12px !important;
-
-        padding:8px !important;
-
-        white-space:nowrap !important;
-    }
-
-    /* SHIFT SUMMARY SPECIAL */
-    #shiftSummaryPopup table{
-
-        min-width:1100px !important;
-    }
-
-    /* DAY HISTORY SPECIAL */
-    #dayHistoryPopup table{
-
-        min-width:1000px !important;
-    }
-
-    /* TABLE HISTORY SPECIAL */
-    #tableHistoryPopup table{
-
-        min-width:850px !important;
-    }
-
-    /* HISTORY POPUP SPECIAL */
-    #historyPopup table{
-
-        min-width:900px !important;
-    }
-
-    /* BUTTONS */
-    #shiftSummaryPopup button,
-    #dayHistoryPopup button,
-    #tableHistoryPopup button,
-    #historyPopup button{
-
-        min-height:45px !important;
-
-        font-size:14px !important;
-    }
-
-    /* SELECTS */
-    #dayHistoryDateSelect,
-    #tableHistoryDateSelect,
-    #tableHistoryTableSelect{
-
-        width:100% !important;
-
-        min-height:45px !important;
-
-        font-size:15px !important;
-
-        margin-bottom:10px !important;
-    }
-
-}
-
-/* =========================================
-   FINAL MOBILE TABLE SCROLL FIX
-========================================= */
-
-@media screen and (max-width:768px){
-
-    .table-mobile-wrapper{
-
-        width:100%;
-        overflow-x:auto;
-        overflow-y:hidden;
-
-        -webkit-overflow-scrolling:touch;
-
-        border-radius:14px;
-    }
-
-    .table-mobile-wrapper table{
-
-        min-width:950px !important;
-        width:max-content !important;
-    }
-
-    #dayHistoryPopup .popup-box,
-    #tableHistoryPopup .popup-box,
-    #historyPopup .popup-box,
-    #shiftSummaryPopup .popup-box{
-
-        width:100% !important;
-        max-width:100% !important;
-
-        padding:14px !important;
+    #historyPopup,
+    #dayHistoryPopup,
+    #tableHistoryPopup,
+    #shiftSummaryPopup{
 
         overflow-y:auto !important;
         overflow-x:hidden !important;
 
-        max-height:92vh !important;
-    }
-
-    #dayHistoryPopup,
-    #tableHistoryPopup,
-    #historyPopup,
-    #shiftSummaryPopup{
-
         align-items:flex-start !important;
 
+        padding:10px !important;
+    }
+
+    #historyPopup .popup-box,
+    #dayHistoryPopup .popup-box,
+    #tableHistoryPopup .popup-box,
+    #shiftSummaryPopup .popup-box{
+
+        width:98% !important;
+        max-width:98% !important;
+
+        margin-top:15px !important;
+
+        max-height:92vh !important;
+
         overflow-y:auto !important;
+        overflow-x:visible !important;
+
+        padding:14px !important;
+
+        border-radius:16px !important;
+    }
+
+    .table-mobile-wrapper{
+
+        width:100% !important;
+
+        overflow-x:scroll !important;
+        overflow-y:hidden !important;
+
+        -webkit-overflow-scrolling:touch !important;
+
+        display:block !important;
+
+        border-radius:12px !important;
+    }
+
+    .table-mobile-wrapper table{
+
+        width:max-content !important;
+
+        min-width:1100px !important;
+
+        border-collapse:collapse !important;
+    }
+
+    .table-mobile-wrapper th,
+    .table-mobile-wrapper td{
+
+        white-space:nowrap !important;
+
+        padding:8px !important;
+
+        font-size:12px !important;
+    }
+
+    #historyPopup .popup-buttons,
+    #dayHistoryPopup .popup-buttons,
+    #tableHistoryPopup .popup-buttons,
+    #shiftSummaryPopup .popup-buttons{
+
+        display:flex !important;
+
+        flex-direction:column !important;
+
+        gap:10px !important;
+    }
+
+    #historyPopup button,
+    #dayHistoryPopup button,
+    #tableHistoryPopup button,
+    #shiftSummaryPopup button{
+
+        width:100% !important;
+
+        min-height:48px !important;
     }
 
 }
