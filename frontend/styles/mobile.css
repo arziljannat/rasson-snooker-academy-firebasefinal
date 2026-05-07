@@ -537,3 +537,54 @@
     }
 
 }
+
+/* =========================================
+   FINAL MOBILE TABLE SCROLL FIX
+========================================= */
+
+@media screen and (max-width:768px){
+
+    .table-mobile-wrapper{
+
+        width:100%;
+        overflow-x:auto;
+        overflow-y:hidden;
+
+        -webkit-overflow-scrolling:touch;
+
+        border-radius:14px;
+    }
+
+    .table-mobile-wrapper table{
+
+        min-width:950px !important;
+        width:max-content !important;
+    }
+
+    #dayHistoryPopup .popup-box,
+    #tableHistoryPopup .popup-box,
+    #historyPopup .popup-box,
+    #shiftSummaryPopup .popup-box{
+
+        width:100% !important;
+        max-width:100% !important;
+
+        padding:14px !important;
+
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+
+        max-height:92vh !important;
+    }
+
+    #dayHistoryPopup,
+    #tableHistoryPopup,
+    #historyPopup,
+    #shiftSummaryPopup{
+
+        align-items:flex-start !important;
+
+        overflow-y:auto !important;
+    }
+
+}
