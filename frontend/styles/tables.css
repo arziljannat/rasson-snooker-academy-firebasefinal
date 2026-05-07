@@ -621,7 +621,7 @@ body * {
 
 #shiftSummaryPopup .popup-box,
 #shiftSummaryPopup .popup-content {
-    width: 1300px !important;
+    width: 1500px !important;
     max-width: 100% !important;
     padding: 30px !important;
 }
