@@ -2,16 +2,26 @@
    GLOBAL MOBILE RESPONSIVE
 ========================================= */
 
-@media screen and (max-width: 768px){
+@media screen and (max-width:768px){
 
     *{
         box-sizing:border-box;
     }
 
+    html,
     body{
+
+        width:100%;
         overflow-x:hidden !important;
-        background-position:center !important;
+
+        background-position:center top !important;
         background-size:cover !important;
+        background-repeat:no-repeat !important;
+        background-attachment:scroll !important;
+
+        min-height:100vh !important;
+
+        -webkit-overflow-scrolling:touch;
     }
 
     /* =====================================
@@ -19,44 +29,63 @@
     ===================================== */
 
     .navbar{
+
         padding:12px !important;
-        gap:15px !important;
+
+        display:flex !important;
+        flex-direction:column !important;
+
+        gap:14px !important;
     }
 
     .top-title{
+
         font-size:28px !important;
         text-align:center !important;
-        line-height:1.3;
+        line-height:1.3 !important;
     }
 
     .top-tagline{
+
         font-size:11px !important;
-        letter-spacing:2px;
-        text-align:center;
+        text-align:center !important;
+        letter-spacing:2px !important;
     }
 
     .nav-wrapper{
-        width:100%;
+
+        width:100% !important;
+
         display:flex !important;
         flex-wrap:wrap !important;
+
         justify-content:center !important;
-        gap:10px !important;
+
+        gap:12px !important;
     }
 
     .nav-btn,
     .logout-btn,
     .nav-select{
+
         width:47% !important;
-        min-height:48px;
-        font-size:14px !important;
-        border-radius:12px !important;
+
+        min-height:52px !important;
+
+        font-size:15px !important;
+
+        border-radius:14px !important;
     }
 
     #digitalClock{
-        width:100%;
-        font-size:26px !important;
-        text-align:center;
-        padding:14px 10px;
+
+        width:100% !important;
+
+        font-size:28px !important;
+
+        text-align:center !important;
+
+        padding:16px 10px !important;
     }
 
     /* =====================================
@@ -68,59 +97,90 @@
     .tables-heading,
     .shift-title,
     .report-title{
-        font-size:24px !important;
+
+        font-size:26px !important;
+
         text-align:center !important;
+
         margin-top:120px !important;
+
         margin-left:0 !important;
     }
 
     /* =====================================
-       DASHBOARD
+       TABLES PAGE
     ===================================== */
 
-    .stats-container{
-        width:100% !important;
-        padding:12px !important;
-        margin-top:10px !important;
-    }
+    .tables-grid{
 
-    .stats-row{
+        display:flex !important;
+
         flex-direction:column !important;
-        gap:15px !important;
+
+        gap:22px !important;
+
+        padding:14px !important;
     }
 
-    .stat-box{
+    .table-box,
+    .table-card{
+
         width:100% !important;
-        min-width:100% !important;
-        padding:18px 10px !important;
+
+        padding:18px !important;
+
+        border-radius:22px !important;
     }
 
-    .stat-box h3{
+    .table-buttons,
+    .dual-btn-row,
+    .second-row{
+
+        display:flex !important;
+
+        flex-direction:column !important;
+
+        gap:14px !important;
+
+        width:100% !important;
+
+        margin-top:18px !important;
+    }
+
+    .small-btn,
+    .big-btn,
+    .table-btn,
+    .checkin-btn,
+    .history-btn,
+    .edit-btn,
+    .delete-btn{
+
+        width:100% !important;
+
+        min-height:56px !important;
+
         font-size:18px !important;
+
+        border-radius:16px !important;
+
+        display:flex !important;
+
+        align-items:center !important;
+
+        justify-content:center !important;
+
+        margin:0 !important;
     }
 
-    .stat-box p{
-        font-size:28px !important;
-    }
+    .table-info{
 
-    .charts-container{
-        flex-direction:column !important;
-        gap:20px !important;
-        padding:12px !important;
-    }
+        font-size:18px !important;
 
-    .chart-box{
-        width:100% !important;
-        height:auto !important;
-    }
-
-    .chart-box canvas{
-        width:100% !important;
-        height:auto !important;
+        line-height:1.7 !important;
     }
 
     /* =====================================
-       FILTERS + ACTIONS
+       FILTERS
     ===================================== */
 
     .filter-row,
@@ -128,15 +188,21 @@
     .month-filter-box,
     .dh-filter-box,
     .filter-box{
+
+        display:flex !important;
+
         flex-direction:column !important;
-        align-items:stretch !important;
+
         gap:12px !important;
+
+        align-items:stretch !important;
     }
 
     .filter-select,
     .search-bar,
     input,
     select{
+
         width:100% !important;
     }
 
@@ -150,310 +216,112 @@
     .red-btn,
     .neon-btn,
     .login-btn{
-        width:100%;
-        min-height:48px;
-        font-size:15px !important;
+
+        width:100% !important;
+
+        min-height:52px !important;
+
+        font-size:16px !important;
     }
 
     /* =====================================
-       TABLES PAGE
+       POPUP FIX
     ===================================== */
 
-    .tables-grid{
-        grid-template-columns:1fr !important;
-        width:100% !important;
-        gap:18px !important;
-        padding:10px !important;
+    .popup,
+    .modal,
+    .popup-overlay{
+
+        position:fixed !important;
+
+        inset:0 !important;
+
+        overflow-y:auto !important;
+
+        overflow-x:hidden !important;
+
+        padding:14px !important;
+
+        align-items:flex-start !important;
+
+        z-index:9999 !important;
     }
-
-    .table-box{
-        width:100% !important;
-    }
-
-    .dual-btn-row,
-    .second-row{
-        flex-direction:column !important;
-        gap:10px !important;
-    }
-
-    .small-btn,
-    .big-btn{
-        width:100% !important;
-    }
-
-    /* =====================================
-       TABLE RESPONSIVE
-    ===================================== */
-
-    .table-box,
-    .users-table-wrapper{
-        overflow-x:auto !important;
-    }
-
-    .exp-table,
-    .inv-table,
-    .users-table,
-    .history-table,
-    .summary-table,
-    .neon-table{
-        min-width:700px;
-    }
-
-    table{
-        font-size:13px !important;
-    }
-
-    th,
-    td{
-        padding:10px !important;
-    }
-
-    /* =====================================
-       REPORT PAGE
-    ===================================== */
-
-    .report-container{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:20px;
-    }
-
-    .report-sidebar{
-        width:100% !important;
-        height:auto !important;
-    }
-
-    .report-content{
-        width:100% !important;
-    }
-
-    /* =====================================
-       POPUPS
-    ===================================== */
 
     .popup-box,
     .popup-card,
-    .popup-content{
+    .popup-content,
+    .modal-content,
+    .history-popup,
+    .table-history-popup,
+    .day-history-popup{
+
         width:95% !important;
+
         max-width:95% !important;
+
+        margin:20px auto !important;
+
         padding:18px !important;
-        max-height:90vh !important;
-        overflow-y:auto !important;
-    }
 
-    .large-popup{
-        width:98% !important;
-    }
+        border-radius:22px !important;
 
-    /* =====================================
-       LOGIN PAGE
-    ===================================== */
+        max-height:85vh !important;
 
-    .login-box{
-        width:92% !important;
-        padding:24px 18px !important;
-    }
-
-    .login-title{
-        font-size:24px !important;
-    }
-
-    .login-input{
-        width:100% !important;
-        height:48px !important;
-        font-size:16px !important;
-    }
-
-    /* =====================================
-       SETTINGS PAGE
-    ===================================== */
-
-    .settings-container{
-        width:92% !important;
-        padding:20px !important;
-    }
-
-}
-
-/* =====================================
-   TABLES PAGE PREMIUM MOBILE FIX
-===================================== */
-
-@media screen and (max-width:768px){
-
-    .tables-grid{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:22px !important;
-        padding:14px !important;
-    }
-
-    .table-card,
-    .table-box{
-        width:100% !important;
-        padding:16px !important;
-        border-radius:20px !important;
-    }
-
-    .table-buttons,
-    .dual-btn-row,
-    .second-row{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:12px !important;
-    }
-
-    .small-btn,
-    .big-btn,
-    .table-btn{
-        width:100% !important;
-        min-height:54px !important;
-        font-size:18px !important;
-        border-radius:14px !important;
-    }
-
-    .table-info{
-        font-size:18px !important;
-        line-height:1.7 !important;
-    }
-}
-
-/* =====================================
-   POPUP MOBILE FIX
-===================================== */
-
-@media screen and (max-width:768px){
-
-    .popup,
-    .popup-box{
-        padding:12px !important;
-    }
-
-    .popup-card,
-    .popup-content{
-        width:96% !important;
-        max-width:96% !important;
-
-        max-height:88vh !important;
         overflow-y:auto !important;
 
-        padding:20px !important;
-        border-radius:18px !important;
+        overflow-x:auto !important;
     }
 
-    .popup-input{
-        width:100% !important;
-        min-height:48px !important;
-        font-size:16px !important;
-    }
+    .popup-actions,
+    .history-actions{
 
-    .popup-actions{
         display:flex !important;
+
         flex-direction:column !important;
+
         gap:12px !important;
-    }
-
-    .popup-actions button{
-        width:100% !important;
-        min-height:50px !important;
-    }
-}
-
-/* =====================================
-   TABLE CARD BUTTON FIX
-===================================== */
-
-@media screen and (max-width:768px){
-
-    .table-buttons,
-    .dual-btn-row,
-    .second-row{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:16px !important;
 
         margin-top:18px !important;
+    }
+
+    .popup-actions button,
+    .history-actions button{
+
         width:100% !important;
+
+        min-height:52px !important;
     }
 
-    .small-btn,
-    .big-btn,
-    .table-btn,
-    .checkin-btn,
-    .history-btn,
-    .edit-btn,
-    .delete-btn{
-        width:100% !important;
-        min-height:58px !important;
-
-        margin:0 !important;
-
-        display:flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-
-        font-size:20px !important;
-
-        border-radius:16px !important;
-    }
-
-    .table-box button{
-        margin-top:0 !important;
-        margin-bottom:0 !important;
-    }
-
-    .table-box{
-        padding-bottom:24px !important;
-    }
-}
-
-
-/* =====================================
-   MOBILE BACKGROUND PREMIUM FIX
-===================================== */
-
-@media screen and (max-width:768px){
-
-    body{
-
-        background-position:center top !important;
-
-        background-size:cover !important;
-
-        background-repeat:no-repeat !important;
-
-        background-attachment:scroll !important;
-
-        background-color:#000 !important;
-
-        min-height:100vh !important;
-
-        overflow-x:hidden !important;
-    }
-
-}
-
-/* =====================================
-   HISTORY TABLE MOBILE FIX
-===================================== */
-
-@media screen and (max-width:768px){
+    /* =====================================
+       HISTORY TABLE FIX
+    ===================================== */
 
     .history-container,
     .day-history-container,
     .table-history-container,
-    .report-table-wrapper{
+    .report-table-wrapper,
+    .users-table-wrapper{
 
         width:100% !important;
+
         overflow-x:auto !important;
+
         -webkit-overflow-scrolling:touch;
     }
 
     .history-table,
     .day-history-table,
-    .table-history-table{
+    .table-history-table,
+    .summary-table,
+    .users-table,
+    .exp-table,
+    .inv-table,
+    .neon-table{
 
-        min-width:1100px !important;
+        width:100% !important;
+
+        min-width:700px !important;
+
         border-collapse:collapse !important;
     }
 
@@ -462,49 +330,87 @@
     .day-history-table th,
     .day-history-table td,
     .table-history-table th,
-    .table-history-table td{
+    .table-history-table td,
+    .summary-table th,
+    .summary-table td,
+    .users-table th,
+    .users-table td,
+    .exp-table th,
+    .exp-table td,
+    .inv-table th,
+    .inv-table td{
 
         white-space:nowrap !important;
-        font-size:14px !important;
-        padding:10px !important;
+
+        font-size:12px !important;
+
+        padding:8px !important;
     }
 
-}
+    table{
 
-
-/* =====================================
-   MOBILE POPUP SCROLL FIX
-===================================== */
-
-@media screen and (max-width:768px){
-
-    .popup,
-    .modal,
-    .popup-overlay{
-
-        position:fixed !important;
-        inset:0 !important;
-
-        overflow-y:auto !important;
-
-        padding:15px !important;
-
-        align-items:flex-start !important;
+        font-size:13px !important;
     }
 
-    .popup-box,
-    .popup-content,
-    .modal-content{
+    /* =====================================
+       REPORT PAGE
+    ===================================== */
+
+    .report-container{
+
+        display:flex !important;
+
+        flex-direction:column !important;
+
+        gap:20px !important;
+    }
+
+    .report-sidebar{
 
         width:100% !important;
-        max-width:100% !important;
 
-        max-height:none !important;
+        height:auto !important;
+    }
 
-        margin-top:20px !important;
-        margin-bottom:20px !important;
+    .report-content{
 
-        overflow:visible !important;
+        width:100% !important;
+    }
+
+    /* =====================================
+       LOGIN PAGE
+    ===================================== */
+
+    .login-box{
+
+        width:92% !important;
+
+        padding:24px 18px !important;
+    }
+
+    .login-title{
+
+        font-size:24px !important;
+    }
+
+    .login-input{
+
+        width:100% !important;
+
+        height:50px !important;
+
+        font-size:16px !important;
+    }
+
+    /* =====================================
+       SETTINGS
+    ===================================== */
+
+    .settings-container{
+
+        width:92% !important;
+
+        padding:20px !important;
     }
 
 }
