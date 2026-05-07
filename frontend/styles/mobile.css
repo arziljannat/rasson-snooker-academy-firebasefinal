@@ -510,3 +510,77 @@
     }
 
 }
+
+
+/* =====================================================
+   FINAL SUMMARY DATA FIX
+===================================================== */
+
+@media screen and (max-width:768px){
+
+    /* DAY HISTORY TABLES */
+
+    #dayHistoryPopup table,
+    #tableHistoryPopup table,
+    #historyPopup table,
+    #shiftSummaryPopup table{
+
+        display:table !important;
+
+        width:max-content !important;
+
+        min-width:1100px !important;
+
+        border-collapse:collapse !important;
+    }
+
+    #dayHistoryPopup tbody,
+    #tableHistoryPopup tbody,
+    #historyPopup tbody,
+    #shiftSummaryPopup tbody{
+
+        display:table-row-group !important;
+    }
+
+    #dayHistoryPopup tr,
+    #tableHistoryPopup tr,
+    #historyPopup tr,
+    #shiftSummaryPopup tr{
+
+        display:table-row !important;
+    }
+
+    #dayHistoryPopup td,
+    #dayHistoryPopup th,
+    #tableHistoryPopup td,
+    #tableHistoryPopup th,
+    #historyPopup td,
+    #historyPopup th,
+    #shiftSummaryPopup td,
+    #shiftSummaryPopup th{
+
+        display:table-cell !important;
+
+        white-space:nowrap !important;
+
+        font-size:12px !important;
+
+        padding:10px !important;
+
+        visibility:visible !important;
+    }
+
+    /* FORCE HORIZONTAL SCROLL */
+
+    .table-mobile-wrapper{
+
+        overflow-x:auto !important;
+
+        overflow-y:hidden !important;
+
+        display:block !important;
+
+        width:100% !important;
+    }
+
+}
