@@ -584,3 +584,56 @@
     }
 
 }
+
+/* =========================================
+   FINAL MOBILE HISTORY FIX
+========================================= */
+
+@media screen and (max-width:768px){
+
+    #dayHistoryPopup .popup-box,
+    #tableHistoryPopup .popup-box,
+    #shiftSummaryPopup .popup-box,
+    #historyPopup .popup-box{
+
+        width:98% !important;
+        max-width:98% !important;
+
+        padding:12px !important;
+
+        overflow-x:auto !important;
+        overflow-y:auto !important;
+
+        max-height:90vh !important;
+    }
+
+    #dayHistoryPopup table,
+    #tableHistoryPopup table,
+    #shiftSummaryPopup table,
+    #historyPopup table{
+
+        width:max-content !important;
+        min-width:1200px !important;
+
+        border-collapse:collapse !important;
+    }
+
+    #dayHistoryPopup th,
+    #dayHistoryPopup td,
+    #tableHistoryPopup th,
+    #tableHistoryPopup td,
+    #shiftSummaryPopup th,
+    #shiftSummaryPopup td,
+    #historyPopup th,
+    #historyPopup td{
+
+        white-space:nowrap !important;
+
+        font-size:13px !important;
+
+        padding:10px !important;
+
+        display:table-cell !important;
+    }
+
+}
