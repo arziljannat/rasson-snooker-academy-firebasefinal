@@ -697,8 +697,8 @@ body * {
 
 /* INPUT */
 #discountInput{
-    width: 110px !important;
-    height: 42px !important;
+    width: 80px !important;
+    height: 30px !important;
 
     text-align: center;
 
