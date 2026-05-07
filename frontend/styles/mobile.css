@@ -414,3 +414,126 @@
     }
 
 }
+
+
+
+/* =====================================================
+   HISTORY + SHIFT POPUP MOBILE FIX
+===================================================== */
+
+@media screen and (max-width:768px){
+
+    /* OVERLAY */
+    .popup,
+    .popup-overlay{
+
+        align-items:flex-start !important;
+
+        overflow-y:auto !important;
+
+        padding:10px !important;
+    }
+
+    /* POPUP BOX */
+    .popup-box,
+    .popup-content,
+    .history-popup,
+    .day-history-popup,
+    .table-history-popup{
+
+        width:100% !important;
+        max-width:100% !important;
+
+        margin-top:20px !important;
+
+        max-height:92vh !important;
+
+        overflow-y:auto !important;
+
+        border-radius:16px !important;
+
+        padding:12px !important;
+
+        box-sizing:border-box !important;
+    }
+
+    /* TABLE WRAPPER */
+    .table-wrapper,
+    .history-table-wrapper,
+    .summary-wrapper{
+
+        width:100% !important;
+
+        overflow-x:auto !important;
+
+        -webkit-overflow-scrolling:touch !important;
+    }
+
+    /* ALL TABLES */
+    table{
+
+        min-width:850px !important;
+
+        border-collapse:collapse !important;
+    }
+
+    th,
+    td{
+
+        font-size:12px !important;
+
+        padding:8px !important;
+
+        white-space:nowrap !important;
+    }
+
+    /* SHIFT SUMMARY SPECIAL */
+    #shiftSummaryPopup table{
+
+        min-width:1100px !important;
+    }
+
+    /* DAY HISTORY SPECIAL */
+    #dayHistoryPopup table{
+
+        min-width:1000px !important;
+    }
+
+    /* TABLE HISTORY SPECIAL */
+    #tableHistoryPopup table{
+
+        min-width:850px !important;
+    }
+
+    /* HISTORY POPUP SPECIAL */
+    #historyPopup table{
+
+        min-width:900px !important;
+    }
+
+    /* BUTTONS */
+    #shiftSummaryPopup button,
+    #dayHistoryPopup button,
+    #tableHistoryPopup button,
+    #historyPopup button{
+
+        min-height:45px !important;
+
+        font-size:14px !important;
+    }
+
+    /* SELECTS */
+    #dayHistoryDateSelect,
+    #tableHistoryDateSelect,
+    #tableHistoryTableSelect{
+
+        width:100% !important;
+
+        min-height:45px !important;
+
+        font-size:15px !important;
+
+        margin-bottom:10px !important;
+    }
+
+}
