@@ -2,7 +2,8 @@ import {
     collection,
     query,
     where,
-    onSnapshot
+    onSnapshot,
+    addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
@@ -22,6 +23,7 @@ const BRANCH = (
    ========================================================= */
 
 let branchResources = [];
+let bookings = [];
 
 
 /* =========================================================
@@ -47,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupResourceType();
 
     loadBranchResources();
+
+    loadBookings();
 
 });
 
@@ -675,6 +679,202 @@ function populateResourceDropdown() {
 
 
 /* =========================================================
+   LOAD BOOKINGS FOR CURRENT BRANCH
+   ========================================================= */
+
+function loadBookings() {
+
+    if (!window.db) {
+
+        setTimeout(
+            loadBookings,
+            500
+        );
+
+        return;
+    }
+
+
+    const bookingsQuery =
+        query(
+            collection(
+                window.db,
+                "bookings"
+            ),
+
+            where(
+                "branch",
+                "==",
+                BRANCH
+            )
+        );
+
+
+    onSnapshot(
+
+        bookingsQuery,
+
+        snapshot => {
+
+            bookings = [];
+
+
+            snapshot.forEach(
+                documentSnapshot => {
+
+                    bookings.push({
+
+                        id:
+                            documentSnapshot.id,
+
+                        ...documentSnapshot.data()
+
+                    });
+
+                }
+            );
+
+
+            console.log(
+                "CURRENT BRANCH BOOKINGS:",
+                bookings
+            );
+
+        },
+
+        error => {
+
+            console.error(
+                "BOOKINGS LOAD ERROR:",
+                error
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   CHECK SPECIFIC RESOURCE DOUBLE BOOKING
+   ========================================================= */
+
+function hasBookingConflict(
+    resourceId,
+    bookingDate,
+    startTime,
+    endTime
+) {
+
+    return bookings.some(
+        booking => {
+
+            /*
+               Cancelled / No Show booking
+               does not block the resource.
+            */
+
+            if (
+                booking.status === "cancelled" ||
+                booking.status === "no_show"
+            ) {
+
+                return false;
+
+            }
+
+
+            /*
+               Must be same date.
+            */
+
+            if (
+                booking.date !==
+                bookingDate
+            ) {
+
+                return false;
+
+            }
+
+
+            /*
+               Must be same Table / Room / Pool.
+            */
+
+            if (
+                booking.resource_id !==
+                resourceId
+            ) {
+
+                return false;
+
+            }
+
+
+            /*
+               Time overlap:
+
+               Existing: 8 PM - 10 PM
+               New:      9 PM - 11 PM
+
+               = BLOCKED
+
+               Existing: 8 PM - 10 PM
+               New:     10 PM - 11 PM
+
+               = ALLOWED
+            */
+
+            return (
+                startTime <
+                    booking.end_time
+                &&
+                endTime >
+                    booking.start_time
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   FIND AVAILABLE RESOURCE
+   FOR "ANY AVAILABLE"
+   ========================================================= */
+
+function findAvailableResource(
+    type,
+    bookingDate,
+    startTime,
+    endTime
+) {
+
+    const resources =
+        branchResources.filter(
+            resource =>
+                resource.type === type
+        );
+
+
+    return resources.find(
+        resource =>
+
+            !hasBookingConflict(
+                resource.firestoreId,
+                bookingDate,
+                startTime,
+                endTime
+            )
+
+    ) || null;
+
+}
+
+/* =========================================================
    TYPE LABEL
    ========================================================= */
 
@@ -694,27 +894,8 @@ function getTypeLabel(type) {
 
 
 /* =========================================================
-   TEMP FORM TEST
+   SAVE BOOKING TO FIREBASE
    ========================================================= */
-
-/*
-   IMPORTANT:
-
-   Is step mein booking Firebase
-   mein SAVE NAHI kar rahe.
-
-   Pehle confirm karenge ke:
-
-   1. popup works
-   2. current branch correct hai
-   3. tables load ho rahe hain
-   4. rooms load ho rahe hain
-   5. pool load ho raha hai
-
-   Uske baad next step mein
-   bookings collection banegi.
-*/
-
 
 const bookingForm =
     document.getElementById(
@@ -726,30 +907,96 @@ if (bookingForm) {
 
     bookingForm.addEventListener(
         "submit",
-        event => {
+        async event => {
 
             event.preventDefault();
 
+            hideBookingError();
 
-            const type =
+
+            /* =========================
+               GET FORM VALUES
+               ========================= */
+
+            const customerName =
+                document.getElementById(
+                    "bookingCustomerName"
+                ).value.trim();
+
+
+            const customerPhone =
+                document.getElementById(
+                    "bookingCustomerPhone"
+                ).value.trim();
+
+
+            const bookingDate =
+                document.getElementById(
+                    "bookingDate"
+                ).value;
+
+
+            const startTime =
+                document.getElementById(
+                    "bookingStartTime"
+                ).value;
+
+
+            const endTime =
+                document.getElementById(
+                    "bookingEndTime"
+                ).value;
+
+
+            const resourceType =
                 document.getElementById(
                     "bookingResourceType"
-                )?.value;
+                ).value;
 
 
-            const resource =
+            const selectedResource =
                 document.getElementById(
                     "bookingResource"
-                )?.value;
+                ).value;
 
+
+            const advanceAmount =
+                Number(
+                    document.getElementById(
+                        "bookingAdvance"
+                    ).value || 0
+                );
+
+
+            const paymentStatus =
+                document.getElementById(
+                    "bookingPaymentStatus"
+                ).value;
+
+
+            const notes =
+                document.getElementById(
+                    "bookingNotes"
+                ).value.trim();
+
+
+
+            /* =========================
+               BASIC VALIDATION
+               ========================= */
 
             if (
-                !type ||
-                !resource
+                !customerName ||
+                !customerPhone ||
+                !bookingDate ||
+                !startTime ||
+                !endTime ||
+                !resourceType ||
+                !selectedResource
             ) {
 
                 showBookingError(
-                    "Please select Table / Room / Pool."
+                    "Please fill all required fields."
                 );
 
                 return;
@@ -757,48 +1004,247 @@ if (bookingForm) {
             }
 
 
-            console.log(
-                "BOOKING FORM TEST OK"
-            );
+            if (
+                startTime >= endTime
+            ) {
+
+                showBookingError(
+                    "End time must be after start time."
+                );
+
+                return;
+
+            }
 
 
-            console.log({
 
-                customer:
-                    document.getElementById(
-                        "bookingCustomerName"
-                    )?.value,
+            /* =========================
+               RESOURCE
+               ========================= */
 
-                phone:
-                    document.getElementById(
-                        "bookingCustomerPhone"
-                    )?.value,
+            let finalResource = null;
 
-                date:
-                    document.getElementById(
-                        "bookingDate"
-                    )?.value,
-
-                start:
-                    document.getElementById(
-                        "bookingStartTime"
-                    )?.value,
-
-                end:
-                    document.getElementById(
-                        "bookingEndTime"
-                    )?.value,
-
-                type,
-
-                resource
-
-            });
+            let assignmentMode =
+                "specific";
 
 
-            alert(
-                "Booking form is working.\nFirebase save will be added in next step."
-            );
+            /*
+               ANY AVAILABLE
+            */
+
+            if (
+                selectedResource ===
+                "ANY"
+            ) {
+
+                finalResource =
+                    findAvailableResource(
+                        resourceType,
+                        bookingDate,
+                        startTime,
+                        endTime
+                    );
+
+
+                if (!finalResource) {
+
+                    showBookingError(
+                        "No available " +
+                        getTypeLabel(
+                            resourceType
+                        ) +
+                        " found for this time."
+                    );
+
+                    return;
+
+                }
+
+
+                assignmentMode =
+                    "any_available";
+
+            }
+
+            else {
+
+                /*
+                   SPECIFIC RESOURCE
+                */
+
+                finalResource =
+                    branchResources.find(
+                        resource =>
+                            resource.firestoreId ===
+                            selectedResource
+                    );
+
+
+                if (!finalResource) {
+
+                    showBookingError(
+                        "Selected Table / Room / Pool was not found."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    hasBookingConflict(
+                        finalResource.firestoreId,
+                        bookingDate,
+                        startTime,
+                        endTime
+                    )
+                ) {
+
+                    showBookingError(
+                        finalResource.name +
+                        " is already booked during this time."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+
+            /* =========================
+               SAVE BUTTON
+               ========================= */
+
+            const saveButton =
+                document.getElementById(
+                    "saveBookingBtn"
+                );
+
+
+            saveButton.disabled = true;
+
+            saveButton.innerText =
+                "Saving...";
+
+
+
+            /* =========================
+               FIREBASE SAVE
+               ========================= */
+
+            try {
+
+                const now =
+                    new Date().toISOString();
+
+
+                const bookingData = {
+
+                    branch:
+                        BRANCH,
+
+                    customer_name:
+                        customerName,
+
+                    customer_phone:
+                        customerPhone,
+
+                    date:
+                        bookingDate,
+
+                    start_time:
+                        startTime,
+
+                    end_time:
+                        endTime,
+
+                    resource_type:
+                        resourceType,
+
+                    resource_id:
+                        finalResource.firestoreId,
+
+                    resource_name:
+                        finalResource.name,
+
+                    assignment_mode:
+                        assignmentMode,
+
+                    advance_amount:
+                        advanceAmount,
+
+                    payment_status:
+                        paymentStatus,
+
+                    notes:
+                        notes,
+
+                    status:
+                        "confirmed",
+
+                    created_at:
+                        now,
+
+                    updated_at:
+                        now
+
+                };
+
+
+                const docRef =
+                    await addDoc(
+
+                        collection(
+                            window.db,
+                            "bookings"
+                        ),
+
+                        bookingData
+
+                    );
+
+
+                console.log(
+                    "BOOKING SAVED:",
+                    docRef.id
+                );
+
+
+                alert(
+                    "Booking confirmed successfully."
+                );
+
+
+                closeBookingPopup();
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "BOOKING SAVE ERROR:",
+                    error
+                );
+
+
+                showBookingError(
+                    "Booking could not be saved. Check Firebase permissions."
+                );
+
+            }
+
+            finally {
+
+                saveButton.disabled =
+                    false;
+
+                saveButton.innerText =
+                    "Confirm Booking";
+
+            }
 
         }
     );
