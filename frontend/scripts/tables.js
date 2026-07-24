@@ -863,14 +863,42 @@ try {
         sessionData.from_booking = false;
     }
 
-    await addDoc(
-        collection(window.db, "sessions"),
-        sessionData
+await addDoc(
+    collection(window.db, "sessions"),
+    sessionData
+);
+
+
+// =====================================================
+// ✅ BOOKING PROCEED SUCCESS
+// =====================================================
+
+if (bookingForThisTable) {
+
+    console.log(
+        "✅ BOOKING SESSION STARTED:",
+        bookingForThisTable.booking_id
     );
 
+    // Booking successfully table session se attach ho gayi
+    // Ab pending Proceed data ki zarurat nahi
+    localStorage.removeItem(
+        "pendingBookingProceed"
+    );
+
+    pendingBookingProceed = null;
+}
+
+
 } catch (err) {
-    console.error("❌ Session create error:", err);
+
+    console.error(
+        "❌ Session create error:",
+        err
+    );
+
 } finally {
+
     // 🔥 LOCK RELEASE (VERY IMPORTANT)
     window._creatingSession = false;
 }
@@ -1391,24 +1419,89 @@ snap.forEach(d => {
 });
 
 if (latestSession) {
-await updateDoc(doc(window.db, "sessions", latestSession.id), {
-    paid: true,
-    paid_time: new Date().toISOString(),
 
-    // 🔥 IMPORTANT
-    discount: t.discount || 0,
+    const paidNow =
+        new Date().toISOString();
 
-    original_game_amount:
-        t.finalAmount || 0,
+    // ==============================================
+    // EXISTING SESSION PAYMENT
+    // ==============================================
 
-    final_game_amount:
-        (t.finalAmount || 0)
-        - (t.discount || 0),
+    await updateDoc(
+        doc(
+            window.db,
+            "sessions",
+            latestSession.id
+        ),
+        {
+            paid: true,
+            paid_time: paidNow,
 
-    final_amount:
-        (t.finalAmount || 0)
-        - (t.discount || 0)
-});
+            discount:
+                t.discount || 0,
+
+            original_game_amount:
+                t.finalAmount || 0,
+
+            final_game_amount:
+                (t.finalAmount || 0)
+                - (t.discount || 0),
+
+            final_amount:
+                (t.finalAmount || 0)
+                - (t.discount || 0)
+        }
+    );
+
+
+    // ==============================================
+    // BOOKING → COMPLETED
+    // Sirf booking se aaye session par chalega
+    // ==============================================
+
+    if (latestSession.booking_id) {
+
+        try {
+
+            await updateDoc(
+                doc(
+                    window.db,
+                    "bookings",
+                    latestSession.booking_id
+                ),
+                {
+                    status: "completed",
+
+                    completed_at: paidNow,
+
+                    updated_at: paidNow
+                }
+            );
+
+            console.log(
+                "✅ BOOKING COMPLETED:",
+                latestSession.booking_id
+            );
+
+        }
+        catch (bookingError) {
+
+            /*
+               IMPORTANT:
+               Booking update fail hone se
+               existing table payment ko
+               fail/crash nahi karenge.
+            */
+
+            console.error(
+                "❌ BOOKING COMPLETE ERROR:",
+                bookingError
+            );
+
+        }
+
+    }
+
 }
 
      
