@@ -1055,7 +1055,6 @@ fromBooking:
 // 🔥 PAYMENT WILL BE CALCULATED ON PAID
 remainingPayment: 0
 });
-});
 
     // 🔥 HISTORY SAVE (CORRECT PLACE)
     if (!t.history) t.history = [];
