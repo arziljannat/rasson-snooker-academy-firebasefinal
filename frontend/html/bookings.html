@@ -332,37 +332,133 @@
 
                     <!-- START TIME -->
 
-                    <div class="booking-field">
+<!-- START TIME -->
 
-                        <label for="bookingStartTime">
-                            Start Time
-                        </label>
+<div class="booking-field">
 
-                        <input
-                            type="time"
-                            id="bookingStartTime"
-                            required
-                        >
+    <label>
+        Start Time
+    </label>
 
-                    </div>
+    <div class="booking-time-picker">
+
+        <input
+            type="number"
+            id="bookingStartHour"
+            min="1"
+            max="12"
+            placeholder="Hour"
+            required
+        >
+
+        <span class="time-colon">:</span>
+
+        <input
+            type="number"
+            id="bookingStartMinute"
+            min="0"
+            max="59"
+            placeholder="Min"
+            value="00"
+            required
+        >
+
+        <div class="day-night-buttons">
+
+            <button
+                type="button"
+                class="time-period-btn active"
+                data-time-target="start"
+                data-period="AM"
+            >
+                ☀ AM
+            </button>
+
+            <button
+                type="button"
+                class="time-period-btn"
+                data-time-target="start"
+                data-period="PM"
+            >
+                ☾ PM
+            </button>
+
+        </div>
+
+        <input
+            type="hidden"
+            id="bookingStartTime"
+        >
+
+    </div>
+
+</div>
 
 
 
                     <!-- END TIME -->
 
-                    <div class="booking-field">
+<!-- END TIME -->
 
-                        <label for="bookingEndTime">
-                            End Time
-                        </label>
+<div class="booking-field">
 
-                        <input
-                            type="time"
-                            id="bookingEndTime"
-                            required
-                        >
+    <label>
+        End Time
+    </label>
 
-                    </div>
+    <div class="booking-time-picker">
+
+        <input
+            type="number"
+            id="bookingEndHour"
+            min="1"
+            max="12"
+            placeholder="Hour"
+            required
+        >
+
+        <span class="time-colon">:</span>
+
+        <input
+            type="number"
+            id="bookingEndMinute"
+            min="0"
+            max="59"
+            placeholder="Min"
+            value="00"
+            required
+        >
+
+        <div class="day-night-buttons">
+
+            <button
+                type="button"
+                class="time-period-btn active"
+                data-time-target="end"
+                data-period="AM"
+            >
+                ☀ AM
+            </button>
+
+            <button
+                type="button"
+                class="time-period-btn"
+                data-time-target="end"
+                data-period="PM"
+            >
+                ☾ PM
+            </button>
+
+        </div>
+
+        <input
+            type="hidden"
+            id="bookingEndTime"
+        >
+
+    </div>
+
+</div>
 
 
 
