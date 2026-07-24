@@ -877,3 +877,98 @@ body {
     }
 
 }
+
+/* =========================================================
+   BOOKING PAGE TEXT SIZE + CENTER IMPROVEMENTS
+   ========================================================= */
+
+
+/* HEADER */
+
+.booking-header h1 {
+    font-size: 38px;
+}
+
+.booking-header p {
+    font-size: 15px;
+}
+
+
+/* FILTER LABELS */
+
+.filter-box label {
+    font-size: 13px;
+}
+
+.filter-box input,
+.filter-box select {
+    font-size: 15px;
+}
+
+
+/* SUMMARY CARDS - CENTER */
+
+.booking-summary-card {
+    text-align: center;
+}
+
+.booking-summary-card span {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.booking-summary-card strong {
+    font-size: 29px;
+    text-align: center;
+}
+
+
+/* TABLE HEADINGS */
+
+.booking-table th {
+    font-size: 13px;
+    text-align: center;
+}
+
+
+/* TABLE DATA */
+
+.booking-table td {
+    font-size: 14px;
+    text-align: center;
+}
+
+
+/* STATUS */
+
+.booking-status {
+    font-size: 12px;
+}
+
+
+/* ACTION BUTTONS */
+
+.booking-action-btn {
+    font-size: 12px;
+}
+
+
+/* NEW BOOKING BUTTON */
+
+.new-booking-btn {
+    font-size: 15px;
+}
+
+
+/* BOOKING FORM */
+
+.booking-field label {
+    font-size: 13px;
+}
+
+.booking-field input,
+.booking-field select,
+.booking-field textarea {
+    font-size: 15px;
+}
