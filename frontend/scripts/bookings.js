@@ -5,6 +5,7 @@ import {
     onSnapshot,
     addDoc,
     updateDoc,
+    deleteDoc,
     doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -1666,6 +1667,139 @@ async function(
 };
 
 /* =========================================================
+   DELETE CANCELLED BOOKING
+   ========================================================= */
+
+window.deleteBooking =
+async function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+
+    if (!booking) {
+
+        alert(
+            "Booking not found."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       SAFETY:
+       Only cancelled bookings
+       can be permanently deleted.
+    */
+
+    if (
+        booking.status !==
+        "cancelled"
+    ) {
+
+        alert(
+            "Only cancelled bookings can be deleted."
+        );
+
+        return;
+
+    }
+
+
+    const customerName =
+        booking.customer_name ||
+        "Customer";
+
+
+    const resourceName =
+        booking.resource_name ||
+        getTypeLabel(
+            booking.resource_type
+        );
+
+
+    const confirmed =
+        confirm(
+
+            "Permanently delete this cancelled booking?\n\n" +
+
+            "Customer: " +
+            customerName +
+            "\n" +
+
+            "Resource: " +
+            resourceName +
+            "\n" +
+
+            "Time: " +
+            formatBookingTime(
+                booking.start_time
+            ) +
+            " - " +
+            formatBookingTime(
+                booking.end_time
+            ) +
+            "\n\n" +
+
+            "This action cannot be undone."
+
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await deleteDoc(
+
+            doc(
+                window.db,
+                "bookings",
+                bookingId
+            )
+
+        );
+
+
+        console.log(
+            "BOOKING DELETED:",
+            bookingId
+        );
+
+
+        alert(
+            "Cancelled booking deleted successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "BOOKING DELETE ERROR:",
+            error
+        );
+
+
+        alert(
+            "Booking could not be deleted."
+        );
+
+    }
+
+};
+
+/* =========================================================
    RENDER BOOKINGS
    ========================================================= */
 
@@ -1890,6 +2024,35 @@ function renderBookings() {
                     ).toLocaleString()}
                 </td>
 
+                <td>
+
+    <span
+        class="booking-payment-status ${
+            booking.payment_status === "paid"
+                ? "paid"
+                : "unpaid"
+        }"
+    >
+        ${
+            booking.payment_status === "paid"
+                ? "Paid"
+                : "Unpaid"
+        }
+    </span>
+
+</td>
+
+
+<td
+    title="${escapeBookingText(
+        booking.notes || ""
+    )}"
+>
+    ${escapeBookingText(
+        booking.notes || "-"
+    )}
+</td>
+                
 
                 <td>
 
@@ -1939,6 +2102,21 @@ ${
                 onclick="cancelBooking('${booking.id}')"
             >
                 Cancel
+            </button>
+        `
+        : ""
+    }
+
+
+    ${
+        booking.status === "cancelled"
+        ? `
+            <button
+                type="button"
+                class="booking-action-btn delete"
+                onclick="deleteBooking('${booking.id}')"
+            >
+                Delete
             </button>
         `
         : ""
