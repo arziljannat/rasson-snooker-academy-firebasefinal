@@ -70,6 +70,44 @@ const BRANCH = (localStorage.getItem("branch") || "").toLowerCase();
 const ROLE = localStorage.getItem("role"); // admin / staff
 let inventoryItems = [];
 
+
+/******************************************************
+ * PENDING BOOKING FROM BOOKINGS PAGE
+ ******************************************************/
+
+let pendingBookingProceed = null;
+
+try {
+
+    const savedBooking =
+        localStorage.getItem("pendingBookingProceed");
+
+    if (savedBooking) {
+
+        pendingBookingProceed =
+            JSON.parse(savedBooking);
+
+        console.log(
+            "PENDING BOOKING PROCEED:",
+            pendingBookingProceed
+        );
+
+    }
+
+}
+catch (error) {
+
+    console.error(
+        "PENDING BOOKING READ ERROR:",
+        error
+    );
+
+    pendingBookingProceed = null;
+
+}
+
+
+
 // 🔥 HELPER FUNCTIONS (ADD AT TOP)
 function getItemName(item) {
     return item.item_name || item.name || "Unknown Item";
@@ -645,6 +683,60 @@ async function checkIn(id) {
 
     if (t.isRunning) return;
 
+// =====================================================
+// 🔥 BOOKING PROCEED CHECK
+// =====================================================
+
+let bookingForThisTable = null;
+
+if (pendingBookingProceed) {
+
+    const bookingBranch =
+        String(pendingBookingProceed.branch || "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
+
+    const currentBranch =
+        String(BRANCH || "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
+
+    const bookingResourceId =
+        String(pendingBookingProceed.resource_id || "");
+
+    const bookingResourceName =
+        String(pendingBookingProceed.resource_name || "")
+        .trim()
+        .toLowerCase();
+
+    const currentTableId =
+        String(t.id || "");
+
+    const currentTableName =
+        String(t.name || "")
+        .trim()
+        .toLowerCase();
+
+    // ✅ SAME BRANCH + SAME TABLE/ROOM
+    if (
+        bookingBranch === currentBranch &&
+        (
+            bookingResourceId === currentTableId ||
+            bookingResourceName === currentTableName
+        )
+    ) {
+
+        bookingForThisTable = pendingBookingProceed;
+
+        console.log(
+            "✅ BOOKING MATCHED WITH TABLE:",
+            bookingForThisTable
+        );
+    }
+}
+  
+  
+
 // 🔥 ADD THIS LOCK (EXACT YAHAIN)
 if (window._creatingSession) {
     console.log("⛔ Session already creating...");
@@ -719,23 +811,62 @@ if (!snap.empty) {
 // 🔥 STEP 3: create new session
 try {
 
-    await addDoc(collection(window.db, "sessions"), {
-    table_id: t.name,
-    branch: BRANCH,
+    const sessionData = {
+        table_id: t.name,
+        branch: BRANCH,
 
-    start_time: new Date().toISOString(),
-    end_time: null,
+        start_time: new Date().toISOString(),
+        end_time: null,
 
-play_type: t.selectedPlayType,
+        play_type: t.selectedPlayType,
+        selected_rate: t.selectedRate,
 
-selected_rate: t.selectedRate,
+        frame_rate: t.frameRate,
+        century_rate: t.centuryRate,
 
-frame_rate: t.frameRate,
-century_rate: t.centuryRate,
-    day_id: window.currentDayId,
+        day_id: window.currentDayId,
 
-    is_deleted: false
-});
+        is_deleted: false
+    };
+
+    // =====================================================
+    // 🔥 ATTACH BOOKING DATA TO SESSION
+    // =====================================================
+    if (bookingForThisTable) {
+
+        sessionData.booking_id =
+            bookingForThisTable.booking_id || null;
+
+        sessionData.booking_customer_name =
+            bookingForThisTable.customer_name || "";
+
+        sessionData.booking_customer_phone =
+            bookingForThisTable.customer_phone || "";
+
+        sessionData.booking_advance =
+            Number(bookingForThisTable.advance || 0);
+
+        sessionData.booking_resource_id =
+            bookingForThisTable.resource_id || "";
+
+        sessionData.booking_resource_name =
+            bookingForThisTable.resource_name || t.name;
+
+        sessionData.from_booking = true;
+
+        console.log(
+            "✅ BOOKING ATTACHED TO SESSION:",
+            sessionData
+        );
+    }
+    else {
+        sessionData.from_booking = false;
+    }
+
+    await addDoc(
+        collection(window.db, "sessions"),
+        sessionData
+    );
 
 } catch (err) {
     console.error("❌ Session create error:", err);
