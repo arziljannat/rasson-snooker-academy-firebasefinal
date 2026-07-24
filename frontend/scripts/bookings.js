@@ -2065,6 +2065,165 @@ fillBookingTimePicker(
 };
 
 /* =========================================================
+   MARK BOOKING AS ARRIVED
+   ========================================================= */
+
+window.markBookingArrived =
+async function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+    if (!booking) {
+        alert("Booking not found.");
+        return;
+    }
+
+    if (booking.status !== "confirmed") {
+        alert("Only confirmed booking can be marked as Arrived.");
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "Mark this customer as Arrived?\n\n" +
+            "Customer: " +
+            (booking.customer_name || "Customer") +
+            "\n" +
+            "Resource: " +
+            (booking.resource_name || "-")
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const now =
+            new Date().toISOString();
+
+        await updateDoc(
+            doc(
+                window.db,
+                "bookings",
+                bookingId
+            ),
+            {
+                status: "arrived",
+                arrived_at: now,
+                updated_at: now
+            }
+        );
+
+        console.log(
+            "BOOKING ARRIVED:",
+            bookingId
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "BOOKING ARRIVED ERROR:",
+            error
+        );
+
+        alert(
+            "Booking could not be marked as Arrived."
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   MARK BOOKING AS NO SHOW
+   ========================================================= */
+
+window.markBookingNoShow =
+async function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+    if (!booking) {
+        alert("Booking not found.");
+        return;
+    }
+
+    if (booking.status !== "confirmed") {
+        alert("Only confirmed booking can be marked as No Show.");
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "Mark this booking as No Show?\n\n" +
+            "Customer: " +
+            (booking.customer_name || "Customer") +
+            "\n" +
+            "Resource: " +
+            (booking.resource_name || "-")
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const now =
+            new Date().toISOString();
+
+        await updateDoc(
+            doc(
+                window.db,
+                "bookings",
+                bookingId
+            ),
+            {
+                status: "no_show",
+                no_show_at: now,
+                updated_at: now
+            }
+        );
+
+        console.log(
+            "BOOKING NO SHOW:",
+            bookingId
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "BOOKING NO SHOW ERROR:",
+            error
+        );
+
+        alert(
+            "Booking could not be marked as No Show."
+        );
+
+    }
+
+};
+
+/* =========================================================
    CANCEL BOOKING
    ========================================================= */
 
@@ -2627,6 +2786,36 @@ function renderBookings() {
 <td>
 
 ${
+    booking.status === "confirmed"
+    ? `
+        <button
+            type="button"
+            class="booking-action-btn arrived"
+            onclick="markBookingArrived('${booking.id}')"
+        >
+            Arrived
+        </button>
+    `
+    : ""
+}
+
+
+${
+    booking.status === "confirmed"
+    ? `
+        <button
+            type="button"
+            class="booking-action-btn no-show"
+            onclick="markBookingNoShow('${booking.id}')"
+        >
+            No Show
+        </button>
+    `
+    : ""
+}
+
+
+${
     booking.status !== "cancelled"
     &&
     booking.status !== "completed"
@@ -2641,7 +2830,6 @@ ${
     `
     : ""
 }
-
 
     ${
         booking.status !== "cancelled"
