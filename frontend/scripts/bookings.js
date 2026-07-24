@@ -929,6 +929,228 @@ function getTypeLabel(type) {
 
 
 /* =========================================================
+   CUSTOM BOOKING TIME PICKER
+   ========================================================= */
+
+let bookingTimePeriod = {
+    start: "AM",
+    end: "AM"
+};
+
+
+/*
+   HOUR + MINUTE + DAY/NIGHT
+   ko 24-hour time mein convert karta hai.
+
+   05 : 00 + SUN  = 05:00
+   05 : 00 + MOON = 17:00
+*/
+
+function buildBookingTime(target) {
+
+    const hourInput =
+        document.getElementById(
+            target === "start"
+                ? "bookingStartHour"
+                : "bookingEndHour"
+        );
+
+    const minuteInput =
+        document.getElementById(
+            target === "start"
+                ? "bookingStartMinute"
+                : "bookingEndMinute"
+        );
+
+    const hiddenInput =
+        document.getElementById(
+            target === "start"
+                ? "bookingStartTime"
+                : "bookingEndTime"
+        );
+
+
+    if (
+        !hourInput ||
+        !minuteInput ||
+        !hiddenInput
+    ) {
+        return "";
+    }
+
+
+    let hour =
+        Number(hourInput.value);
+
+    let minute =
+        Number(minuteInput.value);
+
+
+    if (
+        !hour ||
+        hour < 1 ||
+        hour > 12 ||
+        Number.isNaN(minute) ||
+        minute < 0 ||
+        minute > 59
+    ) {
+
+        hiddenInput.value = "";
+
+        return "";
+
+    }
+
+
+    const period =
+        bookingTimePeriod[target];
+
+
+    /* 12 AM = 00:xx */
+
+    if (period === "AM") {
+
+        if (hour === 12) {
+            hour = 0;
+        }
+
+    }
+
+    /* PM: 1 PM = 13:xx */
+
+    else {
+
+        if (hour !== 12) {
+            hour += 12;
+        }
+
+    }
+
+
+    const finalTime =
+        String(hour).padStart(2, "0") +
+        ":" +
+        String(minute).padStart(2, "0");
+
+
+    hiddenInput.value =
+        finalTime;
+
+
+    return finalTime;
+
+}
+
+
+/* =========================================================
+   DAY / NIGHT BUTTON CLICK
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                ".time-icon-btn"
+            );
+
+
+        if (!button) {
+            return;
+        }
+
+
+        const target =
+            button.dataset.timeTarget;
+
+        const period =
+            button.dataset.period;
+
+
+        if (
+            !target ||
+            !period
+        ) {
+            return;
+        }
+
+
+        bookingTimePeriod[target] =
+            period;
+
+
+        document.querySelectorAll(
+            `.time-icon-btn[data-time-target="${target}"]`
+        )
+        .forEach(btn => {
+
+            btn.classList.toggle(
+                "active",
+                btn === button
+            );
+
+        });
+
+
+        buildBookingTime(
+            target
+        );
+
+    }
+);
+
+
+/* =========================================================
+   HOUR / MINUTE INPUT
+   ========================================================= */
+
+[
+    "bookingStartHour",
+    "bookingStartMinute",
+    "bookingEndHour",
+    "bookingEndMinute"
+]
+.forEach(id => {
+
+    const input =
+        document.getElementById(id);
+
+
+    if (!input) {
+        return;
+    }
+
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            if (
+                id.includes("Start")
+            ) {
+
+                buildBookingTime(
+                    "start"
+                );
+
+            }
+
+            else {
+
+                buildBookingTime(
+                    "end"
+                );
+
+            }
+
+        }
+    );
+
+});
+
+
+/* =========================================================
    SAVE BOOKING TO FIREBASE
    ========================================================= */
 
