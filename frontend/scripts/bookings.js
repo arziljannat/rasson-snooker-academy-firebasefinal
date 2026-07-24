@@ -26,6 +26,8 @@ const BRANCH = (
 let branchResources = [];
 let bookings = [];
 
+/* Currently editing booking ID */
+let editingBookingId = null;
 
 /* =========================================================
    PAGE START
@@ -240,6 +242,28 @@ function closeBookingPopup() {
    ========================================================= */
 
 function resetBookingForm() {
+
+    editingBookingId = null;
+
+const modalTitle =
+    document.getElementById(
+        "bookingModalTitle"
+    );
+
+const saveButton =
+    document.getElementById(
+        "saveBookingBtn"
+    );
+
+if (modalTitle) {
+    modalTitle.innerText =
+        "New Booking";
+}
+
+if (saveButton) {
+    saveButton.innerText =
+        "Confirm Booking";
+}
 
     const form =
         document.getElementById(
@@ -773,6 +797,13 @@ function hasBookingConflict(
     return bookings.some(
         booking => {
 
+            if (
+    editingBookingId &&
+    booking.id === editingBookingId
+) {
+    return false;
+}
+
             /*
                Cancelled / No Show booking
                does not block the resource.
@@ -1196,31 +1227,95 @@ if (bookingForm) {
                 };
 
 
-                const docRef =
-                    await addDoc(
+if (editingBookingId) {
 
-                        collection(
-                            window.db,
-                            "bookings"
-                        ),
+    await updateDoc(
 
-                        bookingData
+        doc(
+            window.db,
+            "bookings",
+            editingBookingId
+        ),
 
-                    );
+        {
+            ...bookingData,
+
+            /*
+               Existing booking ka
+               original status preserve karo.
+            */
+
+            status:
+                bookings.find(
+                    item =>
+                        item.id ===
+                        editingBookingId
+                )?.status ||
+                "confirmed",
+
+            /*
+               Original creation date
+               overwrite nahi karni.
+            */
+
+            created_at:
+                bookings.find(
+                    item =>
+                        item.id ===
+                        editingBookingId
+                )?.created_at ||
+                now,
+
+            updated_at:
+                now
+        }
+
+    );
 
 
-                console.log(
-                    "BOOKING SAVED:",
-                    docRef.id
-                );
+    console.log(
+        "BOOKING UPDATED:",
+        editingBookingId
+    );
 
 
-                alert(
-                    "Booking confirmed successfully."
-                );
+    alert(
+        "Booking updated successfully."
+    );
+
+}
+
+else {
+
+    const docRef =
+        await addDoc(
+
+            collection(
+                window.db,
+                "bookings"
+            ),
+
+            bookingData
+
+        );
 
 
-                closeBookingPopup();
+    console.log(
+        "BOOKING SAVED:",
+        docRef.id
+    );
+
+
+    alert(
+        "Booking confirmed successfully."
+    );
+
+}
+
+
+closeBookingPopup();
+
+editingBookingId = null;
 
 
             }
@@ -1253,6 +1348,183 @@ if (bookingForm) {
     );
 
 }
+
+/* =========================================================
+   EDIT BOOKING
+   ========================================================= */
+
+window.editBooking =
+function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+
+    if (!booking) {
+
+        alert(
+            "Booking not found."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        booking.status === "cancelled" ||
+        booking.status === "completed"
+    ) {
+
+        alert(
+            "This booking can no longer be edited."
+        );
+
+        return;
+
+    }
+
+
+    editingBookingId =
+        bookingId;
+
+
+    /* =========================
+       POPUP TITLE
+       ========================= */
+
+    const modalTitle =
+        document.getElementById(
+            "bookingModalTitle"
+        );
+
+
+    const saveButton =
+        document.getElementById(
+            "saveBookingBtn"
+        );
+
+
+    if (modalTitle) {
+
+        modalTitle.innerText =
+            "Edit Booking";
+
+    }
+
+
+    if (saveButton) {
+
+        saveButton.innerText =
+            "Save Changes";
+
+    }
+
+
+    /* =========================
+       FILL EXISTING DATA
+       ========================= */
+
+    document.getElementById(
+        "bookingCustomerName"
+    ).value =
+        booking.customer_name || "";
+
+
+    document.getElementById(
+        "bookingCustomerPhone"
+    ).value =
+        booking.customer_phone || "";
+
+
+    document.getElementById(
+        "bookingDate"
+    ).value =
+        booking.date || "";
+
+
+    document.getElementById(
+        "bookingStartTime"
+    ).value =
+        booking.start_time || "";
+
+
+    document.getElementById(
+        "bookingEndTime"
+    ).value =
+        booking.end_time || "";
+
+
+    document.getElementById(
+        "bookingResourceType"
+    ).value =
+        booking.resource_type || "";
+
+
+    document.getElementById(
+        "bookingAdvance"
+    ).value =
+        Number(
+            booking.advance_amount || 0
+        );
+
+
+    document.getElementById(
+        "bookingPaymentStatus"
+    ).value =
+        booking.payment_status || "unpaid";
+
+
+    document.getElementById(
+        "bookingNotes"
+    ).value =
+        booking.notes || "";
+
+
+    /* =========================
+       RESOURCE DROPDOWN
+       ========================= */
+
+    populateResourceDropdown();
+
+
+    const resourceSelect =
+        document.getElementById(
+            "bookingResource"
+        );
+
+
+    if (resourceSelect) {
+
+        resourceSelect.value =
+            booking.resource_id || "";
+
+    }
+
+
+    hideBookingError();
+
+
+    /* =========================
+       OPEN POPUP
+       ========================= */
+
+    const modal =
+        document.getElementById(
+            "bookingModal"
+        );
+
+
+    modal?.classList.remove(
+        "hidden"
+    );
+
+};
 
 /* =========================================================
    CANCEL BOOKING
@@ -1639,14 +1911,21 @@ function renderBookings() {
 
 <td>
 
-    <button
-        type="button"
-        class="booking-action-btn edit"
-        disabled
-        title="Edit will be added next"
-    >
-        Edit
-    </button>
+${
+    booking.status !== "cancelled"
+    &&
+    booking.status !== "completed"
+    ? `
+        <button
+            type="button"
+            class="booking-action-btn edit"
+            onclick="editBooking('${booking.id}')"
+        >
+            Edit
+        </button>
+    `
+    : ""
+}
 
 
     ${
