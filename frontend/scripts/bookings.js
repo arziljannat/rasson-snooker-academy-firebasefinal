@@ -1626,6 +1626,14 @@ if (
                     payment_status:
                         paymentStatus,
 
+                    advance_paid_at:
+                    (
+                        paymentStatus === "paid" &&
+                        advanceAmount > 0
+                            )
+                        ? now
+                        : null,
+
                     notes:
                         notes,
 
@@ -1641,50 +1649,72 @@ if (
                 };
 
 
-if (editingBookingId) {
-
-    await updateDoc(
-
-        doc(
-            window.db,
-            "bookings",
+const existingBooking =
+    bookings.find(
+        item =>
+            item.id ===
             editingBookingId
-        ),
-
-        {
-            ...bookingData,
-
-            /*
-               Existing booking ka
-               original status preserve karo.
-            */
-
-            status:
-                bookings.find(
-                    item =>
-                        item.id ===
-                        editingBookingId
-                )?.status ||
-                "confirmed",
-
-            /*
-               Original creation date
-               overwrite nahi karni.
-            */
-
-            created_at:
-                bookings.find(
-                    item =>
-                        item.id ===
-                        editingBookingId
-                )?.created_at ||
-                now,
-
-            updated_at:
-                now
-        }
-
     );
+
+let advancePaidAt = null;
+
+/*
+   Advance ab bhi PAID hai aur amount > 0 hai.
+*/
+if (
+    paymentStatus === "paid" &&
+    advanceAmount > 0
+) {
+
+    /*
+       Pehle se paid tha to original
+       receive time preserve karo.
+
+       Agar abhi pehli baar Paid kiya hai
+       to current time save karo.
+    */
+    advancePaidAt =
+        existingBooking?.advance_paid_at ||
+        now;
+}
+
+
+await updateDoc(
+
+    doc(
+        window.db,
+        "bookings",
+        editingBookingId
+    ),
+
+    {
+        ...bookingData,
+
+        // Advance ka original payment time preserve
+        advance_paid_at:
+            advancePaidAt,
+
+        /*
+           Existing booking ka
+           original status preserve karo.
+        */
+        status:
+            existingBooking?.status ||
+            "confirmed",
+
+        /*
+           Original creation date
+           overwrite nahi karni.
+        */
+        created_at:
+            existingBooking?.created_at ||
+            now,
+
+        updated_at:
+            now
+    }
+
+);
 
 
     console.log(
@@ -2317,6 +2347,9 @@ function(
 
         payment_status:
             booking.payment_status || "unpaid",
+
+        advance_paid_at:
+    booking.advance_paid_at || null,
 
         branch:
             booking.branch || BRANCH
