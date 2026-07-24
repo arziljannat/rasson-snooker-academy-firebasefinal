@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bookings - Rasson Snooker Academy</title>
+
+    <!-- EXISTING NAVBAR -->
+    <link rel="stylesheet" href="../styles/navbar.css">
+
+    <!-- BOOKING PAGE CSS - NEXT STEP MEIN BANAYENGE -->
+    <link rel="stylesheet" href="../styles/bookings.css">
+
+    <!-- EXISTING NAVBAR LOADER -->
+    <script type="module" src="../scripts/load-navbar.js"></script>
+</head>
+
+<body>
+
+    <!-- Navbar yahan existing load-navbar.js se load hoga -->
+    <div id="navbar-container"></div>
+
+
+    <!-- ================================
+         BOOKING PAGE
+    ================================= -->
+
+    <main class="booking-page">
+
+        <!-- HEADER -->
+        <div class="booking-header">
+
+            <div>
+                <h1>Pre Bookings</h1>
+
+                <p id="bookingBranchName">
+                    Current Branch
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="newBookingBtn"
+                class="new-booking-btn"
+            >
+                + New Booking
+            </button>
+
+        </div>
+
+
+        <!-- ================================
+             FILTERS
+        ================================= -->
+
+        <div class="booking-filters">
+
+            <div class="filter-box">
+                <label for="bookingDateFilter">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    id="bookingDateFilter"
+                >
+            </div>
+
+
+            <div class="filter-box">
+
+                <label for="bookingStatusFilter">
+                    Status
+                </label>
+
+                <select id="bookingStatusFilter">
+
+                    <option value="all">
+                        All Bookings
+                    </option>
+
+                    <option value="confirmed">
+                        Confirmed
+                    </option>
+
+                    <option value="arrived">
+                        Arrived
+                    </option>
+
+                    <option value="completed">
+                        Completed
+                    </option>
+
+                    <option value="cancelled">
+                        Cancelled
+                    </option>
+
+                    <option value="no_show">
+                        No Show
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="filter-box search-box">
+
+                <label for="bookingSearch">
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    id="bookingSearch"
+                    placeholder="Customer, phone, table..."
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================
+             SUMMARY CARDS
+        ================================= -->
+
+        <div class="booking-summary">
+
+            <div class="booking-summary-card">
+
+                <span>
+                    Today's Bookings
+                </span>
+
+                <strong id="todayBookingCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="booking-summary-card">
+
+                <span>
+                    Confirmed
+                </span>
+
+                <strong id="confirmedBookingCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="booking-summary-card">
+
+                <span>
+                    Advance Received
+                </span>
+
+                <strong id="bookingAdvanceTotal">
+                    Rs. 0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================
+             BOOKINGS TABLE
+        ================================= -->
+
+        <div class="booking-list-box">
+
+            <table class="booking-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Time</th>
+
+                        <th>Customer</th>
+
+                        <th>Phone</th>
+
+                        <th>Type</th>
+
+                        <th>Table / Room / Pool</th>
+
+                        <th>Advance</th>
+
+                        <th>Status</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <!-- bookings.js baad mein rows yahan dalega -->
+
+                <tbody id="bookingsTableBody">
+
+                </tbody>
+
+            </table>
+
+
+            <div
+                id="noBookingsMessage"
+                class="no-bookings-message"
+            >
+                No bookings found.
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- ========================================
+         NEW BOOKING POPUP
+    ========================================= -->
+
+    <div
+        id="bookingModal"
+        class="booking-modal hidden"
+    >
+
+        <div class="booking-modal-content">
+
+
+            <!-- POPUP HEADER -->
+
+            <div class="booking-modal-header">
+
+                <h2 id="bookingModalTitle">
+                    New Booking
+                </h2>
+
+                <button
+                    type="button"
+                    id="closeBookingModalBtn"
+                    class="booking-modal-close"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================
+                 BOOKING FORM
+            ================================== -->
+
+            <form id="bookingForm">
+
+
+                <div class="booking-form-grid">
+
+
+                    <!-- CUSTOMER NAME -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingCustomerName">
+                            Customer Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="bookingCustomerName"
+                            maxlength="80"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- PHONE -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingCustomerPhone">
+                            Mobile Number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="bookingCustomerPhone"
+                            maxlength="20"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- DATE -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingDate">
+                            Booking Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="bookingDate"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- START TIME -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingStartTime">
+                            Start Time
+                        </label>
+
+                        <input
+                            type="time"
+                            id="bookingStartTime"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- END TIME -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingEndTime">
+                            End Time
+                        </label>
+
+                        <input
+                            type="time"
+                            id="bookingEndTime"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- RESOURCE TYPE -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingResourceType">
+                            Type
+                        </label>
+
+                        <select
+                            id="bookingResourceType"
+                            required
+                        >
+
+                            <option value="">
+                                Select Type
+                            </option>
+
+                            <option value="table">
+                                Table
+                            </option>
+
+                            <option value="room">
+                                Room
+                            </option>
+
+                            <option value="pool">
+                                Pool
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- TABLE / ROOM / POOL -->
+
+                    <div class="booking-field booking-field-full">
+
+                        <label for="bookingResource">
+                            Table / Room / Pool
+                        </label>
+
+                        <select
+                            id="bookingResource"
+                            required
+                            disabled
+                        >
+
+                            <option value="">
+                                Select Type First
+                            </option>
+
+                        </select>
+
+                        <small>
+                            Only items available in the current branch will appear here.
+                        </small>
+
+                    </div>
+
+
+
+                    <!-- ADVANCE -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingAdvance">
+                            Advance Amount
+                        </label>
+
+                        <input
+                            type="number"
+                            id="bookingAdvance"
+                            min="0"
+                            value="0"
+                        >
+
+                    </div>
+
+
+
+                    <!-- PAYMENT STATUS -->
+
+                    <div class="booking-field">
+
+                        <label for="bookingPaymentStatus">
+                            Advance Status
+                        </label>
+
+                        <select id="bookingPaymentStatus">
+
+                            <option value="unpaid">
+                                Unpaid
+                            </option>
+
+                            <option value="paid">
+                                Paid
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- NOTES -->
+
+                    <div class="booking-field booking-field-full">
+
+                        <label for="bookingNotes">
+                            Notes
+                        </label>
+
+                        <textarea
+                            id="bookingNotes"
+                            rows="3"
+                            maxlength="300"
+                            placeholder="Optional booking notes..."
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ERROR -->
+
+                <div
+                    id="bookingError"
+                    class="booking-error hidden"
+                >
+                </div>
+
+
+
+                <!-- BUTTONS -->
+
+                <div class="booking-form-buttons">
+
+                    <button
+                        type="button"
+                        id="cancelBookingBtn"
+                        class="booking-cancel-btn"
+                    >
+                        Cancel
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        id="saveBookingBtn"
+                        class="booking-save-btn"
+                    >
+                        Confirm Booking
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- bookings.js ABHI NAHI LAGANA -->
+
+</body>
+
+</html>
