@@ -340,16 +340,31 @@
 
     <div class="simple-time-row">
 
-        <input
-            type="text"
-            id="bookingStartDisplay"
-            class="simple-time-input"
-            placeholder="04:00"
-            maxlength="5"
-            inputmode="numeric"
-            autocomplete="off"
-            required
-        >
+<div class="time-number-boxes">
+
+    <input
+        type="number"
+        id="bookingStartHour"
+        class="time-number-input"
+        min="1"
+        max="12"
+        placeholder="04"
+        required
+    >
+
+    <span class="time-separator">:</span>
+
+    <input
+        type="number"
+        id="bookingStartMinute"
+        class="time-number-input"
+        min="0"
+        max="59"
+        placeholder="00"
+        required
+    >
+
+</div>
 
         <button
             type="button"
@@ -392,16 +407,31 @@
 
     <div class="simple-time-row">
 
-        <input
-            type="text"
-            id="bookingEndDisplay"
-            class="simple-time-input"
-            placeholder="05:00"
-            maxlength="5"
-            inputmode="numeric"
-            autocomplete="off"
-            required
-        >
+<div class="time-number-boxes">
+
+    <input
+        type="number"
+        id="bookingEndHour"
+        class="time-number-input"
+        min="1"
+        max="12"
+        placeholder="05"
+        required
+    >
+
+    <span class="time-separator">:</span>
+
+    <input
+        type="number"
+        id="bookingEndMinute"
+        class="time-number-input"
+        min="0"
+        max="59"
+        placeholder="00"
+        required
+    >
+
+</div>
 
         <button
             type="button"
