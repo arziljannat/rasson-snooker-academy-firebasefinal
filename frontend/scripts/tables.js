@@ -1255,6 +1255,74 @@ t.discount || 0;
 let gameAmount =
 originalAmount - discount;
 
+  // ==============================================
+// 🔥 BOOKING ADVANCE - BILL DISPLAY
+// ==============================================
+
+let bookingAdvance = 0;
+
+try {
+
+    const q = query(
+        collection(window.db, "sessions"),
+        where("table_id", "==", t.name),
+        where("branch", "==", BRANCH),
+        where("is_deleted", "==", false)
+    );
+
+    const snap = await getDocs(q);
+
+    let latestSession = null;
+    let latestTime = 0;
+
+    snap.forEach(d => {
+
+        const s = d.data();
+
+        if (!s.end_time) return;
+
+        const endTime =
+            new Date(s.end_time).getTime();
+
+        if (endTime > latestTime) {
+            latestTime = endTime;
+            latestSession = s;
+        }
+
+    });
+
+    if (
+        latestSession &&
+        latestSession.booking_id
+    ) {
+
+        bookingAdvance =
+            Number(
+                latestSession.booking_advance || 0
+            );
+
+    }
+
+}
+catch (error) {
+
+    console.error(
+        "BOOKING ADVANCE READ ERROR:",
+        error
+    );
+
+    bookingAdvance = 0;
+}
+
+let billTotal =
+    gameAmount + canteenTotal;
+
+let remainingAmount =
+    Math.max(
+        0,
+        billTotal - bookingAdvance
+    );
+
     bill.innerHTML = `
 <div style="width:300px; margin:auto; font-family:monospace; color:#000; background:#fff; padding:15px; border-radius:10px;">
 
@@ -1296,14 +1364,26 @@ originalAmount - discount;
 
     <hr>
 
-    <div style="display:flex; justify-content:space-between;">
-        <b>Total</b>
-        <b>Rs ${gameAmount + canteenTotal}</b>
-    </div>
+<div style="display:flex; justify-content:space-between;">
+    <b>Total Bill</b>
+    <b>Rs ${billTotal}</b>
+</div>
 
-    <hr>
+${bookingAdvance > 0 ? `
+<div style="display:flex; justify-content:space-between;">
+    <span>Advance Paid</span>
+    <span>Rs ${bookingAdvance}</span>
+</div>
 
-    <hr>
+<hr>
+
+<div style="display:flex; justify-content:space-between; font-size:18px;">
+    <b>Remaining</b>
+    <b>Rs ${remainingAmount}</b>
+</div>
+` : ""}
+
+<hr>
 
 <center>
     <img src="../assets/QR-bill.png" style="width:100px;">
@@ -1423,35 +1503,88 @@ if (latestSession) {
     const paidNow =
         new Date().toISOString();
 
+
+      // ==============================================
+    // BOOKING ADVANCE PAYMENT CALCULATION
+    // ==============================================
+
+    const bookingAdvance =
+        latestSession.booking_id
+            ? Number(latestSession.booking_advance || 0)
+            : 0;
+
+    const gameAfterDiscount =
+        Math.max(
+            0,
+            Number(t.finalAmount || 0)
+            - Number(t.discount || 0)
+        );
+
+    const canteenAmount =
+        Number(t.canteenTotal || 0);
+
+    const totalBillAmount =
+        gameAfterDiscount + canteenAmount;
+
+    const remainingPayment =
+        Math.max(
+            0,
+            totalBillAmount - bookingAdvance
+        );
+
+    console.log("💰 PAYMENT CALCULATION:", {
+        gameAfterDiscount,
+        canteenAmount,
+        totalBillAmount,
+        bookingAdvance,
+        remainingPayment
+    });
+
     // ==============================================
     // EXISTING SESSION PAYMENT
     // ==============================================
 
-    await updateDoc(
-        doc(
-            window.db,
-            "sessions",
-            latestSession.id
-        ),
-        {
-            paid: true,
-            paid_time: paidNow,
+await updateDoc(
+    doc(
+        window.db,
+        "sessions",
+        latestSession.id
+    ),
+    {
+        paid: true,
+        paid_time: paidNow,
 
-            discount:
-                t.discount || 0,
+        // GAME
+        discount:
+            Number(t.discount || 0),
 
-            original_game_amount:
-                t.finalAmount || 0,
+        original_game_amount:
+            Number(t.finalAmount || 0),
 
-            final_game_amount:
-                (t.finalAmount || 0)
-                - (t.discount || 0),
+        final_game_amount:
+            gameAfterDiscount,
 
-            final_amount:
-                (t.finalAmount || 0)
-                - (t.discount || 0)
-        }
-    );
+        // CANTEEN
+        canteen_amount:
+            canteenAmount,
+
+        // FULL BILL BEFORE ADVANCE
+        total_bill_amount:
+            totalBillAmount,
+
+        // BOOKING ADVANCE
+        booking_advance:
+            bookingAdvance,
+
+        // CUSTOMER SE AB RECEIVE HUA
+        remaining_payment:
+            remainingPayment,
+
+        // ACTUAL PAYMENT AT PAID BUTTON
+        final_amount:
+            remainingPayment
+    }
+);
 
 
     // ==============================================
@@ -2818,16 +2951,60 @@ discount += d;
               }
             }
 
-            // =========================
-            // 🔥 COLLECTION (paidTime based)
-            // =========================
-            if (h.paid && h.paidTime) {
-        if (h.paidTime >= (startTime - 1000) && h.paidTime <= endTime) {
+// =========================
+// 🔥 COLLECTION (paidTime based)
+// =========================
+if (h.paid && h.paidTime) {
 
-       gameCollection += finalGame;
-        canteenCollection += c;
+    if (
+        h.paidTime >= (startTime - 1000) &&
+        h.paidTime <= endTime
+    ) {
+
+        // ==========================================
+        // BOOKING SESSION
+        // Advance pehle receive ho chuka hai.
+        // Paid button par sirf remaining collect hoga.
+        // ==========================================
+        if (h.fromBooking) {
+
+            const remaining =
+                Number(h.remainingPayment || 0);
+
+            /*
+             * Existing reports gameCollection +
+             * canteenCollection ko separately use karte hain.
+             *
+             * Remaining ko game se pehle adjust karenge,
+             * phir jo amount bache woh canteen collection.
+             */
+
+            const gameAfterAdvance =
+                Math.max(
+                    0,
+                    remaining - c
+                );
+
+            const canteenPaid =
+                Math.min(
+                    c,
+                    remaining
+                );
+
+            gameCollection += gameAfterAdvance;
+            canteenCollection += canteenPaid;
+
+        } else {
+
+            // ======================================
+            // NORMAL NON-BOOKING SESSION
+            // Existing logic exactly same
+            // ======================================
+            gameCollection += finalGame;
+            canteenCollection += c;
         }
-      }
+    }
+}
 
         });
     });
@@ -4450,13 +4627,45 @@ s.final_amount ||
 
             canteenAmount: s.canteen_total || 0,
 
-            total: (s.final_amount || 0) + (s.canteen_total || 0),
+            total:
+    Number(
+        s.total_bill_amount ??
+        (
+            Number(s.final_game_amount || s.final_amount || 0)
+            +
+            Number(s.canteen_total || 0)
+        )
+    ),
 
             paid: s.paid === true,
 
             paidTime: s.paid_time
                 ? new Date(s.paid_time).getTime()
                 : null,
+
+          bookingAdvance:
+    Number(s.booking_advance || 0),
+
+remainingPayment:
+    Number(
+        s.remaining_payment ??
+        s.final_amount ??
+        0
+    ),
+
+totalBillAmount:
+    Number(
+        s.total_bill_amount ??
+        (
+            Number(s.final_game_amount || s.final_amount || 0)
+            +
+            Number(s.canteen_total || 0)
+        )
+    ),
+
+fromBooking:
+    s.from_booking === true ||
+    !!s.booking_id,
 
 rate:
     s.selected_rate ||
@@ -4532,15 +4741,45 @@ s.final_amount ||
 
             canteenAmount: s.canteen_total || 0,
 
-            total:
-                (s.final_amount || 0)
-                + (s.canteen_total || 0),
+total:
+    Number(
+        s.total_bill_amount ??
+        (
+            Number(s.final_game_amount || s.final_amount || 0)
+            +
+            Number(s.canteen_total || 0)
+        )
+    ),
 
             paid: s.paid === true,
 
             paidTime: s.paid_time
                 ? new Date(s.paid_time).getTime()
                 : null,
+
+          bookingAdvance:
+    Number(s.booking_advance || 0),
+
+remainingPayment:
+    Number(
+        s.remaining_payment ??
+        s.final_amount ??
+        0
+    ),
+
+totalBillAmount:
+    Number(
+        s.total_bill_amount ??
+        (
+            Number(s.final_game_amount || s.final_amount || 0)
+            +
+            Number(s.canteen_total || 0)
+        )
+    ),
+
+fromBooking:
+    s.from_booking === true ||
+    !!s.booking_id,
 
 rate:
     s.selected_rate ||
