@@ -2223,6 +2223,125 @@ async function(
 
 };
 
+
+/* =========================================================
+   PROCEED BOOKING TO TABLE / ROOM / POOL
+   ========================================================= */
+
+window.proceedBooking =
+function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+
+    if (!booking) {
+
+        alert(
+            "Booking not found."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       SAFETY:
+       Sirf Arrived booking
+       proceed ho sakti hai.
+    */
+
+    if (
+        booking.status !== "arrived"
+    ) {
+
+        alert(
+            "Customer must be marked Arrived first."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        !booking.resource_id
+    ) {
+
+        alert(
+            "Booked Table / Room / Pool not found."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Booking ki information temporarily
+       browser mein save karenge.
+
+       Tables page isko read karega.
+    */
+
+    const proceedData = {
+
+        booking_id:
+            booking.id,
+
+        resource_id:
+            booking.resource_id,
+
+        resource_name:
+            booking.resource_name || "",
+
+        resource_type:
+            booking.resource_type || "",
+
+        customer_name:
+            booking.customer_name || "",
+
+        customer_phone:
+            booking.customer_phone || "",
+
+        advance_amount:
+            Number(
+                booking.advance_amount || 0
+            ),
+
+        payment_status:
+            booking.payment_status || "unpaid",
+
+        branch:
+            booking.branch || BRANCH
+
+    };
+
+
+    localStorage.setItem(
+        "pendingBookingProceed",
+        JSON.stringify(
+            proceedData
+        )
+    );
+
+
+    /*
+       Existing Tables page par jao.
+       Abhi session create NAHI ho raha.
+    */
+
+    window.location.href =
+        "../html/tables.html";
+
+};
+
 /* =========================================================
    CANCEL BOOKING
    ========================================================= */
@@ -2794,6 +2913,21 @@ ${
             onclick="markBookingArrived('${booking.id}')"
         >
             Arrived
+        </button>
+    `
+    : ""
+}
+
+
+${
+    booking.status === "arrived"
+    ? `
+        <button
+            type="button"
+            class="booking-action-btn proceed"
+            onclick="proceedBooking('${booking.id}')"
+        >
+            Proceed
         </button>
     `
     : ""
