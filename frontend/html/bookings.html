@@ -334,15 +334,49 @@
 
 <div class="booking-field">
 
-    <label for="bookingStartTime">
+    <label for="bookingStartDisplay">
         Start Time
     </label>
 
-    <input
-        type="time"
-        id="bookingStartTime"
-        required
-    >
+    <div class="simple-time-row">
+
+        <input
+            type="text"
+            id="bookingStartDisplay"
+            class="simple-time-input"
+            placeholder="04:00"
+            maxlength="5"
+            inputmode="numeric"
+            autocomplete="off"
+            required
+        >
+
+        <button
+            type="button"
+            class="time-icon-btn active"
+            data-time-target="start"
+            data-period="AM"
+            title="Day / AM"
+        >
+            ☀
+        </button>
+
+        <button
+            type="button"
+            class="time-icon-btn"
+            data-time-target="start"
+            data-period="PM"
+            title="Night / PM"
+        >
+            ☾
+        </button>
+
+        <input
+            type="hidden"
+            id="bookingStartTime"
+        >
+
+    </div>
 
 </div>
 
@@ -352,15 +386,49 @@
 
 <div class="booking-field">
 
-    <label for="bookingEndTime">
+    <label for="bookingEndDisplay">
         End Time
     </label>
 
-    <input
-        type="time"
-        id="bookingEndTime"
-        required
-    >
+    <div class="simple-time-row">
+
+        <input
+            type="text"
+            id="bookingEndDisplay"
+            class="simple-time-input"
+            placeholder="05:00"
+            maxlength="5"
+            inputmode="numeric"
+            autocomplete="off"
+            required
+        >
+
+        <button
+            type="button"
+            class="time-icon-btn active"
+            data-time-target="end"
+            data-period="AM"
+            title="Day / AM"
+        >
+            ☀
+        </button>
+
+        <button
+            type="button"
+            class="time-icon-btn"
+            data-time-target="end"
+            data-period="PM"
+            title="Night / PM"
+        >
+            ☾
+        </button>
+
+        <input
+            type="hidden"
+            id="bookingEndTime"
+        >
+
+    </div>
 
 </div>
 
