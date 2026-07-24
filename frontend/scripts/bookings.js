@@ -2515,15 +2515,30 @@ function renderBookings() {
 
             row.innerHTML = `
 
-                <td>
-                    ${formatBookingTime(
-                        booking.start_time
-                    )}
-                    -
-                    ${formatBookingTime(
-                        booking.end_time
-                    )}
-                </td>
+<td>
+    ${formatBookingTime(
+        booking.start_time
+    )}
+    →
+    ${formatBookingTime(
+        booking.end_time
+    )}
+
+    ${
+        (
+            booking.end_date ||
+            booking.date
+        ) !==
+        (
+            booking.start_date ||
+            booking.date
+        )
+            ? `<span class="booking-next-day">
+                   (Next Day)
+               </span>`
+            : ""
+    }
+</td>
 
 
                 <td>
