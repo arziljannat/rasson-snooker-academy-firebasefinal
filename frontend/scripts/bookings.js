@@ -740,6 +740,8 @@ function loadBookings() {
                 bookings
             );
 
+            renderBookings();
+
         },
 
         error => {
@@ -1250,6 +1252,579 @@ if (bookingForm) {
     );
 
 }
+
+/* =========================================================
+   RENDER BOOKINGS
+   ========================================================= */
+
+function renderBookings() {
+
+    const tableBody =
+        document.getElementById(
+            "bookingsTableBody"
+        );
+
+    const noBookings =
+        document.getElementById(
+            "noBookingsMessage"
+        );
+
+    if (!tableBody) return;
+
+
+    /* =========================
+       FILTER VALUES
+       ========================= */
+
+    const selectedDate =
+        document.getElementById(
+            "bookingDateFilter"
+        )?.value || "";
+
+
+    const selectedStatus =
+        document.getElementById(
+            "bookingStatusFilter"
+        )?.value || "all";
+
+
+    const searchText =
+        (
+            document.getElementById(
+                "bookingSearch"
+            )?.value || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+
+    /* =========================
+       FILTER BOOKINGS
+       ========================= */
+
+    let filteredBookings =
+        bookings.filter(
+            booking => {
+
+                if (
+                    selectedDate &&
+                    booking.date !== selectedDate
+                ) {
+
+                    return false;
+
+                }
+
+
+                if (
+                    selectedStatus !== "all" &&
+                    booking.status !== selectedStatus
+                ) {
+
+                    return false;
+
+                }
+
+
+                if (searchText) {
+
+                    const searchData = [
+
+                        booking.customer_name || "",
+
+                        booking.customer_phone || "",
+
+                        booking.resource_name || "",
+
+                        booking.resource_type || ""
+
+                    ]
+                    .join(" ")
+                    .toLowerCase();
+
+
+                    if (
+                        !searchData.includes(
+                            searchText
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+
+
+    /* =========================
+       SORT BY START TIME
+       ========================= */
+
+    filteredBookings.sort(
+        (a, b) => {
+
+            return (
+                (a.start_time || "")
+                .localeCompare(
+                    b.start_time || ""
+                )
+            );
+
+        }
+    );
+
+
+
+    /* =========================
+       CLEAR OLD ROWS
+       ========================= */
+
+    tableBody.innerHTML = "";
+
+
+
+    /* =========================
+       NO BOOKINGS
+       ========================= */
+
+    if (
+        filteredBookings.length === 0
+    ) {
+
+        if (noBookings) {
+            noBookings.style.display =
+                "block";
+        }
+
+    }
+
+    else {
+
+        if (noBookings) {
+            noBookings.style.display =
+                "none";
+        }
+
+    }
+
+
+
+    /* =========================
+       CREATE ROWS
+       ========================= */
+
+    filteredBookings.forEach(
+        booking => {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${formatBookingTime(
+                        booking.start_time
+                    )}
+                    -
+                    ${formatBookingTime(
+                        booking.end_time
+                    )}
+                </td>
+
+
+                <td>
+                    ${escapeBookingText(
+                        booking.customer_name
+                    )}
+                </td>
+
+
+                <td>
+                    ${escapeBookingText(
+                        booking.customer_phone
+                    )}
+                </td>
+
+
+                <td>
+                    ${getTypeLabel(
+                        booking.resource_type
+                    )}
+                </td>
+
+
+                <td>
+                    ${escapeBookingText(
+                        booking.resource_name
+                    )}
+                </td>
+
+
+                <td>
+                    Rs.
+                    ${Number(
+                        booking.advance_amount || 0
+                    ).toLocaleString()}
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="booking-status
+                        ${getBookingStatusClass(
+                            booking.status
+                        )}"
+                    >
+
+                        ${getBookingStatusLabel(
+                            booking.status
+                        )}
+
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="booking-action-btn edit"
+                        disabled
+                        title="Edit will be added next"
+                    >
+                        Edit
+                    </button>
+
+                </td>
+
+            `;
+
+
+            tableBody.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    updateBookingSummary();
+
+}
+
+
+/* =========================================================
+   BOOKING SUMMARY
+   ========================================================= */
+
+function updateBookingSummary() {
+
+    const today =
+        getLocalDateString(
+            new Date()
+        );
+
+
+    const todayBookings =
+        bookings.filter(
+            booking =>
+
+                booking.date === today &&
+
+                booking.status !==
+                    "cancelled"
+
+        );
+
+
+    const confirmed =
+        todayBookings.filter(
+            booking =>
+                booking.status ===
+                "confirmed"
+        );
+
+
+    const advanceTotal =
+        todayBookings.reduce(
+            (total, booking) => {
+
+                /*
+                   Only count advance
+                   marked as PAID.
+                */
+
+                if (
+                    booking.payment_status ===
+                    "paid"
+                ) {
+
+                    return (
+                        total +
+                        Number(
+                            booking.advance_amount ||
+                            0
+                        )
+                    );
+
+                }
+
+                return total;
+
+            },
+
+            0
+        );
+
+
+    const totalEl =
+        document.getElementById(
+            "todayBookingCount"
+        );
+
+
+    const confirmedEl =
+        document.getElementById(
+            "confirmedBookingCount"
+        );
+
+
+    const advanceEl =
+        document.getElementById(
+            "bookingAdvanceTotal"
+        );
+
+
+    if (totalEl) {
+
+        totalEl.innerText =
+            todayBookings.length;
+
+    }
+
+
+    if (confirmedEl) {
+
+        confirmedEl.innerText =
+            confirmed.length;
+
+    }
+
+
+    if (advanceEl) {
+
+        advanceEl.innerText =
+            "Rs. " +
+            advanceTotal.toLocaleString();
+
+    }
+
+}
+
+
+/* =========================================================
+   FORMAT BOOKING TIME
+   ========================================================= */
+
+function formatBookingTime(
+    time
+) {
+
+    if (!time) {
+        return "-";
+    }
+
+
+    const parts =
+        time.split(":");
+
+
+    let hour =
+        Number(parts[0]);
+
+
+    const minute =
+        parts[1] || "00";
+
+
+    const period =
+        hour >= 12
+            ? "PM"
+            : "AM";
+
+
+    hour =
+        hour % 12;
+
+
+    if (hour === 0) {
+        hour = 12;
+    }
+
+
+    return (
+        hour +
+        ":" +
+        minute +
+        " " +
+        period
+    );
+
+}
+
+
+/* =========================================================
+   BOOKING STATUS
+   ========================================================= */
+
+function getBookingStatusLabel(
+    status
+) {
+
+    if (
+        status === "no_show"
+    ) {
+
+        return "No Show";
+
+    }
+
+
+    if (
+        status === "arrived"
+    ) {
+
+        return "Arrived";
+
+    }
+
+
+    if (
+        status === "completed"
+    ) {
+
+        return "Completed";
+
+    }
+
+
+    if (
+        status === "cancelled"
+    ) {
+
+        return "Cancelled";
+
+    }
+
+
+    return "Confirmed";
+
+}
+
+
+function getBookingStatusClass(
+    status
+) {
+
+    if (
+        status === "no_show"
+    ) {
+
+        return "no-show";
+
+    }
+
+
+    return status || "confirmed";
+
+}
+
+
+/* =========================================================
+   SAFE TEXT
+   ========================================================= */
+
+function escapeBookingText(
+    value
+) {
+
+    return String(
+        value || "-"
+    )
+
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   BOOKING FILTER EVENTS
+   ========================================================= */
+
+document
+    .getElementById(
+        "bookingDateFilter"
+    )
+    ?.addEventListener(
+        "change",
+        renderBookings
+    );
+
+
+document
+    .getElementById(
+        "bookingStatusFilter"
+    )
+    ?.addEventListener(
+        "change",
+        renderBookings
+    );
+
+
+document
+    .getElementById(
+        "bookingSearch"
+    )
+    ?.addEventListener(
+        "input",
+        renderBookings
+    );
 
 
 /* =========================================================
