@@ -3,9 +3,10 @@ import {
     query,
     where,
     onSnapshot,
-    addDoc
+    addDoc,
+    updateDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 
 /* =========================================================
    CURRENT BRANCH
@@ -1254,6 +1255,145 @@ if (bookingForm) {
 }
 
 /* =========================================================
+   CANCEL BOOKING
+   ========================================================= */
+
+window.cancelBooking =
+async function(
+    bookingId
+) {
+
+    const booking =
+        bookings.find(
+            item =>
+                item.id === bookingId
+        );
+
+
+    if (!booking) {
+
+        alert(
+            "Booking not found."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        booking.status ===
+        "cancelled"
+    ) {
+
+        alert(
+            "This booking is already cancelled."
+        );
+
+        return;
+
+    }
+
+
+    const customerName =
+        booking.customer_name ||
+        "Customer";
+
+
+    const resourceName =
+        booking.resource_name ||
+        getTypeLabel(
+            booking.resource_type
+        );
+
+
+    const confirmed =
+        confirm(
+
+            "Cancel this booking?\n\n" +
+
+            "Customer: " +
+            customerName +
+            "\n" +
+
+            "Resource: " +
+            resourceName +
+            "\n" +
+
+            "Time: " +
+            formatBookingTime(
+                booking.start_time
+            ) +
+            " - " +
+            formatBookingTime(
+                booking.end_time
+            )
+
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await updateDoc(
+
+            doc(
+                window.db,
+                "bookings",
+                bookingId
+            ),
+
+            {
+
+                status:
+                    "cancelled",
+
+                cancelled_at:
+                    new Date()
+                    .toISOString(),
+
+                updated_at:
+                    new Date()
+                    .toISOString()
+
+            }
+
+        );
+
+
+        console.log(
+            "BOOKING CANCELLED:",
+            bookingId
+        );
+
+
+        alert(
+            "Booking cancelled successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "BOOKING CANCEL ERROR:",
+            error
+        );
+
+
+        alert(
+            "Booking could not be cancelled."
+        );
+
+    }
+
+};
+
+/* =========================================================
    RENDER BOOKINGS
    ========================================================= */
 
@@ -1497,18 +1637,35 @@ function renderBookings() {
                 </td>
 
 
-                <td>
+<td>
 
-                    <button
-                        type="button"
-                        class="booking-action-btn edit"
-                        disabled
-                        title="Edit will be added next"
-                    >
-                        Edit
-                    </button>
+    <button
+        type="button"
+        class="booking-action-btn edit"
+        disabled
+        title="Edit will be added next"
+    >
+        Edit
+    </button>
 
-                </td>
+
+    ${
+        booking.status !== "cancelled"
+        &&
+        booking.status !== "completed"
+        ? `
+            <button
+                type="button"
+                class="booking-action-btn cancel"
+                onclick="cancelBooking('${booking.id}')"
+            >
+                Cancel
+            </button>
+        `
+        : ""
+    }
+
+</td>
 
             `;
 
