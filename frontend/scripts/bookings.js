@@ -109,13 +109,72 @@ function setDefaultDates() {
             "bookingDate"
         );
 
+    const bookingEndDate =
+        document.getElementById(
+            "bookingEndDate"
+        );
+
+
     if (filter) {
         filter.value = today;
     }
 
+
     if (bookingDate) {
+
         bookingDate.value = today;
         bookingDate.min = today;
+
+    }
+
+
+    if (bookingEndDate) {
+
+        bookingEndDate.value = today;
+        bookingEndDate.min = today;
+
+    }
+
+
+    /*
+       Start Date change ho to
+       End Date automatically same date ho.
+
+       Example:
+       Start = 24 July
+       End automatically = 24 July
+
+       Overnight booking ho to user
+       End Date ko 25 July select kar sakta hai.
+    */
+
+    if (
+        bookingDate &&
+        bookingEndDate
+    ) {
+
+        bookingDate.addEventListener(
+            "change",
+            () => {
+
+                bookingEndDate.min =
+                    bookingDate.value;
+
+
+                if (
+                    !bookingEndDate.value ||
+                    bookingEndDate.value <
+                    bookingDate.value
+                ) {
+
+                    bookingEndDate.value =
+                        bookingDate.value;
+
+                }
+
+            }
+        );
+
     }
 
 }
@@ -275,23 +334,86 @@ if (saveButton) {
         form.reset();
     }
 
+    /* =========================
+   RESET CUSTOM TIME PICKER
+   ========================= */
 
-    const bookingDate =
-        document.getElementById(
-            "bookingDate"
-        );
+bookingTimePeriod.start = "AM";
+bookingTimePeriod.end = "AM";
 
-    if (bookingDate) {
 
-        const today =
-            getLocalDateString(
-                new Date()
-            );
+/* Start + End ke SUN ko active karo */
 
-        bookingDate.value = today;
-        bookingDate.min = today;
+document.querySelectorAll(
+    ".time-icon-btn"
+)
+.forEach(button => {
 
-    }
+    const isDay =
+        button.dataset.period === "AM";
+
+    button.classList.toggle(
+        "active",
+        isDay
+    );
+
+});
+
+
+/* Hidden final time clear karo */
+
+const startHidden =
+    document.getElementById(
+        "bookingStartTime"
+    );
+
+const endHidden =
+    document.getElementById(
+        "bookingEndTime"
+    );
+
+
+if (startHidden) {
+    startHidden.value = "";
+}
+
+
+if (endHidden) {
+    endHidden.value = "";
+}
+
+
+const bookingDate =
+    document.getElementById(
+        "bookingDate"
+    );
+
+const bookingEndDate =
+    document.getElementById(
+        "bookingEndDate"
+    );
+
+
+const today =
+    getLocalDateString(
+        new Date()
+    );
+
+
+if (bookingDate) {
+
+    bookingDate.value = today;
+    bookingDate.min = today;
+
+}
+
+
+if (bookingEndDate) {
+
+    bookingEndDate.value = today;
+    bookingEndDate.min = today;
+
+}
 
 
     const advance =
@@ -790,84 +912,114 @@ function loadBookings() {
 
 function hasBookingConflict(
     resourceId,
-    bookingDate,
+    startDate,
+    endDate,
     startTime,
     endTime
 ) {
 
+    const newStart =
+        new Date(
+            startDate +
+            "T" +
+            startTime +
+            ":00"
+        );
+
+    const newEnd =
+        new Date(
+            endDate +
+            "T" +
+            endTime +
+            ":00"
+        );
+
+
     return bookings.some(
         booking => {
 
+            /* Editing mein apni booking ignore */
             if (
-    editingBookingId &&
-    booking.id === editingBookingId
-) {
-    return false;
-}
+                editingBookingId &&
+                booking.id === editingBookingId
+            ) {
+                return false;
+            }
 
-            /*
-               Cancelled / No Show booking
-               does not block the resource.
-            */
 
+            /* Cancelled / No Show block nahi karega */
             if (
                 booking.status === "cancelled" ||
                 booking.status === "no_show"
             ) {
-
                 return false;
+            }
 
+
+            /* Sirf same Table / Room / Pool */
+            if (
+                booking.resource_id !== resourceId
+            ) {
+                return false;
             }
 
 
             /*
-               Must be same date.
+               OLD BOOKINGS COMPATIBILITY:
+
+               Purani booking mein end_date nahi hai
+               to uski date ko hi end date samjho.
             */
 
+            const existingStartDate =
+                booking.start_date ||
+                booking.date;
+
+
+            const existingEndDate =
+                booking.end_date ||
+                booking.date;
+
+
             if (
-                booking.date !==
-                bookingDate
+                !existingStartDate ||
+                !existingEndDate ||
+                !booking.start_time ||
+                !booking.end_time
             ) {
-
                 return false;
-
             }
 
 
+            const existingStart =
+                new Date(
+                    existingStartDate +
+                    "T" +
+                    booking.start_time +
+                    ":00"
+                );
+
+
+            const existingEnd =
+                new Date(
+                    existingEndDate +
+                    "T" +
+                    booking.end_time +
+                    ":00"
+                );
+
+
             /*
-               Must be same Table / Room / Pool.
-            */
+               OVERLAP:
 
-            if (
-                booking.resource_id !==
-                resourceId
-            ) {
-
-                return false;
-
-            }
-
-
-            /*
-               Time overlap:
-
-               Existing: 8 PM - 10 PM
-               New:      9 PM - 11 PM
-
-               = BLOCKED
-
-               Existing: 8 PM - 10 PM
-               New:     10 PM - 11 PM
-
-               = ALLOWED
+               New Start < Existing End
+               AND
+               New End > Existing Start
             */
 
             return (
-                startTime <
-                    booking.end_time
-                &&
-                endTime >
-                    booking.start_time
+                newStart < existingEnd &&
+                newEnd > existingStart
             );
 
         }
@@ -883,7 +1035,8 @@ function hasBookingConflict(
 
 function findAvailableResource(
     type,
-    bookingDate,
+    startDate,
+    endDate,
     startTime,
     endTime
 ) {
@@ -900,7 +1053,8 @@ function findAvailableResource(
 
             !hasBookingConflict(
                 resource.firestoreId,
-                bookingDate,
+                startDate,
+                endDate,
                 startTime,
                 endTime
             )
@@ -1187,22 +1341,33 @@ if (bookingForm) {
                 ).value.trim();
 
 
-            const bookingDate =
-                document.getElementById(
-                    "bookingDate"
-                ).value;
+const bookingDate =
+    document.getElementById(
+        "bookingDate"
+    ).value;
 
 
-            const startTime =
-                document.getElementById(
-                    "bookingStartTime"
-                ).value;
+const bookingEndDate =
+    document.getElementById(
+        "bookingEndDate"
+    ).value;
 
 
-            const endTime =
-                document.getElementById(
-                    "bookingEndTime"
-                ).value;
+/*
+   Hour + Minute + Day/Night
+   se final 24-hour time
+*/
+
+const startTime =
+    buildBookingTime(
+        "start"
+    );
+
+
+const endTime =
+    buildBookingTime(
+        "end"
+    );
 
 
             const resourceType =
@@ -1242,15 +1407,16 @@ if (bookingForm) {
                BASIC VALIDATION
                ========================= */
 
-            if (
-                !customerName ||
-                !customerPhone ||
-                !bookingDate ||
-                !startTime ||
-                !endTime ||
-                !resourceType ||
-                !selectedResource
-            ) {
+if (
+    !customerName ||
+    !customerPhone ||
+    !bookingDate ||
+    !bookingEndDate ||
+    !startTime ||
+    !endTime ||
+    !resourceType ||
+    !selectedResource
+) {
 
                 showBookingError(
                     "Please fill all required fields."
@@ -1261,18 +1427,35 @@ if (bookingForm) {
             }
 
 
-            if (
-                startTime >= endTime
-            ) {
+const startDateTime =
+    new Date(
+        bookingDate +
+        "T" +
+        startTime +
+        ":00"
+    );
 
-                showBookingError(
-                    "End time must be after start time."
-                );
 
-                return;
+const endDateTime =
+    new Date(
+        bookingEndDate +
+        "T" +
+        endTime +
+        ":00"
+    );
 
-            }
 
+if (
+    endDateTime <= startDateTime
+) {
+
+    showBookingError(
+        "End date/time must be after start date/time."
+    );
+
+    return;
+
+}
 
 
             /* =========================
@@ -1298,6 +1481,7 @@ if (bookingForm) {
                     findAvailableResource(
                         resourceType,
                         bookingDate,
+                        bookingEndDate,
                         startTime,
                         endTime
                     );
@@ -1352,6 +1536,7 @@ if (bookingForm) {
                     hasBookingConflict(
                         finalResource.firestoreId,
                         bookingDate,
+                        bookingEndDate,
                         startTime,
                         endTime
                     )
@@ -1410,6 +1595,12 @@ if (bookingForm) {
 
                     date:
                         bookingDate,
+
+                    start_date:
+                        bookingDate,
+
+                    end_date:
+                        bookingEndDate,
 
                     start_time:
                         startTime,
@@ -1573,6 +1764,115 @@ editingBookingId = null;
 }
 
 /* =========================================================
+   FILL CUSTOM TIME PICKER FOR EDIT
+   ========================================================= */
+
+function fillBookingTimePicker(
+    target,
+    time
+) {
+
+    if (!time) {
+        return;
+    }
+
+
+    const parts =
+        time.split(":");
+
+
+    let hour =
+        Number(parts[0]);
+
+    const minute =
+        parts[1] || "00";
+
+
+    const period =
+        hour >= 12
+            ? "PM"
+            : "AM";
+
+
+    /*
+       24-hour -> 12-hour
+
+       17:00 = 5:00 PM
+       07:00 = 7:00 AM
+       00:00 = 12:00 AM
+       12:00 = 12:00 PM
+    */
+
+    hour =
+        hour % 12;
+
+
+    if (hour === 0) {
+        hour = 12;
+    }
+
+
+    const hourInput =
+        document.getElementById(
+            target === "start"
+                ? "bookingStartHour"
+                : "bookingEndHour"
+        );
+
+
+    const minuteInput =
+        document.getElementById(
+            target === "start"
+                ? "bookingStartMinute"
+                : "bookingEndMinute"
+        );
+
+
+    if (hourInput) {
+        hourInput.value = hour;
+    }
+
+
+    if (minuteInput) {
+        minuteInput.value = minute;
+    }
+
+
+    bookingTimePeriod[target] =
+        period;
+
+
+    /*
+       Correct SUN / MOON
+       button active karo
+    */
+
+    document.querySelectorAll(
+        `.time-icon-btn[data-time-target="${target}"]`
+    )
+    .forEach(button => {
+
+        button.classList.toggle(
+            "active",
+            button.dataset.period === period
+        );
+
+    });
+
+
+    /*
+       Hidden 24-hour value
+       dobara build karo
+    */
+
+    buildBookingTime(
+        target
+    );
+
+}
+
+
+/* =========================================================
    EDIT BOOKING
    ========================================================= */
 
@@ -1665,22 +1965,37 @@ function(
         booking.customer_phone || "";
 
 
-    document.getElementById(
-        "bookingDate"
-    ).value =
-        booking.date || "";
+document.getElementById(
+    "bookingDate"
+).value =
+    booking.start_date ||
+    booking.date ||
+    "";
 
 
-    document.getElementById(
-        "bookingStartTime"
-    ).value =
-        booking.start_time || "";
+document.getElementById(
+    "bookingEndDate"
+).value =
+    booking.end_date ||
+    booking.date ||
+    "";
 
 
-    document.getElementById(
-        "bookingEndTime"
-    ).value =
-        booking.end_time || "";
+/*
+   Visible Hour / Minute +
+   Day/Night buttons fill karo
+*/
+
+fillBookingTimePicker(
+    "start",
+    booking.start_time
+);
+
+
+fillBookingTimePicker(
+    "end",
+    booking.end_time
+);
 
 
     document.getElementById(
