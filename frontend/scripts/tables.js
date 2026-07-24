@@ -846,6 +846,12 @@ try {
         sessionData.booking_advance =
             Number(bookingForThisTable.advance || 0);
 
+        sessionData.booking_advance_payment_status =
+            bookingForThisTable.payment_status || "unpaid";
+
+        sessionData.booking_advance_paid_at =
+            bookingForThisTable.advance_paid_at || null;
+
         sessionData.booking_resource_id =
             bookingForThisTable.resource_id || "";
 
@@ -969,8 +975,14 @@ snap.forEach(d => {
     }
 });
 
+// 🔥 BOOKING DATA FOR LOCAL HISTORY
+let checkoutSessionData = null;
+
 if (latestSession) {
-   await updateDoc(doc(window.db, "sessions", latestSession.id), {
+
+    checkoutSessionData = latestSession.data();
+
+    await updateDoc(doc(window.db, "sessions", latestSession.id), {
     end_time: new Date().toISOString(),
 
 original_game_amount: t.finalAmount,
@@ -1016,10 +1028,33 @@ amount:
 t.canteenTotal,
     paid: false,
     paidTime: null,
-    rate: t.selectedRate || 0,
+rate: t.selectedRate || 0,
 
 playType: t.selectedPlayType || t.playType,
-    canteenItems: { ...t.canteenItems }
+canteenItems: { ...t.canteenItems },
+
+// 🔥 BOOKING DATA
+bookingId:
+    checkoutSessionData?.booking_id || null,
+
+bookingAdvance:
+    Number(checkoutSessionData?.booking_advance || 0),
+
+bookingAdvancePaymentStatus:
+    checkoutSessionData?.booking_advance_payment_status || "unpaid",
+
+bookingAdvancePaidAt:
+    checkoutSessionData?.booking_advance_paid_at
+        ? new Date(checkoutSessionData.booking_advance_paid_at).getTime()
+        : null,
+
+fromBooking:
+    checkoutSessionData?.from_booking === true ||
+    !!checkoutSessionData?.booking_id,
+
+// 🔥 PAYMENT WILL BE CALCULATED ON PAID
+remainingPayment: 0
+});
 });
 
     // 🔥 HISTORY SAVE (CORRECT PLACE)
@@ -1508,10 +1543,13 @@ if (latestSession) {
     // BOOKING ADVANCE PAYMENT CALCULATION
     // ==============================================
 
-    const bookingAdvance =
-        latestSession.booking_id
-            ? Number(latestSession.booking_advance || 0)
-            : 0;
+const bookingAdvance =
+    (
+        latestSession.booking_id &&
+        latestSession.booking_advance_payment_status === "paid"
+    )
+        ? Number(latestSession.booking_advance || 0)
+        : 0;
 
     const gameAfterDiscount =
         Math.max(
@@ -1531,6 +1569,25 @@ if (latestSession) {
             0,
             totalBillAmount - bookingAdvance
         );
+
+  // 🔥 SYNC LOCAL HISTORY WITH PAYMENT
+last.originalAmount =
+    Number(t.finalAmount || 0);
+
+last.amount =
+    gameAfterDiscount;
+
+last.canteenAmount =
+    canteenAmount;
+  
+last.bookingAdvance = bookingAdvance;
+
+last.remainingPayment = remainingPayment;
+
+last.totalBillAmount = totalBillAmount;
+
+last.fromBooking =
+    !!latestSession.booking_id;
 
     console.log("💰 PAYMENT CALCULATION:", {
         gameAfterDiscount,
@@ -2930,6 +2987,29 @@ originalGame - Number(h.discount || 0);
 let c = Number(h.canteenAmount || 0);
 
 let d = Number(h.discount || 0);
+
+          // ==========================================
+// 🔥 BOOKING ADVANCE COLLECTION
+// Advance jis shift mein receive hua,
+// usi shift ki Game Collection mein count hoga
+// ==========================================
+if (
+    h.fromBooking &&
+    h.bookingAdvancePaymentStatus === "paid" &&
+    Number(h.bookingAdvance || 0) > 0 &&
+    h.bookingAdvancePaidAt
+) {
+
+    if (
+        h.bookingAdvancePaidAt >= startTime &&
+        h.bookingAdvancePaidAt <= endTime
+    ) {
+
+        gameCollection +=
+            Number(h.bookingAdvance || 0);
+    }
+}
+          
  if (h.checkout >= startTime && h.checkout <= endTime) {
 discount += d;
 
@@ -4646,6 +4726,14 @@ s.final_amount ||
           bookingAdvance:
     Number(s.booking_advance || 0),
 
+          bookingAdvancePaymentStatus:
+    s.booking_advance_payment_status || "unpaid",
+
+bookingAdvancePaidAt:
+    s.booking_advance_paid_at
+        ? new Date(s.booking_advance_paid_at).getTime()
+        : null,
+
 remainingPayment:
     Number(
         s.remaining_payment ??
@@ -4759,6 +4847,14 @@ total:
 
           bookingAdvance:
     Number(s.booking_advance || 0),
+
+          bookingAdvancePaymentStatus:
+    s.booking_advance_payment_status || "unpaid",
+
+bookingAdvancePaidAt:
+    s.booking_advance_paid_at
+        ? new Date(s.booking_advance_paid_at).getTime()
+        : null,
 
 remainingPayment:
     Number(
