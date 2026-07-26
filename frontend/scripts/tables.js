@@ -3082,11 +3082,6 @@ async function getBookingAdvanceCollection(startTime, endTime) {
 }
 
 
-function getGameTotal() {
-    return tables.reduce((sum, t) => sum + t.liveAmount, 0);
-}
-
-
 
 function getGameTotal() {
     return tables.reduce((sum, t) => sum + t.liveAmount, 0);
