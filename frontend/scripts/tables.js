@@ -898,47 +898,6 @@ if (!snap.empty) {
 // 🔥 CHECK IF THIS TABLE HAS PENDING BOOKING
 // =====================================================
 
-let bookingForThisTable = null;
-
-if (pendingBookingProceed) {
-
-    const bookingResourceId =
-        String(
-            pendingBookingProceed.resource_id || ""
-        ).trim();
-
-    const bookingResourceName =
-        String(
-            pendingBookingProceed.resource_name || ""
-        ).trim().toLowerCase();
-
-    const currentTableId =
-        String(t.id || "").trim();
-
-    const currentTableName =
-        String(t.name || "").trim().toLowerCase();
-
-    const sameBranch =
-        !pendingBookingProceed.branch ||
-        String(pendingBookingProceed.branch).toLowerCase() ===
-        String(BRANCH).toLowerCase();
-
-    const sameTable =
-        bookingResourceId === currentTableId ||
-        bookingResourceName === currentTableName;
-
-    if (sameBranch && sameTable) {
-
-        bookingForThisTable =
-            pendingBookingProceed;
-
-        console.log(
-            "🎟 BOOKING FOUND FOR CHECK-IN:",
-            bookingForThisTable
-        );
-    }
-}
-
   
 try {
 
