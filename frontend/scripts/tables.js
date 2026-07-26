@@ -2531,6 +2531,28 @@ if (allHistory.length > 0) {
 // 🔥 STEP 3: CALCULATE
 let shiftData = calculateShiftSnapshot(startMs, endMs);
 
+  // 🔥 BOOKING ADVANCE FOR SHIFT 1
+const bookingAdvanceCollection =
+    await getBookingAdvanceCollection(
+        startMs,
+        endMs
+    );
+
+// 🔥 ADD ADVANCE TO GAME COLLECTION
+shiftData.gameCollection +=
+    bookingAdvanceCollection;
+
+// 🔥 RECALCULATE CLOSING CASH
+shiftData.closingCash =
+    (
+        shiftData.gameCollection +
+        shiftData.canteenCollection
+    )
+    -
+    shiftData.expenses
+    -
+    shiftData.easypaisa;
+
     shift1 = {
         shift: 1,
         openTime: new Date(startMs).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
@@ -2673,6 +2695,29 @@ if (!startMs) {
 
     
     let shiftData = calculateShiftSnapshot(startMs, endMs);
+
+  // 🔥 BOOKING ADVANCE FOR SHIFT 2
+const bookingAdvanceCollection =
+    await getBookingAdvanceCollection(
+        startMs,
+        endMs
+    );
+
+// 🔥 ADD ADVANCE TO GAME COLLECTION
+shiftData.gameCollection +=
+    bookingAdvanceCollection;
+
+// 🔥 RECALCULATE CLOSING CASH
+shiftData.closingCash =
+    (
+        shiftData.gameCollection +
+        shiftData.canteenCollection
+    )
+    -
+    shiftData.expenses
+    -
+    shiftData.easypaisa;
+  
 
     shift2 = {
         shift: 2,
@@ -2956,6 +3001,93 @@ window.currentDayId = newDayId;
 /******************************************************
  * SHIFT HELPERS
  ******************************************************/
+
+
+// =====================================================
+// 🔥 BOOKING ADVANCE COLLECTION FOR SHIFT
+// =====================================================
+async function getBookingAdvanceCollection(startTime, endTime) {
+
+    let totalAdvance = 0;
+
+    try {
+
+        const q = query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", window.currentDayId),
+            where("is_deleted", "==", false)
+        );
+
+        const snap = await getDocs(q);
+
+        snap.forEach(docSnap => {
+
+            const s = docSnap.data();
+
+            // Normal table session ignore
+            if (
+                s.from_booking !== true &&
+                !s.booking_id
+            ) {
+                return;
+            }
+
+            // Advance paid hona chahiye
+            if (
+                s.booking_advance_payment_status !== "paid"
+            ) {
+                return;
+            }
+
+            const advance =
+                Number(s.booking_advance || 0);
+
+            if (advance <= 0) return;
+
+            // Advance kis time receive hua
+            const paidAt =
+                s.booking_advance_paid_at
+                    ? new Date(
+                        s.booking_advance_paid_at
+                    ).getTime()
+                    : 0;
+
+            if (!paidAt) return;
+
+            // Sirf isi shift ka advance
+            if (
+                paidAt >= startTime &&
+                paidAt <= endTime
+            ) {
+                totalAdvance += advance;
+            }
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "❌ BOOKING ADVANCE SHIFT ERROR:",
+            error
+        );
+    }
+
+    console.log(
+        "💰 BOOKING ADVANCE COLLECTION:",
+        totalAdvance
+    );
+
+    return totalAdvance;
+}
+
+
+function getGameTotal() {
+    return tables.reduce((sum, t) => sum + t.liveAmount, 0);
+}
+
+
+
 function getGameTotal() {
     return tables.reduce((sum, t) => sum + t.liveAmount, 0);
 }
@@ -2987,28 +3119,7 @@ let c = Number(h.canteenAmount || 0);
 
 let d = Number(h.discount || 0);
 
-          // ==========================================
-// 🔥 BOOKING ADVANCE COLLECTION
-// Advance jis shift mein receive hua,
-// usi shift ki Game Collection mein count hoga
-// ==========================================
-if (
-    h.fromBooking &&
-    h.bookingAdvancePaymentStatus === "paid" &&
-    Number(h.bookingAdvance || 0) > 0 &&
-    h.bookingAdvancePaidAt
-) {
-
-    if (
-        h.bookingAdvancePaidAt >= startTime &&
-        h.bookingAdvancePaidAt <= endTime
-    ) {
-
-        gameCollection +=
-            Number(h.bookingAdvance || 0);
-    }
-}
-          
+ 
  if (h.checkout >= startTime && h.checkout <= endTime) {
 discount += d;
 
@@ -3203,16 +3314,41 @@ const shiftsQ = query(
             return;
         }
 
-        // 🔥 RECALCULATE
-        const newShift1 = calculateShiftSnapshot(
-            latestShift1.start_ms,
-            latestShift1.end_ms
-        );
+// 🔥 RECALCULATE
+const newShift1 = calculateShiftSnapshot(
+    latestShift1.start_ms,
+    latestShift1.end_ms
+);
 
-        const newShift2 = calculateShiftSnapshot(
-            latestShift2.start_ms,
-            latestShift2.end_ms
-        );
+const newShift2 = calculateShiftSnapshot(
+    latestShift2.start_ms,
+    latestShift2.end_ms
+);
+
+// ==========================================
+// 🔥 ADD BOOKING ADVANCE TO CORRECT SHIFT
+// Advance direct Firebase booking/session data
+// se usi shift mein count hoga jisme receive hua
+// ==========================================
+
+const shift1BookingAdvance =
+    await getBookingAdvanceCollection(
+        latestShift1.start_ms,
+        latestShift1.end_ms
+    );
+
+const shift2BookingAdvance =
+    await getBookingAdvanceCollection(
+        latestShift2.start_ms,
+        latestShift2.end_ms
+    );
+
+newShift1.gameCollection += shift1BookingAdvance;
+newShift2.gameCollection += shift2BookingAdvance;
+
+// 🔥 Closing cash bhi collection ke saath update
+newShift1.closingCash += shift1BookingAdvance;
+newShift2.closingCash += shift2BookingAdvance;
 
         // 🔥 COMBINED
         const combined = {
