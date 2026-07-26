@@ -201,6 +201,53 @@ function getLocalDateString(date) {
 
 
 /* =========================================================
+   CURRENT OPERATIONAL DAY ID
+   ========================================================= */
+
+function getCurrentBookingDayId() {
+
+    /*
+       Tables page ke operational day ke saath
+       booking ko link karne ke liye.
+
+       Current day ID localStorage se li jayegi.
+    */
+
+    const possibleKeys = [
+        "currentDayId",
+        "current_day_id",
+        "dayId",
+        "day_id"
+    ];
+
+    for (const key of possibleKeys) {
+
+        const value =
+            localStorage.getItem(key);
+
+        if (value) {
+
+            console.log(
+                "BOOKING CURRENT DAY ID:",
+                value,
+                "KEY:",
+                key
+            );
+
+            return value;
+        }
+    }
+
+    console.warn(
+        "BOOKING CURRENT DAY ID NOT FOUND"
+    );
+
+    return null;
+}
+
+
+
+/* =========================================================
    BOOKING POPUP
    ========================================================= */
 
@@ -1587,6 +1634,8 @@ if (
                     branch:
                         BRANCH,
 
+                    day_id: getCurrentBookingDayId(),
+
                     customer_name:
                         customerName,
 
@@ -2702,6 +2751,19 @@ function renderBookings() {
         bookings.filter(
             booking => {
 
+
+                const currentDayId =
+    getCurrentBookingDayId();
+
+if (
+    currentDayId &&
+    String(booking.day_id || "") !==
+    String(currentDayId)
+) {
+    return false;
+}
+                
+
                 if (
                     selectedDate &&
                     booking.date !== selectedDate
@@ -3054,23 +3116,30 @@ ${
 
 function updateBookingSummary() {
 
-    const today =
-        getLocalDateString(
-            new Date()
-        );
+const currentDayId =
+    getCurrentBookingDayId();
 
+const todayBookings =
+    bookings.filter(
+        booking => {
 
-    const todayBookings =
-        bookings.filter(
-            booking =>
+            if (
+                !currentDayId ||
+                String(booking.day_id || "") !==
+                String(currentDayId)
+            ) {
+                return false;
+            }
 
-                booking.date === today &&
+            if (
+                booking.status === "cancelled"
+            ) {
+                return false;
+            }
 
-                booking.status !==
-                    "cancelled"
-
-        );
-
+            return true;
+        }
+    );
 
     const confirmed =
         todayBookings.filter(
