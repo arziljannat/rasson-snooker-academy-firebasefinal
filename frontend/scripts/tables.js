@@ -3410,72 +3410,161 @@ window.currentDayId = newDayId;
 // =====================================================
 // 🔥 BOOKING ADVANCE COLLECTION FOR SHIFT
 // =====================================================
+// =====================================================
+// 🔥 BOOKING ADVANCE COLLECTION FOR SHIFT - FIXED
+// =====================================================
 async function getBookingAdvanceCollection(startTime, endTime) {
 
     let totalAdvance = 0;
 
     try {
 
+        // 🔥 IMPORTANT:
+        // day_id filter intentionally nahi lagaya.
+        // Advance ka shift booking_advance_paid_at decide karega.
         const q = query(
-            collection(window.db, "bookings"),
-            where("branch", "==", BRANCH),
-            where("day_id", "==", window.currentDayId)
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH)
         );
 
         const snap = await getDocs(q);
 
+        console.log(
+            "🔎 ADVANCE CHECK — sessions found:",
+            snap.size
+        );
+
         snap.forEach(docSnap => {
 
-            const b = docSnap.data();
+            const s = docSnap.data();
 
-            // Advance paid hona zaroori hai
-            if (b.payment_status !== "paid") {
+            // Deleted session ignore
+            if (s.is_deleted === true) {
                 return;
             }
 
-            const advance =
-                Number(b.advance_amount || 0);
+            // Booking session identify karo
+            const isBooking =
+                s.from_booking === true ||
+                s.fromBooking === true ||
+                !!s.booking_id ||
+                !!s.bookingId ||
+                !!s.booking_advance_paid_at;
+
+            if (!isBooking) {
+                return;
+            }
+
+            // Advance amount — possible field names
+            const advance = Number(
+                s.booking_advance ??
+                s.bookingAdvance ??
+                s.advance_payment ??
+                s.advancePayment ??
+                0
+            );
+
+            // Payment time
+            let paidAt = 0;
+
+            if (s.booking_advance_paid_at) {
+
+                if (
+                    typeof s.booking_advance_paid_at === "object" &&
+                    typeof s.booking_advance_paid_at.toMillis === "function"
+                ) {
+                    paidAt =
+                        s.booking_advance_paid_at.toMillis();
+                } else {
+                    paidAt =
+                        new Date(
+                            s.booking_advance_paid_at
+                        ).getTime();
+                }
+
+            } else if (s.bookingAdvancePaidAt) {
+
+                if (
+                    typeof s.bookingAdvancePaidAt === "object" &&
+                    typeof s.bookingAdvancePaidAt.toMillis === "function"
+                ) {
+                    paidAt =
+                        s.bookingAdvancePaidAt.toMillis();
+                } else {
+                    paidAt =
+                        new Date(
+                            s.bookingAdvancePaidAt
+                        ).getTime();
+                }
+            }
+
+            console.log(
+                "🔎 ADVANCE SESSION:",
+                {
+                    id: docSnap.id,
+                    day_id: s.day_id,
+                    booking_id: s.booking_id,
+                    advance,
+                    paidAt,
+                    paidAtDate:
+                        paidAt
+                            ? new Date(paidAt).toLocaleString(
+                                "en-PK",
+                                {
+                                    timeZone: "Asia/Karachi"
+                                }
+                            )
+                            : "NO DATE",
+                    shiftStart:
+                        new Date(startTime).toLocaleString(
+                            "en-PK",
+                            {
+                                timeZone: "Asia/Karachi"
+                            }
+                        ),
+                    shiftEnd:
+                        new Date(endTime).toLocaleString(
+                            "en-PK",
+                            {
+                                timeZone: "Asia/Karachi"
+                            }
+                        )
+                }
+            );
 
             if (advance <= 0) {
                 return;
             }
 
-            // Advance receive hone ka actual time
-            let paidAt = 0;
-
-            if (b.advance_paid_at?.seconds) {
-                paidAt =
-                    b.advance_paid_at.seconds * 1000;
-            }
-            else if (b.advance_paid_at) {
-                paidAt =
-                    new Date(
-                        b.advance_paid_at
-                    ).getTime();
-            }
-
-            if (!paidAt) {
+            if (!paidAt || Number.isNaN(paidAt)) {
                 return;
             }
 
-            // Sirf isi shift mein receive hua advance
+            // 🔥 Advance us shift mein count hoga
+            // jis waqt actual receive hua
             if (
-                paidAt >= startTime &&
-                paidAt <= endTime
+                paidAt >= Number(startTime) &&
+                paidAt <= Number(endTime)
             ) {
+
                 totalAdvance += advance;
+
+                console.log(
+                    "✅ ADVANCE INCLUDED:",
+                    advance,
+                    "TOTAL:",
+                    totalAdvance
+                );
             }
 
         });
 
-    }
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "❌ BOOKING ADVANCE SHIFT ERROR:",
             error
         );
-
     }
 
     console.log(
