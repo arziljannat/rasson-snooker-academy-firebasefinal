@@ -2355,124 +2355,386 @@ function hidePopup(id) {
 /******************************************************
  * OPEN SHIFT SUMMARY POPUP (Shift1 + Shift2 + Combined)
  ******************************************************/
-function openShiftSummary() {
+async function openShiftSummary() {
 
     let btn = document.getElementById("shiftCloseBtn");
     let summaryBody = document.getElementById("shiftSummaryBody");
     let title = document.getElementById("shiftSummaryTitle");
 
-
-
-    let now = new Date().toLocaleString('en-PK', {
-    timeZone: 'Asia/Karachi'
-});
-
-    
-    
-
-
-    // Title Logic
+    // ==========================================
+    // TITLE / BUTTON
+    // ==========================================
     if (btn.innerText.includes("Day")) {
+
         title.innerText = "Day Summary";
-        document.getElementById("confirmShiftCloseBtn").innerText = "Close Day";
+
+        document.getElementById(
+            "confirmShiftCloseBtn"
+        ).innerText = "Close Day";
+
     } else {
+
         title.innerText = "Shift Summary";
-        document.getElementById("confirmShiftCloseBtn").innerText = "Close Shift";
+
+        document.getElementById(
+            "confirmShiftCloseBtn"
+        ).innerText = "Close Shift";
     }
 
-// Load frozen snapshots of shift1 & shift2
-let s1 = shift1 || null;
-let s2 = shift2 || null;
 
-let combined = null;
-
-if (s1 && s2) {
-    combined = {
-        gameTotal: s1.gameTotal + s2.gameTotal,
-        canteenTotal: s1.canteenTotal + s2.canteenTotal,
-
-        gameCollection: s1.gameCollection + s2.gameCollection,
-        canteenCollection: s1.canteenCollection + s2.canteenCollection,
-
-        expenses: (s1.expenses || 0) + (s2.expenses || 0),
-
-        easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
-
-        // 🔥 ADD THIS
-        discount:
-        (s1.discount || 0)
-        +
-        (s2.discount || 0),
-    };
-
-combined.gameBalance =
-(s1.gameBalance || 0)
-+
-(s2.gameBalance || 0);
-
-combined.canteenBalance =
-(s1.canteenBalance || 0)
-+
-(s2.canteenBalance || 0);
-
-    combined.closingCash =
-    (combined.gameCollection + combined.canteenCollection)
-    - combined.expenses
-    - (combined.easypaisa || 0);
-}
+    // ==========================================
+    // ALWAYS REBUILD LATEST SESSION HISTORY
+    // ==========================================
+    await rebuildHistoryFromSessions();
 
 
-// APPLY to HTML table
-summaryBody.innerHTML = `
+    let s1 = shift1 ? { ...shift1 } : null;
+    let s2 = shift2 ? { ...shift2 } : null;
+
+    const now = Date.now();
+
+
+    // ==========================================
+    // SHIFT 1 NOT CLOSED YET
+    // SHOW LIVE SHIFT 1
+    // ==========================================
+    if (!shift1) {
+
+        let startMs = now;
+
+        const allHistory =
+            tables.flatMap(t => t.history || []);
+
+        if (allHistory.length > 0) {
+
+            const firstSession =
+                [...allHistory]
+                .filter(h => h.checkin)
+                .sort((a, b) => a.checkin - b.checkin)[0];
+
+            if (firstSession?.checkin) {
+                startMs = firstSession.checkin;
+            }
+        }
+
+
+        // ======================================
+        // RUNNING SESSION MAY BE FIRST SESSION
+        // ======================================
+        tables.forEach(t => {
+
+            if (
+                t.isRunning &&
+                t.checkinTime &&
+                t.checkinTime < startMs
+            ) {
+                startMs = t.checkinTime;
+            }
+
+        });
+
+
+        // Safety
+        if (!startMs || startMs > now) {
+            startMs = now - 1000;
+        }
+
+
+        const liveData =
+            calculateShiftSnapshot(
+                startMs,
+                now
+            );
+
+
+        // ======================================
+        // BOOKING ADVANCE
+        // ======================================
+        const bookingAdvance =
+            await getBookingAdvanceCollection(
+                startMs,
+                now
+            );
+
+
+        liveData.gameCollection +=
+            bookingAdvance;
+
+
+        liveData.closingCash =
+            (
+                liveData.gameCollection +
+                liveData.canteenCollection
+            )
+            -
+            liveData.expenses
+            -
+            liveData.easypaisa;
+
+
+        s1 = {
+
+            shift: 1,
+
+            openTime:
+                new Date(startMs)
+                .toLocaleString(
+                    "en-PK",
+                    {
+                        timeZone:
+                            "Asia/Karachi"
+                    }
+                ),
+
+            closeTime: "Running",
+
+            startMs,
+            endMs: now,
+
+            ...liveData
+        };
+    }
+
+
+    // ==========================================
+    // SHIFT 1 CLOSED
+    // SHIFT 2 CURRENTLY RUNNING
+    // ==========================================
+    else if (shift1 && !shift2) {
+
+        let startMs =
+            Number(shift1.endMs || 0);
+
+        if (!startMs) {
+            startMs = now - 1000;
+        }
+
+
+        const liveData =
+            calculateShiftSnapshot(
+                startMs,
+                now
+            );
+
+
+        // ======================================
+        // BOOKING ADVANCE SHIFT 2
+        // ======================================
+        const bookingAdvance =
+            await getBookingAdvanceCollection(
+                startMs,
+                now
+            );
+
+
+        liveData.gameCollection +=
+            bookingAdvance;
+
+
+        liveData.closingCash =
+            (
+                liveData.gameCollection +
+                liveData.canteenCollection
+            )
+            -
+            liveData.expenses
+            -
+            liveData.easypaisa;
+
+
+        s2 = {
+
+            shift: 2,
+
+            openTime:
+                new Date(startMs)
+                .toLocaleString(
+                    "en-PK",
+                    {
+                        timeZone:
+                            "Asia/Karachi"
+                    }
+                ),
+
+            closeTime: "Running",
+
+            startMs,
+            endMs: now,
+
+            ...liveData
+        };
+    }
+
+
+    // ==========================================
+    // COMBINED
+    // ==========================================
+    let combined = null;
+
+    if (s1 && s2) {
+
+        combined = {
+
+            gameTotal:
+                Number(s1.gameTotal || 0)
+                +
+                Number(s2.gameTotal || 0),
+
+            canteenTotal:
+                Number(s1.canteenTotal || 0)
+                +
+                Number(s2.canteenTotal || 0),
+
+            gameCollection:
+                Number(s1.gameCollection || 0)
+                +
+                Number(s2.gameCollection || 0),
+
+            canteenCollection:
+                Number(s1.canteenCollection || 0)
+                +
+                Number(s2.canteenCollection || 0),
+
+            gameBalance:
+                Number(s1.gameBalance || 0)
+                +
+                Number(s2.gameBalance || 0),
+
+            canteenBalance:
+                Number(s1.canteenBalance || 0)
+                +
+                Number(s2.canteenBalance || 0),
+
+            discount:
+                Number(s1.discount || 0)
+                +
+                Number(s2.discount || 0),
+
+            expenses:
+                Number(s1.expenses || 0)
+                +
+                Number(s2.expenses || 0),
+
+            easypaisa:
+                Number(s1.easypaisa || 0)
+                +
+                Number(s2.easypaisa || 0)
+        };
+
+
+        combined.closingCash =
+            (
+                combined.gameCollection +
+                combined.canteenCollection
+            )
+            -
+            combined.expenses
+            -
+            combined.easypaisa;
+    }
+
+
+    // ==========================================
+    // POPUP HTML
+    // ==========================================
+    summaryBody.innerHTML = `
+
 <tr>
+
     <td>Shift 1</td>
+
     <td>${s1?.gameTotal || 0}</td>
+
     <td>${s1?.canteenTotal || 0}</td>
+
     <td>${s1?.gameCollection || 0}</td>
+
     <td>${s1?.canteenCollection || 0}</td>
+
     <td>${s1?.gameBalance || 0}</td>
+
     <td>${s1?.canteenBalance || 0}</td>
+
     <td>${s1?.discount || 0}</td>
+
     <td>${s1?.expenses || 0}</td>
+
     <td>${s1?.easypaisa || 0}</td>
+
     <td>${s1?.closingCash || 0}</td>
+
     <td>${s1?.openTime || "-"}</td>
+
     <td>${s1?.closeTime || "-"}</td>
+
 </tr>
+
 
 <tr>
+
     <td>Shift 2</td>
+
     <td>${s2?.gameTotal || 0}</td>
+
     <td>${s2?.canteenTotal || 0}</td>
+
     <td>${s2?.gameCollection || 0}</td>
+
     <td>${s2?.canteenCollection || 0}</td>
+
     <td>${s2?.gameBalance || 0}</td>
+
     <td>${s2?.canteenBalance || 0}</td>
+
     <td>${s2?.discount || 0}</td>
+
     <td>${s2?.expenses || 0}</td>
+
     <td>${s2?.easypaisa || 0}</td>
+
     <td>${s2?.closingCash || 0}</td>
+
     <td>${s2?.openTime || "-"}</td>
+
     <td>${s2?.closeTime || "-"}</td>
+
 </tr>
 
-${combined ? (
-"<tr class='combined-row'>" +
-"<td>Combined</td>" +
-"<td>" + combined.gameTotal + "</td>" +
-"<td>" + combined.canteenTotal + "</td>" +
-"<td>" + combined.gameCollection + "</td>" +
-"<td>" + combined.canteenCollection + "</td>" +
-"<td>" + combined.gameBalance + "</td>" +
-"<td>" + combined.canteenBalance + "</td>" +
-"<td>" + combined.discount + "</td>" +
-"<td>" + combined.expenses + "</td>" +
-"<td>" + combined.easypaisa + "</td>" +
-"<td>" + combined.closingCash + "</td>" +
-"<td>-</td>" +
-"<td>-</td>" +
-"</tr>"
-) : ""}
+
+${combined ? `
+
+<tr class="combined-row">
+
+    <td>Combined</td>
+
+    <td>${combined.gameTotal}</td>
+
+    <td>${combined.canteenTotal}</td>
+
+    <td>${combined.gameCollection}</td>
+
+    <td>${combined.canteenCollection}</td>
+
+    <td>${combined.gameBalance}</td>
+
+    <td>${combined.canteenBalance}</td>
+
+    <td>${combined.discount}</td>
+
+    <td>${combined.expenses}</td>
+
+    <td>${combined.easypaisa}</td>
+
+    <td>${combined.closingCash}</td>
+
+    <td>-</td>
+
+    <td>-</td>
+
+</tr>
+
+` : ""}
+
 `;
 
 
