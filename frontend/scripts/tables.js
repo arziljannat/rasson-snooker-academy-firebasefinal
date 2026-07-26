@@ -5114,10 +5114,16 @@ if (s.is_deleted === true) {
         const currentDayId = String(window.currentDayId || "").trim();
         const sessionDayId = String(s.day_id || "").trim();
 
-        // ✅ current day filter
-// old sessions without day_id bhi allow karo
+// ✅ STRICT CURRENT DAY FILTER
+// Sirf current open day ke sessions allow honge.
+// Missing day_id aur kisi doosre day ke sessions reject honge.
 
-if (sessionDayId && sessionDayId !== currentDayId) {
+if (!currentDayId) {
+    console.warn("⛔ CURRENT DAY ID MISSING");
+    return;
+}
+
+if (!sessionDayId || sessionDayId !== currentDayId) {
     return;
 }
 
