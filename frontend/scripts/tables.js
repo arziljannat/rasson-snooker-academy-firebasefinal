@@ -2752,15 +2752,14 @@ console.log("=================================");
         };
 
 
-        combined.closingCash =
-            (
-                combined.gameCollection +
-                combined.canteenCollection
-            )
-            -
-            combined.expenses
-            -
-            combined.easypaisa;
+combined.closingCash =
+    (
+        combined.gameCollection +
+        combined.canteenCollection +
+        combined.advanceCollection
+    )
+    - combined.expenses
+    - (combined.easypaisa || 0);
     }
 
 
@@ -2931,14 +2930,15 @@ const bookingAdvanceCollection =
     );
 
 // 🔥 ADD ADVANCE TO GAME COLLECTION
-shiftData.gameCollection +=
+shiftData.advanceCollection =
     bookingAdvanceCollection;
 
 // 🔥 RECALCULATE CLOSING CASH
 shiftData.closingCash =
     (
         shiftData.gameCollection +
-        shiftData.canteenCollection
+        shiftData.canteenCollection +
+        shiftData.advanceCollection
     )
     -
     shiftData.expenses
@@ -2988,9 +2988,10 @@ const docRef = await addDoc(collection(window.db, "shifts"), {
     game_total: shiftData.gameTotal,
     canteen_total: shiftData.canteenTotal,
 
-    game_collection: shiftData.gameCollection,
-    canteen_collection: shiftData.canteenCollection,
+game_collection: shiftData.gameCollection,
+canteen_collection: shiftData.canteenCollection,
 
+advance_collection: shiftData.advanceCollection || 0,
     expenses: shiftData.expenses,
 easypaisa: shiftData.easypaisa,
 
@@ -3088,22 +3089,25 @@ if (!startMs) {
     
     let shiftData = calculateShiftSnapshot(startMs, endMs);
 
-  // 🔥 BOOKING ADVANCE FOR SHIFT 2
+// 🔥 BOOKING ADVANCE FOR SHIFT 2
 const bookingAdvanceCollection =
     await getBookingAdvanceCollection(
         startMs,
         endMs
     );
 
-// 🔥 ADD ADVANCE TO GAME COLLECTION
-shiftData.gameCollection +=
+// 🔥 ADVANCE SEPARATE COLLECTION
+shiftData.advanceCollection =
     bookingAdvanceCollection;
 
-// 🔥 RECALCULATE CLOSING CASH
+// 🔥 GAME COLLECTION KO TOUCH NAHI KARNA
+
+// 🔥 CLOSING CASH MEIN ADVANCE INCLUDE HOGA
 shiftData.closingCash =
     (
         shiftData.gameCollection +
-        shiftData.canteenCollection
+        shiftData.canteenCollection +
+        shiftData.advanceCollection
     )
     -
     shiftData.expenses
@@ -3149,6 +3153,8 @@ canteen_total: shiftData.canteenTotal,
 game_collection: shiftData.gameCollection,
 canteen_collection: shiftData.canteenCollection,
 
+advance_collection: shiftData.advanceCollection || 0,
+
 expenses: shiftData.expenses,
 easypaisa: shiftData.easypaisa,
 
@@ -3187,6 +3193,8 @@ async function closeDay() {
         gameCollection: (s1.gameCollection || 0) + (s2.gameCollection || 0),
         canteenCollection: (s1.canteenCollection || 0) + (s2.canteenCollection || 0),
 
+        advanceCollection: (s1.advanceCollection || 0) +  (s2.advanceCollection || 0),
+
         gameBalance: (s1.gameBalance || 0) + (s2.gameBalance || 0),
         canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
 
@@ -3198,10 +3206,14 @@ async function closeDay() {
         easypaisa: (s1.easypaisa || 0) + (s2.easypaisa || 0),
     };
 
-    combined.closingCash =
-    (combined.gameCollection + combined.canteenCollection)
+combined.closingCash =
+    (
+        combined.gameCollection +
+        combined.canteenCollection +
+        combined.advanceCollection
+    )
     - combined.expenses
-    - (combined.easypaisa || 0);
+    - (combined.easypaisa || 0); 
 
 
     // 🔥🔥🔥 STEP 1: SAVE SNAPSHOT BEFORE RESET (MAIN FIX)
@@ -3731,13 +3743,19 @@ const shift2BookingAdvance =
     );
 
 // 🔥 ADVANCE COLLECTION SEPARATE
-newShift1.advanceCollection = shift1BookingAdvance;
-newShift2.advanceCollection = shift2BookingAdvance;
+// 🔥 ADVANCE SEPARATE RAKHO
+newShift1.advanceCollection =
+    shift1BookingAdvance;
 
-// 🔥 ADVANCE CASH MEIN RECEIVE HO CHUKA HAI
-newShift1.closingCash += shift1BookingAdvance;
-newShift2.closingCash += shift2BookingAdvance;
+newShift2.advanceCollection =
+    shift2BookingAdvance;
 
+// 🔥 CLOSING CASH MEIN ADVANCE INCLUDE KARO
+newShift1.closingCash +=
+    shift1BookingAdvance;
+
+newShift2.closingCash +=
+    shift2BookingAdvance;
         // 🔥 COMBINED
         const combined = {
 
@@ -4032,6 +4050,12 @@ document.getElementById("dayShift1Body").innerHTML = `
         </div>
 
         <div class="summary-row">
+    <span>💵 Advance Collection</span>
+    <span>${s1.advanceCollection || 0}</span>
+</div>
+
+
+        <div class="summary-row">
             <span>🧾 Canteen Collection</span>
             <span>${s1.canteenCollection || 0}</span>
         </div>
@@ -4085,6 +4109,12 @@ document.getElementById("dayShift2Body").innerHTML = `
             <span>💰 Game Collection</span>
             <span>${s2.gameCollection || 0}</span>
         </div>
+
+        <div class="summary-row">
+            <span>💵 Advance Collection</span>
+            <span>${s2.advanceCollection || 0}</span>
+        </div>
+        
 
         <div class="summary-row">
             <span>🧾 Canteen Collection</span>
