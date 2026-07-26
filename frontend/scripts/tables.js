@@ -4013,9 +4013,17 @@ originalAmount - discount;
 
     let finalTotal = gameAmount + canteenTotal;
 
-    let win = window.open("", "", "width=300,height=600");
+let win = window.open("", "_blank", "width=300,height=600");
 
-    win.document.write(`
+if (!win) {
+    alert("Print popup blocked ❌\nBrowser mein popups allow karo.");
+    console.error("❌ printThermalBill: window.open() returned null");
+    return;
+}
+
+win.document.open();
+
+win.document.write(`
 <html>
 <head>
 <style>
