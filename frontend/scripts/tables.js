@@ -3417,49 +3417,48 @@ async function getBookingAdvanceCollection(startTime, endTime) {
     try {
 
         const q = query(
-            collection(window.db, "sessions"),
+            collection(window.db, "bookings"),
             where("branch", "==", BRANCH),
-            where("day_id", "==", window.currentDayId),
-            where("is_deleted", "==", false)
+            where("day_id", "==", window.currentDayId)
         );
 
         const snap = await getDocs(q);
 
         snap.forEach(docSnap => {
 
-            const s = docSnap.data();
+            const b = docSnap.data();
 
-            // Normal table session ignore
-            if (
-                s.from_booking !== true &&
-                !s.booking_id
-            ) {
-                return;
-            }
-
-            // Advance paid hona chahiye
-            if (
-                s.booking_advance_payment_status !== "paid"
-            ) {
+            // Advance paid hona zaroori hai
+            if (b.payment_status !== "paid") {
                 return;
             }
 
             const advance =
-                Number(s.booking_advance || 0);
+                Number(b.advance_amount || 0);
 
-            if (advance <= 0) return;
+            if (advance <= 0) {
+                return;
+            }
 
-            // Advance kis time receive hua
-            const paidAt =
-                s.booking_advance_paid_at
-                    ? new Date(
-                        s.booking_advance_paid_at
-                    ).getTime()
-                    : 0;
+            // Advance receive hone ka actual time
+            let paidAt = 0;
 
-            if (!paidAt) return;
+            if (b.advance_paid_at?.seconds) {
+                paidAt =
+                    b.advance_paid_at.seconds * 1000;
+            }
+            else if (b.advance_paid_at) {
+                paidAt =
+                    new Date(
+                        b.advance_paid_at
+                    ).getTime();
+            }
 
-            // Sirf isi shift ka advance
+            if (!paidAt) {
+                return;
+            }
+
+            // Sirf isi shift mein receive hua advance
             if (
                 paidAt >= startTime &&
                 paidAt <= endTime
@@ -3469,12 +3468,14 @@ async function getBookingAdvanceCollection(startTime, endTime) {
 
         });
 
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(
             "❌ BOOKING ADVANCE SHIFT ERROR:",
             error
         );
+
     }
 
     console.log(
