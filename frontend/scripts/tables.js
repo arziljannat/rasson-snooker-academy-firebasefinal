@@ -843,8 +843,8 @@ try {
         sessionData.booking_customer_phone =
             bookingForThisTable.customer_phone || "";
 
-        sessionData.booking_advance =
-            Number(bookingForThisTable.advance || 0);
+sessionData.booking_advance =
+    Number(bookingForThisTable.advance_amount || 0);
 
         sessionData.booking_advance_payment_status =
             bookingForThisTable.payment_status || "unpaid";
