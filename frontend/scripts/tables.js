@@ -894,6 +894,52 @@ if (!snap.empty) {
 }
 
 // 🔥 STEP 3: create new session
+  // =====================================================
+// 🔥 CHECK IF THIS TABLE HAS PENDING BOOKING
+// =====================================================
+
+let bookingForThisTable = null;
+
+if (pendingBookingProceed) {
+
+    const bookingResourceId =
+        String(
+            pendingBookingProceed.resource_id || ""
+        ).trim();
+
+    const bookingResourceName =
+        String(
+            pendingBookingProceed.resource_name || ""
+        ).trim().toLowerCase();
+
+    const currentTableId =
+        String(t.id || "").trim();
+
+    const currentTableName =
+        String(t.name || "").trim().toLowerCase();
+
+    const sameBranch =
+        !pendingBookingProceed.branch ||
+        String(pendingBookingProceed.branch).toLowerCase() ===
+        String(BRANCH).toLowerCase();
+
+    const sameTable =
+        bookingResourceId === currentTableId ||
+        bookingResourceName === currentTableName;
+
+    if (sameBranch && sameTable) {
+
+        bookingForThisTable =
+            pendingBookingProceed;
+
+        console.log(
+            "🎟 BOOKING FOUND FOR CHECK-IN:",
+            bookingForThisTable
+        );
+    }
+}
+
+  
 try {
 
     const sessionData = {
@@ -959,9 +1005,8 @@ await addDoc(
     sessionData
 );
 
-
-// =====================================================
-// ✅ BOOKING PROCEED SUCCESS
+  // =====================================================
+// ✅ BOOKING CHECK-IN SUCCESS
 // =====================================================
 
 if (bookingForThisTable) {
@@ -971,8 +1016,8 @@ if (bookingForThisTable) {
         bookingForThisTable.booking_id
     );
 
-    // Booking successfully table session se attach ho gayi
-    // Ab pending Proceed data ki zarurat nahi
+    // Ab booking session mein permanently attach ho chuki hai.
+    // Yellow BOOKING CHECK-IN indicator hata sakte hain.
     localStorage.removeItem(
         "pendingBookingProceed"
     );
