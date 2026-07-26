@@ -3730,10 +3730,11 @@ const shift2BookingAdvance =
         latestShift2.end_ms
     );
 
-newShift1.gameCollection += shift1BookingAdvance;
-newShift2.gameCollection += shift2BookingAdvance;
+// 🔥 ADVANCE COLLECTION SEPARATE
+newShift1.advanceCollection = shift1BookingAdvance;
+newShift2.advanceCollection = shift2BookingAdvance;
 
-// 🔥 Closing cash bhi collection ke saath update
+// 🔥 ADVANCE CASH MEIN RECEIVE HO CHUKA HAI
 newShift1.closingCash += shift1BookingAdvance;
 newShift2.closingCash += shift2BookingAdvance;
 
@@ -3751,6 +3752,10 @@ newShift2.closingCash += shift2BookingAdvance;
 
             canteenCollection:
                 newShift1.canteenCollection + newShift2.canteenCollection,
+
+            advanceCollection:
+              Number(newShift1.advanceCollection || 0) +
+              Number(newShift2.advanceCollection || 0),
 
             gameBalance:
                 newShift1.gameBalance + newShift2.gameBalance,
