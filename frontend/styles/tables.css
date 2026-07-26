@@ -788,3 +788,78 @@ body * {
     justify-content: center;
 }
 
+
+/* ============================================================
+   BOOKING -> TABLE CHECK-IN HIGHLIGHT
+============================================================ */
+
+.table-box.booking-checkin-card {
+    border: 3px solid #ffd700 !important;
+
+    box-shadow:
+        0 0 12px #ffd700,
+        0 0 28px rgba(255, 215, 0, 0.75),
+        inset 0 0 18px rgba(255, 215, 0, 0.22) !important;
+
+    animation: bookingCheckinGlow 1.3s ease-in-out infinite alternate;
+}
+
+
+/* BOOKING BADGE */
+.booking-checkin-badge {
+    width: calc(100% - 20px);
+
+    margin: -4px auto 8px auto;
+    padding: 8px 10px;
+
+    box-sizing: border-box;
+
+    text-align: center;
+
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1px;
+
+    color: #111;
+    background: #ffd700;
+
+    border-radius: 8px;
+
+    box-shadow:
+        0 0 10px #ffd700,
+        0 0 20px rgba(255, 215, 0, 0.55);
+}
+
+
+/* CUSTOMER NAME */
+.booking-customer-info {
+    width: 100%;
+
+    text-align: center;
+
+    color: #ffe866;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    margin-bottom: 7px;
+}
+
+
+/* SOFT BOOKING GLOW */
+@keyframes bookingCheckinGlow {
+
+    from {
+        box-shadow:
+            0 0 10px #ffd700,
+            0 0 20px rgba(255, 215, 0, 0.55),
+            inset 0 0 12px rgba(255, 215, 0, 0.18);
+    }
+
+    to {
+        box-shadow:
+            0 0 18px #ffd700,
+            0 0 38px rgba(255, 215, 0, 0.9),
+            inset 0 0 22px rgba(255, 215, 0, 0.30);
+    }
+}
