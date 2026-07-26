@@ -2405,6 +2405,47 @@ async function openShiftSummary() {
         const allHistory =
             tables.flatMap(t => t.history || []);
 
+      console.log("========== SHIFT DEBUG ==========");
+
+console.log("CURRENT DAY ID:", window.currentDayId);
+
+console.table(
+    allHistory.map(h => ({
+        checkin: h.checkin
+            ? new Date(h.checkin).toLocaleString()
+            : null,
+
+        checkout: h.checkout
+            ? new Date(h.checkout).toLocaleString()
+            : null,
+
+        originalAmount: h.originalAmount,
+        discount: h.discount,
+        amount: h.amount,
+
+        paid: h.paid,
+
+        paidTime: h.paidTime
+            ? new Date(h.paidTime).toLocaleString()
+            : null,
+
+        playType: h.playType,
+        rate: h.rate
+    }))
+);
+
+console.log("TOTAL HISTORY:", allHistory.length);
+
+console.log(
+    "GAME TOTAL:",
+    allHistory.reduce(
+        (sum, h) => sum + Number(h.amount || 0),
+        0
+    )
+);
+
+console.log("=================================");
+
         if (allHistory.length > 0) {
 
             const firstSession =
