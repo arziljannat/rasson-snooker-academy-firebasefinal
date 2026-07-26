@@ -1648,6 +1648,7 @@ if (
 
                 };
 
+    if (editingBookingId) {
 
 const existingBooking =
     bookings.find(
