@@ -509,6 +509,64 @@ tables.push({
 }
 
 /******************************************************
+ * PENDING BOOKING FROM BOOKINGS PAGE
+ ******************************************************/
+function getPendingBookingProceed() {
+    try {
+        const raw = localStorage.getItem("pendingBookingProceed");
+
+        if (!raw) return null;
+
+        const data = JSON.parse(raw);
+
+        // Branch safety
+        if (
+            data.branch &&
+            typeof BRANCH !== "undefined" &&
+            data.branch !== BRANCH
+        ) {
+            return null;
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Pending booking read error:", error);
+        return null;
+    }
+}
+
+
+/******************************************************
+ * CHECK IF THIS IS THE BOOKED TABLE
+ ******************************************************/
+function isPendingBookedTable(table) {
+
+    const booking = getPendingBookingProceed();
+
+    if (!booking) return false;
+
+    const bookingResourceId =
+        String(booking.resource_id || "").trim();
+
+    const tableId =
+        String(table.id || "").trim();
+
+    const tableName =
+        String(table.name || "").trim();
+
+    /*
+       Primary match = Firebase/table document id
+       Fallback = resource/table name
+    */
+    return (
+        bookingResourceId === tableId ||
+        bookingResourceId === tableName ||
+        String(booking.resource_name || "").trim() === tableName
+    );
+}
+
+/******************************************************
  * RENDER ALL TABLE CARDS
  ******************************************************/
 function renderTables() {
@@ -544,7 +602,34 @@ sortedTables.forEach(t => {
         const div = document.createElement("div");
         div.classList.add("table-box");
 
+        const hasPendingBooking =
+            isPendingBookedTable(t);
+
+        if (hasPendingBooking) {
+            div.classList.add("booking-checkin-card");
+        }
+
+        const pendingBooking =
+            hasPendingBooking
+                ? getPendingBookingProceed()
+                : null;
+
         div.innerHTML = `
+
+            ${
+                hasPendingBooking
+                    ? `
+                    <div class="booking-checkin-badge">
+                        BOOKING CHECK-IN
+                    </div>
+
+                    <div class="booking-customer-info">
+                        ${pendingBooking?.customer_name || "Booked Customer"}
+                    </div>
+                    `
+                    : ""
+            }
+
             <div class="table-title">${t.name}</div>
 
 <div class="rate-selector">
