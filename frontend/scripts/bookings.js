@@ -6,9 +6,11 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
-    doc
+    doc,
+    getDocs,
+    orderBy,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 /* =========================================================
    CURRENT BRANCH
    ========================================================= */
@@ -51,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupBookingPopup();
 
     setupResourceType();
+
+    loadCurrentBookingDayId();
 
     loadBranchResources();
 
@@ -204,45 +208,109 @@ function getLocalDateString(date) {
    CURRENT OPERATIONAL DAY ID
    ========================================================= */
 
-function getCurrentBookingDayId() {
+let currentBookingDayId = null;
+async function loadCurrentBookingDayId() {
 
-    /*
-       Tables page ke operational day ke saath
-       booking ko link karne ke liye.
+    if (!window.db) {
 
-       Current day ID localStorage se li jayegi.
-    */
+        console.log(
+            "Waiting for Firebase DB..."
+        );
 
-    const possibleKeys = [
-        "currentDayId",
-        "current_day_id",
-        "dayId",
-        "day_id"
-    ];
+        setTimeout(
+            loadCurrentBookingDayId,
+            500
+        );
 
-    for (const key of possibleKeys) {
-
-        const value =
-            localStorage.getItem(key);
-
-        if (value) {
-
-            console.log(
-                "BOOKING CURRENT DAY ID:",
-                value,
-                "KEY:",
-                key
-            );
-
-            return value;
-        }
+        return;
     }
 
-    console.warn(
-        "BOOKING CURRENT DAY ID NOT FOUND"
-    );
+    try {
 
-    return null;
+        const currentDayQuery =
+            query(
+                collection(
+                    window.db,
+                    "system"
+                ),
+
+                where(
+                    "branch",
+                    "==",
+                    BRANCH
+                ),
+
+                where(
+                    "type",
+                    "==",
+                    "current_day"
+                ),
+
+                orderBy(
+                    "created_at",
+                    "desc"
+                ),
+
+                limit(1)
+            );
+
+
+        const snapshot =
+            await getDocs(
+                currentDayQuery
+            );
+
+
+        if (snapshot.empty) {
+
+            console.error(
+                "❌ BOOKING CURRENT DAY NOT FOUND"
+            );
+
+            currentBookingDayId = null;
+
+            renderBookings();
+
+            return;
+        }
+
+
+        const data =
+            snapshot.docs[0].data();
+
+
+        currentBookingDayId =
+            data.day_id || null;
+
+
+        console.log(
+            "🔥 BOOKING CURRENT DAY ID:",
+            currentBookingDayId
+        );
+
+
+        renderBookings();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "❌ BOOKING CURRENT DAY LOAD ERROR:",
+            error
+        );
+
+        currentBookingDayId = null;
+
+    }
+
+}
+
+
+function getCurrentBookingDayId() {
+
+    return currentBookingDayId;
+
 }
 
 
@@ -1628,13 +1696,27 @@ if (
                 const now =
                     new Date().toISOString();
 
+                const currentDayId =
+    getCurrentBookingDayId();
+
+
+if (!currentDayId) {
+
+    showBookingError(
+        "Current operational day is not ready. Please refresh the page."
+    );
+
+    return;
+
+}
+
 
                 const bookingData = {
 
                     branch:
                         BRANCH,
 
-                    day_id: getCurrentBookingDayId(),
+                    day_id: currentDayId,
 
                     customer_name:
                         customerName,
