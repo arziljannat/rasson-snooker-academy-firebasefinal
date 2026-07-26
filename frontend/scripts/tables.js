@@ -2763,10 +2763,10 @@ combined.closingCash =
     }
 
 
-    // ==========================================
-    // POPUP HTML
-    // ==========================================
-    summaryBody.innerHTML = `
+// ==========================================
+// POPUP HTML
+// ==========================================
+summaryBody.innerHTML = `
 
 <tr>
 
@@ -2777,6 +2777,8 @@ combined.closingCash =
     <td>${s1?.canteenTotal || 0}</td>
 
     <td>${s1?.gameCollection || 0}</td>
+
+    <td>${s1?.advanceCollection || 0}</td>
 
     <td>${s1?.canteenCollection || 0}</td>
 
@@ -2808,6 +2810,8 @@ combined.closingCash =
     <td>${s2?.canteenTotal || 0}</td>
 
     <td>${s2?.gameCollection || 0}</td>
+
+    <td>${s2?.advanceCollection || 0}</td>
 
     <td>${s2?.canteenCollection || 0}</td>
 
@@ -2842,6 +2846,8 @@ ${combined ? `
 
     <td>${combined.gameCollection}</td>
 
+    <td>${combined.advanceCollection || 0}</td>
+
     <td>${combined.canteenCollection}</td>
 
     <td>${combined.gameBalance}</td>
@@ -2867,7 +2873,7 @@ ${combined ? `
 `;
 
 
-    showPopup("shiftSummaryPopup");
+showPopup("shiftSummaryPopup");
 }
 
 /******************************************************
@@ -2926,7 +2932,8 @@ let shiftData = calculateShiftSnapshot(startMs, endMs);
 const bookingAdvanceCollection =
     await getBookingAdvanceCollection(
         startMs,
-        endMs
+        endMs,
+        1
     );
 
 // 🔥 ADD ADVANCE TO GAME COLLECTION
@@ -3093,7 +3100,8 @@ if (!startMs) {
 const bookingAdvanceCollection =
     await getBookingAdvanceCollection(
         startMs,
-        endMs
+        endMs,
+        2
     );
 
 // 🔥 ADVANCE SEPARATE COLLECTION
@@ -3413,15 +3421,15 @@ window.currentDayId = newDayId;
 // =====================================================
 // 🔥 BOOKING ADVANCE COLLECTION FOR SHIFT - FIXED
 // =====================================================
-async function getBookingAdvanceCollection(startTime, endTime) {
+async function getBookingAdvanceCollection(startTime, endTime, shiftNumber) {
 
     let totalAdvance = 0;
 
+    // Same booking ka advance dobara count na ho
+    const countedBookings = new Set();
+
     try {
 
-        // 🔥 IMPORTANT:
-        // day_id filter intentionally nahi lagaya.
-        // Advance ka shift booking_advance_paid_at decide karega.
         const q = query(
             collection(window.db, "sessions"),
             where("branch", "==", BRANCH)
@@ -3443,119 +3451,152 @@ async function getBookingAdvanceCollection(startTime, endTime) {
                 return;
             }
 
-            // Booking session identify karo
+            // Sirf current operational day
+            if (
+                String(s.day_id || "") !==
+                String(window.currentDayId || "")
+            ) {
+                return;
+            }
+
+            // Booking identify
+            const bookingId =
+                s.booking_id ||
+                s.bookingId ||
+                null;
+
             const isBooking =
                 s.from_booking === true ||
                 s.fromBooking === true ||
-                !!s.booking_id ||
-                !!s.bookingId ||
-                !!s.booking_advance_paid_at;
+                !!bookingId ||
+                !!s.booking_advance_paid_at ||
+                !!s.bookingAdvancePaidAt;
 
             if (!isBooking) {
                 return;
             }
 
-            // Advance amount — possible field names
+            // Advance amount
             const advance = Number(
                 s.booking_advance ??
                 s.bookingAdvance ??
                 s.advance_payment ??
                 s.advancePayment ??
+                s.advance ??
                 0
-            );
-
-            // Payment time
-            let paidAt = 0;
-
-            if (s.booking_advance_paid_at) {
-
-                if (
-                    typeof s.booking_advance_paid_at === "object" &&
-                    typeof s.booking_advance_paid_at.toMillis === "function"
-                ) {
-                    paidAt =
-                        s.booking_advance_paid_at.toMillis();
-                } else {
-                    paidAt =
-                        new Date(
-                            s.booking_advance_paid_at
-                        ).getTime();
-                }
-
-            } else if (s.bookingAdvancePaidAt) {
-
-                if (
-                    typeof s.bookingAdvancePaidAt === "object" &&
-                    typeof s.bookingAdvancePaidAt.toMillis === "function"
-                ) {
-                    paidAt =
-                        s.bookingAdvancePaidAt.toMillis();
-                } else {
-                    paidAt =
-                        new Date(
-                            s.bookingAdvancePaidAt
-                        ).getTime();
-                }
-            }
-
-            console.log(
-                "🔎 ADVANCE SESSION:",
-                {
-                    id: docSnap.id,
-                    day_id: s.day_id,
-                    booking_id: s.booking_id,
-                    advance,
-                    paidAt,
-                    paidAtDate:
-                        paidAt
-                            ? new Date(paidAt).toLocaleString(
-                                "en-PK",
-                                {
-                                    timeZone: "Asia/Karachi"
-                                }
-                            )
-                            : "NO DATE",
-                    shiftStart:
-                        new Date(startTime).toLocaleString(
-                            "en-PK",
-                            {
-                                timeZone: "Asia/Karachi"
-                            }
-                        ),
-                    shiftEnd:
-                        new Date(endTime).toLocaleString(
-                            "en-PK",
-                            {
-                                timeZone: "Asia/Karachi"
-                            }
-                        )
-                }
             );
 
             if (advance <= 0) {
                 return;
             }
 
-            if (!paidAt || Number.isNaN(paidAt)) {
+            // Payment time
+            let paidAt = 0;
+
+            const rawPaidAt =
+                s.booking_advance_paid_at ??
+                s.bookingAdvancePaidAt ??
+                s.paidAt ??
+                null;
+
+            if (rawPaidAt) {
+
+                if (
+                    typeof rawPaidAt === "object" &&
+                    typeof rawPaidAt.toMillis === "function"
+                ) {
+                    paidAt = rawPaidAt.toMillis();
+
+                } else if (
+                    typeof rawPaidAt === "object" &&
+                    rawPaidAt.seconds
+                ) {
+                    paidAt = rawPaidAt.seconds * 1000;
+
+                } else {
+                    paidAt = new Date(rawPaidAt).getTime();
+                }
+            }
+
+            console.log("🔎 ADVANCE SESSION:", {
+                id: docSnap.id,
+                day_id: s.day_id,
+                booking_id: bookingId,
+                advance,
+                paidAt
+            });
+
+            /*
+             * IMPORTANT:
+             *
+             * Shift 1:
+             * Current operational day ka advance agar
+             * Shift 1 start hone se pehle receive hua ho,
+             * to bhi Shift 1 mein count hoga.
+             *
+             * Shift 2:
+             * Sirf Shift 2 ke actual time ke andar
+             * receive hua advance count hoga.
+             */
+
+            let includeAdvance = false;
+
+const isShift1 = Number(shiftNumber) === 1;
+
+            if (isShift1) {
+
+                // Current day ka advance Shift 1 end tak
+                if (
+                    !paidAt ||
+                    paidAt <= Number(endTime)
+                ) {
+                    includeAdvance = true;
+                }
+
+            } else {
+
+                // Shift 2 / normal time range
+                if (
+                    paidAt &&
+                    paidAt >= Number(startTime) &&
+                    paidAt <= Number(endTime)
+                ) {
+                    includeAdvance = true;
+                }
+            }
+
+            if (!includeAdvance) {
                 return;
             }
 
-            // 🔥 Advance us shift mein count hoga
-            // jis waqt actual receive hua
-            if (
-                paidAt >= Number(startTime) &&
-                paidAt <= Number(endTime)
-            ) {
+            // Same booking duplicate protection
+            const uniqueKey =
+                bookingId
+                    ? String(bookingId)
+                    : docSnap.id;
 
-                totalAdvance += advance;
+            if (countedBookings.has(uniqueKey)) {
 
                 console.log(
-                    "✅ ADVANCE INCLUDED:",
-                    advance,
-                    "TOTAL:",
-                    totalAdvance
+                    "⚠️ DUPLICATE ADVANCE SKIPPED:",
+                    uniqueKey
                 );
+
+                return;
             }
+
+            countedBookings.add(uniqueKey);
+
+            totalAdvance += advance;
+
+            console.log(
+                "✅ ADVANCE INCLUDED:",
+                advance,
+                "BOOKING:",
+                uniqueKey,
+                "TOTAL:",
+                totalAdvance
+            );
 
         });
 
@@ -3574,7 +3615,6 @@ async function getBookingAdvanceCollection(startTime, endTime) {
 
     return totalAdvance;
 }
-
 
 
 function getGameTotal() {
