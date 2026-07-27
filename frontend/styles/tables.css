@@ -959,3 +959,276 @@ body * {
     text-shadow: 0 0 10px #ff4444 !important;
 }
 
+/* ============================================================
+   HISTORY POPUP - FINAL OVERRIDE
+============================================================ */
+
+/* POPUP SIZE */
+#historyPopup .popup-box {
+    width: 1050px !important;
+    max-width: 92vw !important;
+    padding: 28px 32px !important;
+    gap: 18px !important;
+    box-sizing: border-box !important;
+}
+
+
+/* HISTORY TITLE */
+#historyPopup #historyTableTitle {
+    width: 100% !important;
+    text-align: center !important;
+
+    font-size: 28px !important;
+    font-weight: 900 !important;
+
+    color: #d8fff3 !important;
+
+    margin: 0 0 10px 0 !important;
+
+    text-shadow: 0 0 8px rgba(0,255,170,0.45);
+}
+
+
+/* ============================================================
+   TOP 5 SUMMARY BOXES
+============================================================ */
+
+#historyPopup .history-summary-counters {
+    width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+
+    gap: 15px !important;
+
+    margin: 5px 0 22px 0 !important;
+}
+
+
+/* EACH BOX */
+#historyPopup .history-summary-box {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    height: 95px !important;
+    padding: 12px 8px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: linear-gradient(
+        180deg,
+        rgba(0, 35, 27, 0.95),
+        rgba(0, 8, 7, 0.98)
+    ) !important;
+
+    border: 2px solid #00ff88 !important;
+    border-radius: 14px !important;
+
+    box-sizing: border-box !important;
+
+    box-shadow:
+        0 0 12px rgba(0,255,136,0.65),
+        inset 0 0 14px rgba(0,255,136,0.12) !important;
+}
+
+
+/* BOX HEADING */
+#historyPopup .history-summary-box span {
+    display: block !important;
+
+    font-size: 16px !important;
+    font-weight: 900 !important;
+
+    color: #d5fff2 !important;
+
+    margin: 0 0 10px 0 !important;
+
+    text-align: center !important;
+    white-space: nowrap !important;
+
+    /* requested underline */
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 5px !important;
+}
+
+
+/* BOX NUMBER */
+#historyPopup .history-summary-box strong {
+    display: block !important;
+
+    font-size: 31px !important;
+    font-weight: 900 !important;
+
+    line-height: 1 !important;
+
+    color: #00ffcc !important;
+
+    text-shadow:
+        0 0 5px #00ffcc,
+        0 0 12px rgba(0,255,204,0.8) !important;
+}
+
+
+/* TOTAL GAME */
+#historyPopup .history-summary-box:nth-child(1) strong {
+    color: #00ffcc !important;
+}
+
+
+/* GUEST PLAY */
+#historyPopup .history-summary-box:nth-child(2) strong {
+    color: #00ffcc !important;
+}
+
+
+/* BOOKING PLAY - GOLD */
+#historyPopup .history-summary-box:nth-child(3) {
+    border-color: #ffd700 !important;
+
+    box-shadow:
+        0 0 14px rgba(255,215,0,0.75),
+        inset 0 0 14px rgba(255,215,0,0.12) !important;
+}
+
+#historyPopup .history-summary-box:nth-child(3) span {
+    color: #ffe96b !important;
+}
+
+#historyPopup .history-summary-box:nth-child(3) strong {
+    color: #ffd700 !important;
+
+    text-shadow:
+        0 0 6px #ffd700,
+        0 0 14px rgba(255,215,0,0.85) !important;
+}
+
+
+/* PAID - GREEN */
+#historyPopup .history-summary-box:nth-child(4) span {
+    color: #7dffb4 !important;
+}
+
+#historyPopup .history-summary-box:nth-child(4) strong {
+    color: #00ff88 !important;
+
+    text-shadow:
+        0 0 6px #00ff88,
+        0 0 14px rgba(0,255,136,0.85) !important;
+}
+
+
+/* UNPAID - RED */
+#historyPopup .history-summary-box:nth-child(5) {
+    grid-column: auto !important;
+
+    border-color: #ff4444 !important;
+
+    box-shadow:
+        0 0 14px rgba(255,68,68,0.75),
+        inset 0 0 14px rgba(255,68,68,0.12) !important;
+}
+
+#historyPopup .history-summary-box:nth-child(5) span {
+    color: #ff9999 !important;
+}
+
+#historyPopup .history-summary-box:nth-child(5) strong {
+    color: #ff4444 !important;
+
+    text-shadow:
+        0 0 6px #ff4444,
+        0 0 14px rgba(255,68,68,0.85) !important;
+}
+
+
+/* ============================================================
+   HISTORY TABLE - BIGGER TEXT
+============================================================ */
+
+#historyPopup .table-mobile-wrapper {
+    width: 100% !important;
+    overflow-x: auto !important;
+}
+
+#historyPopup .history-table {
+    width: 100% !important;
+
+    font-size: 16px !important;
+
+    margin: 5px 0 12px 0 !important;
+
+    border-collapse: collapse !important;
+}
+
+
+/* TABLE HEADINGS */
+#historyPopup .history-table th {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+
+    padding: 11px 7px !important;
+
+    color: #00ffcc !important;
+
+    text-align: center !important;
+}
+
+
+/* TABLE DATA */
+#historyPopup .history-table td {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+
+    padding: 11px 7px !important;
+
+    text-align: center !important;
+
+    color: #d8fff3 !important;
+}
+
+
+/* ============================================================
+   HISTORY BOTTOM BUTTONS
+============================================================ */
+
+#historyPopup .popup-buttons {
+    width: 100% !important;
+
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+
+    gap: 18px !important;
+
+    margin-top: 8px !important;
+}
+
+#historyPopup .popup-buttons button {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+
+    padding: 9px 20px !important;
+}
+
+
+/* MOBILE */
+@media (max-width: 700px) {
+
+    #historyPopup .popup-box {
+        width: 95vw !important;
+        padding: 18px 12px !important;
+    }
+
+    #historyPopup .history-summary-counters {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    #historyPopup .history-summary-box:nth-child(5) {
+        grid-column: 1 / -1 !important;
+    }
+}
+
