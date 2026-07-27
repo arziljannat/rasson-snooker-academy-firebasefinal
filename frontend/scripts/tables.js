@@ -2586,27 +2586,30 @@ console.log("=================================");
         // ======================================
         // BOOKING ADVANCE
         // ======================================
-        const bookingAdvance =
-            await getBookingAdvanceCollection(
-                startMs,
-                now
-            );
+const bookingAdvance =
+    await getBookingAdvanceCollection(
+        startMs,
+        now,
+        1
+    );
 
 
         liveData.gameCollection +=
             bookingAdvance;
 
 
-        liveData.closingCash =
-            (
-                liveData.gameCollection +
-                liveData.canteenCollection
-            )
-            -
-            liveData.expenses
-            -
-            liveData.easypaisa;
+liveData.advanceCollection = bookingAdvance;
 
+liveData.closingCash =
+    (
+        liveData.gameCollection +
+        liveData.canteenCollection +
+        liveData.advanceCollection
+    )
+    -
+    liveData.expenses
+    -
+    liveData.easypaisa;
 
         s1 = {
 
@@ -2656,26 +2659,25 @@ console.log("=================================");
         // ======================================
         // BOOKING ADVANCE SHIFT 2
         // ======================================
-        const bookingAdvance =
-            await getBookingAdvanceCollection(
-                startMs,
-                now
-            );
+const bookingAdvance =
+    await getBookingAdvanceCollection(
+        startMs,
+        now,
+        2
+    );
 
+liveData.advanceCollection = bookingAdvance;
 
-        liveData.gameCollection +=
-            bookingAdvance;
-
-
-        liveData.closingCash =
-            (
-                liveData.gameCollection +
-                liveData.canteenCollection
-            )
-            -
-            liveData.expenses
-            -
-            liveData.easypaisa;
+liveData.closingCash =
+    (
+        liveData.gameCollection +
+        liveData.canteenCollection +
+        liveData.advanceCollection
+    )
+    -
+    liveData.expenses
+    -
+    liveData.easypaisa;
 
 
         s2 = {
@@ -3879,13 +3881,15 @@ const newShift2 = calculateShiftSnapshot(
 const shift1BookingAdvance =
     await getBookingAdvanceCollection(
         latestShift1.start_ms,
-        latestShift1.end_ms
+        latestShift1.end_ms,
+        1
     );
 
 const shift2BookingAdvance =
     await getBookingAdvanceCollection(
         latestShift2.start_ms,
-        latestShift2.end_ms
+        latestShift2.end_ms,
+        2
     );
 
 // 🔥 ADVANCE COLLECTION SEPARATE
