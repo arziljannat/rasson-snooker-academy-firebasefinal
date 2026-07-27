@@ -1294,13 +1294,13 @@ body * {
     justify-content: center;
     align-items: flex-start;
 
-    gap: 25px;
+    gap: 15px;
 }
-
 
 /* Keep original card size */
 .game-section-grid .table-box {
-    flex: 0 0 330px;
+    flex: 0 0 300px;
+    width: 300px;
     box-sizing: border-box;
 }
 
