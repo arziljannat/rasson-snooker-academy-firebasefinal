@@ -1479,3 +1479,93 @@ body * {
     background: #00bfff !important;
     color: #061018 !important;
 }
+/* ============================================================
+   PREMIUM CATEGORY HEADINGS
+============================================================ */
+
+.game-section-title {
+    width: fit-content !important;
+    min-width: 150px;
+
+    margin: 0 auto 18px auto !important;
+    padding: 0 25px 8px 25px;
+
+    text-align: center;
+
+    font-size: 25px !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px;
+
+    position: relative;
+}
+
+
+/* GLOW UNDERLINE */
+.game-section-title::after {
+    content: "";
+    position: absolute;
+
+    left: 50%;
+    bottom: 0;
+
+    transform: translateX(-50%);
+
+    width: 100%;
+    height: 2px;
+
+    border-radius: 20px;
+}
+
+
+/* TABLES - GREEN */
+.tables-section .game-section-title {
+    color: #00ffcc !important;
+
+    text-shadow:
+        0 0 5px #00ffcc,
+        0 0 12px rgba(0,255,204,0.8);
+}
+
+.tables-section .game-section-title::after {
+    background: #00ff88;
+
+    box-shadow:
+        0 0 5px #00ff88,
+        0 0 12px #00ff88;
+}
+
+
+/* ROOMS - GOLD */
+.rooms-section .game-section-title {
+    color: #ffd54a !important;
+
+    text-shadow:
+        0 0 5px #ffbf00,
+        0 0 12px rgba(255,191,0,0.9);
+}
+
+.rooms-section .game-section-title::after {
+    background: #ffbf00;
+
+    box-shadow:
+        0 0 5px #ffbf00,
+        0 0 12px #ffbf00;
+}
+
+
+/* POOL - BLUE / CYAN */
+.pool-section .game-section-title {
+    color: #38d9ff !important;
+
+    text-shadow:
+        0 0 5px #00bfff,
+        0 0 12px rgba(0,191,255,0.9);
+}
+
+.pool-section .game-section-title::after {
+    background: #00bfff;
+
+    box-shadow:
+        0 0 5px #00bfff,
+        0 0 12px #00bfff;
+}
