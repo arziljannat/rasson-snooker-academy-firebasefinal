@@ -863,3 +863,101 @@ body * {
             inset 0 0 22px rgba(255, 215, 0, 0.30);
     }
 }
+
+
+/* ============================================================
+   HISTORY SUMMARY COUNTERS
+   Total Game | Guest Play | Booking Play | Paid | Unpaid
+============================================================ */
+
+.history-summary-counters {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 5px 0 12px 0;
+    box-sizing: border-box;
+}
+
+.history-summary-box {
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid #00ff88;
+    border-radius: 12px;
+    padding: 12px 8px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 65px;
+
+    box-shadow:
+        0 0 10px rgba(0, 255, 136, 0.35),
+        inset 0 0 10px rgba(0, 255, 136, 0.08);
+}
+
+.history-summary-box span {
+    color: #ccffee;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.history-summary-box strong {
+    color: #00ffcc;
+    font-size: 23px;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(0, 255, 204, 0.7);
+}
+
+
+/* BOOKING PLAY - GOLD */
+.history-summary-box:nth-child(3) {
+    border-color: #ffd700;
+
+    box-shadow:
+        0 0 10px rgba(255, 215, 0, 0.35),
+        inset 0 0 10px rgba(255, 215, 0, 0.08);
+}
+
+.history-summary-box:nth-child(3) strong {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+}
+
+
+/* PAID - GREEN */
+.history-summary-box:nth-child(4) strong {
+    color: #00ff88;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.7);
+}
+
+
+/* UNPAID - RED */
+.history-summary-box:nth-child(5) {
+    border-color: #ff4444;
+
+    box-shadow:
+        0 0 10px rgba(255, 68, 68, 0.35),
+        inset 0 0 10px rgba(255, 68, 68, 0.08);
+}
+
+.history-summary-box:nth-child(5) strong {
+    color: #ff6666;
+    text-shadow: 0 0 8px rgba(255, 68, 68, 0.7);
+}
+
+
+/* MOBILE */
+@media (max-width: 700px) {
+
+    .history-summary-counters {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .history-summary-box:last-child {
+        grid-column: span 2;
+    }
+}
