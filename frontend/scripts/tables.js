@@ -153,9 +153,12 @@ onSnapshot(q, (snapshot) => {
                 endMs: Number(d.end_ms) || 0,
                 gameTotal: d.game_total,
                 canteenTotal: d.canteen_total,
-                gameCollection: d.game_collection,
-                canteenCollection: d.canteen_collection,
-                expenses: d.expenses,
+gameCollection: d.game_collection,
+canteenCollection: d.canteen_collection,
+
+advanceCollection: d.advance_collection || 0,
+
+expenses: d.expenses,
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
@@ -172,9 +175,12 @@ onSnapshot(q, (snapshot) => {
                 endMs: Number(d.end_ms) || 0,
                 gameTotal: d.game_total,
                 canteenTotal: d.canteen_total,
-                gameCollection: d.game_collection,
-                canteenCollection: d.canteen_collection,
-                expenses: d.expenses,
+gameCollection: d.game_collection,
+canteenCollection: d.canteen_collection,
+
+advanceCollection: d.advance_collection || 0,
+
+expenses: d.expenses,
                 easypaisa: d.easypaisa || 0,
                 discount: d.discount || 0,
                 closingCash: d.closing_cash,
@@ -3329,12 +3335,21 @@ let printData = {
     gameCollection: (s1?.gameCollection || 0) + (s2?.gameCollection || 0),
     canteenCollection: (s1?.canteenCollection || 0) + (s2?.canteenCollection || 0),
 
+  // 🔥 BOOKING ADVANCE
+advanceCollection:
+    Number(s1?.advanceCollection || 0) +
+    Number(s2?.advanceCollection || 0),
+
     expenses: (s1?.expenses || 0) + (s2?.expenses || 0),
   easypaisa: (s1?.easypaisa || 0) + (s2?.easypaisa || 0),
 };
 
 printData.closingCash =
-    (printData.gameCollection + printData.canteenCollection)
+    (
+        printData.gameCollection +
+        printData.canteenCollection +
+        printData.advanceCollection
+    )
     - printData.expenses
     - (printData.easypaisa || 0);
 
@@ -3351,6 +3366,7 @@ printDayHistoryThermal({
         canteenTotal: printData.canteenTotal,
         gameCollection: printData.gameCollection,
         canteenCollection: printData.canteenCollection,
+        advanceCollection: printData.advanceCollection,
         gameBalance: (shift1?.gameBalance || 0) + (shift2?.gameBalance || 0),
         canteenBalance: (shift1?.canteenBalance || 0) + (shift2?.canteenBalance || 0),
         expenses: printData.expenses,
@@ -5170,6 +5186,7 @@ function printDayHistoryThermal(d) {
 <div class="row">Game : Rs ${s1.gameTotal || 0}</div>
 <div class="row">Canteen : Rs ${s1.canteenTotal || 0}</div>
 <div class="row">Game Collection : Rs ${s1.gameCollection || 0}</div>
+<div class="row">Advance Collection : Rs ${s1.advanceCollection || 0}</div>
 <div class="row">Canteen Collection : Rs ${s1.canteenCollection || 0}</div>
 <div class="row">Balance : Rs ${(s1.gameBalance || 0)+(s1.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s1.expenses || 0}</div>
@@ -5190,6 +5207,7 @@ function printDayHistoryThermal(d) {
 <div class="row">Game : Rs ${s2.gameTotal || 0}</div>
 <div class="row">Canteen : Rs ${s2.canteenTotal || 0}</div>
 <div class="row">Game Collection : Rs ${s2.gameCollection || 0}</div>
+<div class="row">Advance Collection : Rs ${s2.advanceCollection || 0}</div>
 <div class="row">Canteen Collection : Rs ${s2.canteenCollection || 0}</div>
 <div class="row">Balance : Rs ${(s2.gameBalance || 0)+(s2.canteenBalance || 0)}</div>
 <div class="row">Expenses : Rs ${s2.expenses || 0}</div>
@@ -5210,6 +5228,7 @@ function printDayHistoryThermal(d) {
 <div class="row"><span>Game : Rs ${c.gameTotal || 0}</div>
 <div class="row"><span>Canteen : Rs ${c.canteenTotal || 0}</div>
 <div class="row"><span>Collection : Rs ${(c.gameCollection||0)+(c.canteenCollection||0)}</div>
+<div class="row"><span>Advance Collection : Rs ${c.advanceCollection || 0}</div>
 <div class="row"><span>Balance : Rs ${(c.gameBalance||0)+(c.canteenBalance||0)}</div>
 <div class="row"><span>Expenses : Rs ${c.expenses || 0}</div>
 <div class="row"><span>EasyPaisa : Rs ${c.easypaisa || 0}</div>
