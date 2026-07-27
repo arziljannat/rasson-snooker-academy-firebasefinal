@@ -2123,6 +2123,14 @@ function openHistory(id) {
         h.paid !== true
     ).length;
 
+  const paidAmount = historyList
+    .filter(h => h.paid === true)
+    .reduce((sum, h) => sum + Number(h.total || 0), 0);
+
+const unpaidAmount = historyList
+    .filter(h => h.paid !== true)
+    .reduce((sum, h) => sum + Number(h.total || 0), 0);
+
     // UPDATE TOP BOXES
     document.getElementById("historyTotalGame").textContent =
         totalGame;
@@ -2138,6 +2146,12 @@ function openHistory(id) {
 
     document.getElementById("historyUnpaidCount").textContent =
         unpaidCount;
+
+    document.getElementById("historyPaidAmount").textContent =
+    `Rs. ${paidAmount.toLocaleString()}`;
+
+document.getElementById("historyUnpaidAmount").textContent =
+    `Rs. ${unpaidAmount.toLocaleString()}`;
   
 
   
