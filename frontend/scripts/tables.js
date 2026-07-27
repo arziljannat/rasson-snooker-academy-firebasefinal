@@ -2147,11 +2147,28 @@ t.history.sort((a, b) => {
                     
                     <td>${h.canteenAmount || 0}</td>
                     
-                    <td>${h.total || 0}</td>
-                                          <td>
-    ${h.paid
-        ? `<button class="paid-btn" disabled>PAID</button>`
-        : `<button class="unpaid-btn" onclick="openBillFromHistory('${id}', ${index})">UNPAID</button>`
+<td>
+    ${
+        h.fromBooking && Number(h.bookingAdvance || 0) > 0
+            ? `
+                <div>${h.totalBillAmount || h.total || 0}</div>
+                <small style="color:#00ff9d;">
+                    Advance: Rs ${h.bookingAdvance || 0}
+                </small>
+                <br>
+                <small style="color:#ffd700;">
+                    Remaining: Rs ${h.remainingPayment || 0}
+                </small>
+              `
+            : `${h.total || 0}`
+    }
+</td>
+
+<td>
+    ${
+        h.paid
+            ? `<button class="paid-btn" disabled>PAID</button>`
+            : `<button class="unpaid-btn" onclick="openBillFromHistory('${id}', ${index})">UNPAID</button>`
     }
 </td>
 
@@ -2234,6 +2251,49 @@ function openBillFromHistory(tableId, historyIndex) {
 
     let t = tables.find(x => String(x.id) === String(tableId));
     let h = t.history[historyIndex];
+
+    if (!t || !h) {
+    alert("Bill data not found ❌");
+    return;
+}
+
+// 🔥 HISTORY SELECTED SESSION BILL DATA
+const historyOriginalAmount =
+    Number(h.originalAmount || h.amount || 0);
+
+const historyDiscount =
+    Number(h.discount || 0);
+
+const historyGameAmount =
+    Math.max(
+        0,
+        historyOriginalAmount - historyDiscount
+    );
+
+const historyCanteenAmount =
+    Number(h.canteenAmount || 0);
+
+const historyTotalBill =
+    Number(
+        h.totalBillAmount ??
+        (
+            historyGameAmount +
+            historyCanteenAmount
+        )
+    );
+
+const historyBookingAdvance =
+    h.fromBooking
+        ? Number(h.bookingAdvance || 0)
+        : 0;
+
+const historyRemaining =
+    Math.max(
+        0,
+        historyTotalBill -
+        historyBookingAdvance
+    );
+    
 
     let academy = localStorage.getItem("academyName") || "Rasson Snooker Academy";
     let branch = BRANCH || "Rasson1";
@@ -2331,6 +2391,34 @@ originalAmount - discount;
 const finalTotal =
 gameAmount + canteenTotal;
 
+
+  // ==============================================
+// BOOKING ADVANCE — HISTORY BILL DISPLAY
+// ==============================================
+
+const isBookingSession =
+    h.fromBooking === true;
+
+const bookingAdvance =
+    isBookingSession
+        ? Number(h.bookingAdvance || 0)
+        : 0;
+
+const totalBillAmount =
+    Number(
+        h.totalBillAmount ??
+        finalTotal
+    );
+
+const remainingPayment =
+    isBookingSession
+        ? Number(
+            h.remainingPayment ??
+            Math.max(0, totalBillAmount - bookingAdvance)
+        )
+        : finalTotal;
+  
+
 bill.innerHTML = `
 <div style="width:300px; margin:auto; font-family:monospace; color:#000; background:#fff; padding:15px; border-radius:10px;">
 
@@ -2382,13 +2470,27 @@ bill.innerHTML = `
 
     <hr>
 
-    <!-- 🔥 FINAL TOTAL -->
-    <div style="display:flex; justify-content:space-between; font-size:18px;">
-        <b>Total</b>
-        <b>Rs ${finalTotal}</b>
+<!-- 🔥 FINAL TOTAL -->
+<div style="display:flex; justify-content:space-between; font-size:18px;">
+    <b>Total Bill</b>
+    <b>Rs ${totalBillAmount}</b>
+</div>
+
+${isBookingSession ? `
+    <hr>
+
+    <div style="display:flex; justify-content:space-between;">
+        <span>Booking Advance</span>
+        <span>Rs ${bookingAdvance}</span>
     </div>
 
-    <hr>
+    <div style="display:flex; justify-content:space-between; font-size:18px; margin-top:8px;">
+        <b>Remaining</b>
+        <b>Rs ${remainingPayment}</b>
+    </div>
+` : ""}
+
+<hr>
 
     <!-- 🔥 QR -->
     <center>
