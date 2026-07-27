@@ -1677,21 +1677,36 @@ const q = query(
     where("is_deleted", "==", false)
 );
 
-// 🔥 ONLY LAST SESSION KO PAID KARO
+// 🔥 EXACT UNPAID CHECKED-OUT SESSION KO PAID KARO
 const snap = await getDocs(q);
 
 let latestSession = null;
 let latestTime = 0;
 
 snap.forEach(d => {
-    const data = d.data();
-   if (!data.end_time) return;
 
-    let time = new Date(data.end_time).getTime();
+    const data = d.data();
+
+    // Running session nahi chahiye
+    if (!data.end_time) return;
+
+    // Already paid session dobara select nahi hoga
+    if (data.paid === true) return;
+
+    // Deleted session ignore
+    if (data.is_deleted === true) return;
+
+    const time =
+        new Date(data.end_time).getTime();
 
     if (time > latestTime) {
+
         latestTime = time;
-        latestSession = { id: d.id, ...data };
+
+        latestSession = {
+            id: d.id,
+            ...data
+        };
     }
 });
 
