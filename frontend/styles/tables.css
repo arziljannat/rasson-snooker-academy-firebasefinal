@@ -1232,3 +1232,14 @@ body * {
     }
 }
 
+.history-money {
+    margin-top: 6px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #00ff99;
+    text-shadow:
+        0 0 5px #00ff99,
+        0 0 10px #00ff99;
+    white-space: nowrap;
+}
+
