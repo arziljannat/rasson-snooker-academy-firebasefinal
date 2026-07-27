@@ -579,24 +579,66 @@ function renderTables() {
     const box = document.getElementById("tablesContainer");
     box.innerHTML = "";
 
-    // 🔥 SORT TABLES + ROOMS PROPER ORDER
+    // 🔥 SEPARATE LAYOUT SECTIONS
+    const tablesSection = document.createElement("div");
+    tablesSection.className = "game-section tables-section";
+
+    const roomsSection = document.createElement("div");
+    roomsSection.className = "game-section rooms-section";
+
+    const poolSection = document.createElement("div");
+    poolSection.className = "game-section pool-section";
+
+    tablesSection.innerHTML = `
+        <div class="game-section-title">TABLES</div>
+        <div class="game-section-grid" id="tablesGrid"></div>
+    `;
+
+    roomsSection.innerHTML = `
+        <div class="game-section-title">ROOMS</div>
+        <div class="game-section-grid" id="roomsGrid"></div>
+    `;
+
+    poolSection.innerHTML = `
+        <div class="game-section-title">POOL</div>
+        <div class="game-section-grid" id="poolGrid"></div>
+    `;
+
+    box.appendChild(tablesSection);
+    box.appendChild(roomsSection);
+    box.appendChild(poolSection);
+
+    const tablesGrid = tablesSection.querySelector("#tablesGrid");
+    const roomsGrid = roomsSection.querySelector("#roomsGrid");
+    const poolGrid = poolSection.querySelector("#poolGrid");
+
+// 🔥 SORT TABLES + ROOMS + POOL PROPER ORDER
 const sortedTables = [...tables].sort((a, b) => {
 
-    const getType = (name) => {
-        if (name.toLowerCase().startsWith("table")) return 1;
-if (name.toLowerCase().startsWith("room")) return 2;
-        return 3;
+    const getType = (name = "") => {
+        const n = name.toLowerCase();
+
+        if (n.startsWith("table")) return 1;
+        if (n.startsWith("room")) return 2;
+        if (n.startsWith("pool")) return 3;
+
+        return 4;
     };
 
     const typeA = getType(a.name);
     const typeB = getType(b.name);
 
-    // 🔹 pehle Table → phir Room
-    if (typeA !== typeB) return typeA - typeB;
+    // Table → Room → Pool
+    if (typeA !== typeB) {
+        return typeA - typeB;
+    }
 
-    // 🔹 number sort (Table 1, Table 2...)
-  const numA = parseInt(((a.name || "").match(/\d+/) || [0])[0]);
-  const numB = parseInt(((b.name || "").match(/\d+/) || [0])[0]);
+    // Number order:
+    // Table 1, Table 2...
+    // Room 1, Room 2...
+    // Pool 1, Pool 2...
+    const numA = parseInt(((a.name || "").match(/\d+/) || [0])[0]);
+    const numB = parseInt(((b.name || "").match(/\d+/) || [0])[0]);
 
     return numA - numB;
 });
@@ -685,7 +727,22 @@ Century (${t.centuryRate})
             </div>
         `;
 
-        box.appendChild(div);
+        // 🔥 CARD KO CORRECT SECTION MEIN ADD KARO
+const cardName = String(t.name || "").trim().toLowerCase();
+
+if (cardName.startsWith("table")) {
+    tablesGrid.appendChild(div);
+}
+else if (cardName.startsWith("room")) {
+    roomsGrid.appendChild(div);
+}
+else if (cardName.startsWith("pool")) {
+    poolGrid.appendChild(div);
+}
+else {
+    // Unknown type safety
+    tablesGrid.appendChild(div);
+}
 
         // 🔥 ROLE CONTROL (IMPORTANT)
 if (ROLE !== "admin") {
