@@ -2844,27 +2844,27 @@ ${combined ? `
 
     <td>Combined</td>
 
-    <td>${combined.gameTotal}</td>
+    <td>${Number(s1?.gameTotal || 0) + Number(s2?.gameTotal || 0)}</td>
 
-    <td>${combined.canteenTotal}</td>
+    <td>${Number(s1?.canteenTotal || 0) + Number(s2?.canteenTotal || 0)}</td>
 
-    <td>${combined.gameCollection}</td>
+    <td>${Number(s1?.gameCollection || 0) + Number(s2?.gameCollection || 0)}</td>
 
-    <td>${combined.advanceCollection || 0}</td>
+    <td>${Number(s1?.advanceCollection || 0) + Number(s2?.advanceCollection || 0)}</td>
 
-    <td>${combined.canteenCollection}</td>
+    <td>${Number(s1?.canteenCollection || 0) + Number(s2?.canteenCollection || 0)}</td>
 
-    <td>${combined.gameBalance}</td>
+    <td>${Number(s1?.gameBalance || 0) + Number(s2?.gameBalance || 0)}</td>
 
-    <td>${combined.canteenBalance}</td>
+    <td>${Number(s1?.canteenBalance || 0) + Number(s2?.canteenBalance || 0)}</td>
 
-    <td>${combined.discount}</td>
+    <td>${Number(s1?.discount || 0) + Number(s2?.discount || 0)}</td>
 
-    <td>${combined.expenses}</td>
+    <td>${Number(s1?.expenses || 0) + Number(s2?.expenses || 0)}</td>
 
-    <td>${combined.easypaisa}</td>
+    <td>${Number(s1?.easypaisa || 0) + Number(s2?.easypaisa || 0)}</td>
 
-    <td>${combined.closingCash}</td>
+    <td>${Number(s1?.closingCash || 0) + Number(s2?.closingCash || 0)}</td>
 
     <td>-</td>
 
