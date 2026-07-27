@@ -1569,3 +1569,68 @@ body * {
         0 0 5px #00bfff,
         0 0 12px #00bfff;
 }
+
+/* ============================================================
+   PLAYER NAMES - SIDE BY SIDE
+============================================================ */
+
+.player-names-box {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 6px 0 8px 0;
+}
+
+/* VS between both players */
+.player-names-box::before {
+    content: "VS";
+    order: 2;
+
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+
+    text-shadow:
+        0 0 5px #00ff88,
+        0 0 8px #00ff88;
+}
+
+.player-name-input {
+    width: 42%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+
+    border: 1px solid #00ff88;
+    border-radius: 6px;
+
+    padding: 5px 6px;
+
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+
+    outline: none;
+
+    box-shadow:
+        0 0 5px rgba(0, 255, 136, 0.5);
+}
+
+.player-name-input:first-child {
+    order: 1;
+}
+
+.player-name-input:last-child {
+    order: 3;
+}
+
+.player-name-input:focus {
+    border-color: #00ffcc;
+
+    box-shadow:
+        0 0 8px #00ffcc;
+}
