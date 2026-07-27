@@ -2096,6 +2096,52 @@ function openHistory(id) {
 
     let t = tables.find(x => String(x.id) === String(id));
 
+
+        // ==========================================
+    // HISTORY SUMMARY COUNTERS
+    // ==========================================
+
+    const historyList = Array.isArray(t.history)
+        ? t.history
+        : [];
+
+    const totalGame = historyList.length;
+
+    const bookingPlay = historyList.filter(h =>
+        h.fromBooking === true
+    ).length;
+
+    const guestPlay = historyList.filter(h =>
+        h.fromBooking !== true
+    ).length;
+
+    const paidCount = historyList.filter(h =>
+        h.paid === true
+    ).length;
+
+    const unpaidCount = historyList.filter(h =>
+        h.paid !== true
+    ).length;
+
+    // UPDATE TOP BOXES
+    document.getElementById("historyTotalGame").textContent =
+        totalGame;
+
+    document.getElementById("historyGuestPlay").textContent =
+        guestPlay;
+
+    document.getElementById("historyBookingPlay").textContent =
+        bookingPlay;
+
+    document.getElementById("historyPaidCount").textContent =
+        paidCount;
+
+    document.getElementById("historyUnpaidCount").textContent =
+        unpaidCount;
+  
+
+  
+
     let body = document.getElementById("historyTableBody");
   document.getElementById("historyTableTitle").innerText =
 `History - ${t.name}`;
