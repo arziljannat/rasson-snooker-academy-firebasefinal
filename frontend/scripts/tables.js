@@ -984,6 +984,26 @@ async function checkIn(id) {
 
     if (t.isRunning) return;
 
+  // 👥 GET PLAYER NAMES BEFORE CHECK-IN
+const player1Input =
+    document.getElementById(`player1-${id}`);
+
+const player2Input =
+    document.getElementById(`player2-${id}`);
+
+t.player1 =
+    player1Input?.value.trim() || "";
+
+t.player2 =
+    player2Input?.value.trim() || "";
+
+console.log(
+    "👥 CHECK-IN PLAYERS:",
+    t.player1 || "Guest Player 1",
+    "VS",
+    t.player2 || "Guest Player 2"
+);
+
 // =====================================================
 // 🔥 BOOKING PROCEED CHECK
 // =====================================================
@@ -1135,6 +1155,11 @@ try {
         is_deleted: false
     };
 
+    // 👥 PLAYER NAMES
+sessionData.player1_name = t.player1 || "";
+sessionData.player2_name = t.player2 || "";
+sessionData.players_updated_at = new Date().toISOString();
+  
     // =====================================================
     // 🔥 ATTACH BOOKING DATA TO SESSION
     // =====================================================
