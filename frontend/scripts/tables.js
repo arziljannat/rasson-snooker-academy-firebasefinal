@@ -1133,23 +1133,23 @@ if (latestSession) {
 
         try {
 
-            await updateDoc(
-                doc(
-                    window.db,
-                    "bookings",
-                    checkoutSessionData.booking_id
-                ),
-                {
-                    actual_end_at:
-                        checkoutNow,
+await updateDoc(
+    doc(
+        window.db,
+        "bookings",
+        checkoutSessionData.booking_id
+    ),
+    {
+        actual_end_at: checkoutNow,
+        checked_out_at: checkoutNow,
 
-                    checked_out_at:
-                        checkoutNow,
+        // 🔥 BOOKING COMPLETE ON TABLE CHECKOUT
+        status: "completed",
+        completed_at: checkoutNow,
 
-                    updated_at:
-                        checkoutNow
-                }
-            );
+        updated_at: checkoutNow
+    }
+);
 
             console.log(
                 "✅ BOOKING SLOT RELEASED ON CHECKOUT:",
