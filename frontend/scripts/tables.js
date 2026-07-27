@@ -680,7 +680,6 @@ sortedTables.forEach(t => {
 
             <div class="table-title">${t.name}</div>
 
-            <div class="table-title">${t.name}</div>
 
 <!-- 🔥 PLAYER NAMES -->
 <div class="player-names-box">
