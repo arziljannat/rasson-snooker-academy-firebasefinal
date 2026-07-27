@@ -1366,6 +1366,6 @@ body * {
 }
 
 .tables-section .table-box {
-    flex: 0 0 250px !important;
-    width: 250px !important;
+    flex: 0 0 300px !important;
+    width: 300px !important;
 }
