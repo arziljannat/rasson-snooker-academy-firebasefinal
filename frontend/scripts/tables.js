@@ -1170,8 +1170,20 @@ await updateDoc(
     }
 
 }
+
+    // 🔥 HISTORY SAVE (CORRECT PLACE)
+    if (!t.history) t.history = [];
+  
   // 🔥 SAVE HISTORY (MAIN FIX)
-t.history.push({
+if (
+    latestSession &&
+    !t.history.some(h =>
+        String(h.sessionId) === String(latestSession.id)
+    )
+) {
+    t.history.push({
+        sessionId: latestSession.id,
+
     checkin: t.checkinTime,
     checkout: t.checkoutTime,
     playSeconds: t.finalSeconds,
@@ -1218,9 +1230,9 @@ fromBooking:
 // 🔥 PAYMENT WILL BE CALCULATED ON PAID
 remainingPayment: 0
 });
+  }
 
-    // 🔥 HISTORY SAVE (CORRECT PLACE)
-    if (!t.history) t.history = [];
+
 
     updateButtons(id, "afterCheckout");
     updateDisplay(id);
