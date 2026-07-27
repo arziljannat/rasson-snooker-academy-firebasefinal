@@ -782,8 +782,35 @@ setTimeout(() => {
     });
 
 }, 50);
-    });
-}
+
+    }); // sortedTables.forEach END
+
+
+    // =====================================================
+    // 🔥 HIDE EMPTY TABLE / ROOM / POOL SECTIONS
+    // =====================================================
+
+    if (tablesGrid.children.length === 0) {
+        tablesSection.style.display = "none";
+    } else {
+        tablesSection.style.display = "";
+    }
+
+    if (roomsGrid.children.length === 0) {
+        roomsSection.style.display = "none";
+    } else {
+        roomsSection.style.display = "";
+    }
+
+    if (poolGrid.children.length === 0) {
+        poolSection.style.display = "none";
+    } else {
+        poolSection.style.display = "";
+    }
+
+
+} // renderTables END
+
 
 /******************************************************
  * CHANGE RATE
