@@ -1245,7 +1245,62 @@ if (bookingForThisTable) {
 /******************************************************
  * CHECK-OUT FUNCTION
  ******************************************************/
-async function checkOut(id) {
+let pendingPlayerCheckout = null;
+
+function checkOut(id) {
+
+    const t = tables.find(
+        x => String(x.id) === String(id)
+    );
+
+    if (!t || !t.isRunning) return;
+
+    // Current names from inputs bhi read kar lo
+    const player1Input =
+        document.getElementById(`player1-${id}`);
+
+    const player2Input =
+        document.getElementById(`player2-${id}`);
+
+    const player1 =
+        player1Input?.value.trim() ||
+        t.player1 ||
+        "Guest Player 1";
+
+    const player2 =
+        player2Input?.value.trim() ||
+        t.player2 ||
+        "Guest Player 2";
+
+    pendingPlayerCheckout = {
+        tableId: id,
+        player1,
+        player2
+    };
+
+    document.getElementById(
+        "playerCheckoutTableName"
+    ).innerText = t.name;
+
+    document.getElementById(
+        "playerCheckoutVs"
+    ).innerText = `${player1} VS ${player2}`;
+
+    document.getElementById(
+        "checkoutPlayer1Btn"
+    ).innerText = player1;
+
+    document.getElementById(
+        "checkoutPlayer2Btn"
+    ).innerText = player2;
+
+    document.getElementById(
+        "playerCheckoutPopup"
+    ).classList.remove("hidden");
+}
+
+
+async function completeCheckOut(id) {
 
     let t = tables.find(x => String(x.id) === String(id));
 
