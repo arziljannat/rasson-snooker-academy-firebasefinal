@@ -1369,3 +1369,113 @@ body * {
     flex: 0 0 300px !important;
     width: 300px !important;
 }
+
+/* ============================================================
+   CATEGORY COLORS
+   TABLE = GREEN | ROOM = GOLD | POOL = BLUE
+============================================================ */
+
+/* =========================
+   NORMAL TABLE - GREEN
+========================= */
+
+.tables-section .table-box {
+    border-color: #00ff88;
+    box-shadow:
+        0 0 15px #00ff88,
+        inset 0 0 15px rgba(0,255,136,0.25);
+}
+
+
+/* =========================
+   ROOM - PREMIUM GOLD
+========================= */
+
+.rooms-section .table-box {
+    border-color: #ffbf00 !important;
+
+    box-shadow:
+        0 0 12px #ffbf00,
+        0 0 25px rgba(255,191,0,0.45),
+        inset 0 0 15px rgba(255,191,0,0.18) !important;
+}
+
+.rooms-section .table-title {
+    color: #ffd54a !important;
+    text-shadow: 0 0 8px rgba(255,191,0,0.8);
+}
+
+.rooms-section .rate-selector select {
+    border-color: #ffbf00 !important;
+    color: #ffd54a !important;
+    box-shadow: 0 0 10px rgba(255,191,0,0.75) !important;
+}
+
+.rooms-section .timer-box {
+    border-color: #ffbf00 !important;
+}
+
+.rooms-section .timer-line span:last-child {
+    color: #ffd54a !important;
+}
+
+.rooms-section .neon-btn:not(.red) {
+    border-color: #ffbf00 !important;
+    color: #ffd54a !important;
+
+    box-shadow:
+        0 0 9px rgba(255,191,0,0.75),
+        inset 0 0 8px rgba(255,191,0,0.20) !important;
+}
+
+.rooms-section .neon-btn:not(.red):hover {
+    background: #ffbf00 !important;
+    color: #111 !important;
+}
+
+
+/* =========================
+   POOL - BLUE / CYAN
+========================= */
+
+.pool-section .table-box {
+    border-color: #00bfff !important;
+
+    box-shadow:
+        0 0 12px #00bfff,
+        0 0 25px rgba(0,191,255,0.45),
+        inset 0 0 15px rgba(0,191,255,0.18) !important;
+}
+
+.pool-section .table-title {
+    color: #38d9ff !important;
+    text-shadow: 0 0 8px rgba(0,191,255,0.8);
+}
+
+.pool-section .rate-selector select {
+    border-color: #00bfff !important;
+    color: #38d9ff !important;
+    box-shadow: 0 0 10px rgba(0,191,255,0.75) !important;
+}
+
+.pool-section .timer-box {
+    border-color: #00bfff !important;
+}
+
+.pool-section .timer-line span:last-child {
+    color: #38d9ff !important;
+}
+
+.pool-section .neon-btn:not(.red) {
+    border-color: #00bfff !important;
+    color: #38d9ff !important;
+
+    box-shadow:
+        0 0 9px rgba(0,191,255,0.75),
+        inset 0 0 8px rgba(0,191,255,0.20) !important;
+}
+
+.pool-section .neon-btn:not(.red):hover {
+    background: #00bfff !important;
+    color: #061018 !important;
+}
