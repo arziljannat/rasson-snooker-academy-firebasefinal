@@ -686,7 +686,7 @@ sortedTables.forEach(t => {
 
 
 <!-- 🔥 PLAYER NAMES -->
-<div class="player-names-box" style="display:${t.running ? 'flex' : 'none'};">
+<div class="player-names-box">
 <input
     type="text"
     id="player1-${t.id}"
