@@ -3897,11 +3897,13 @@ newShift2.advanceCollection =
     shift2BookingAdvance;
 
 // 🔥 CLOSING CASH MEIN ADVANCE INCLUDE KARO
-newShift1.closingCash +=
-    shift1BookingAdvance;
+newShift1.closingCash =
+    Number(newShift1.closingCash || 0) +
+    Number(shift1BookingAdvance || 0);
 
-newShift2.closingCash +=
-    shift2BookingAdvance;
+newShift2.closingCash =
+    Number(newShift2.closingCash || 0) +
+    Number(shift2BookingAdvance || 0);
         // 🔥 COMBINED
         const combined = {
 
@@ -3938,8 +3940,9 @@ newShift2.closingCash +=
             +
             (newShift2.discount || 0),
             
-            closingCash:
-            newShift1.closingCash + newShift2.closingCash
+closingCash:
+    Number(newShift1.closingCash || 0) +
+    Number(newShift2.closingCash || 0)
         };
 
         // 🔥 TABLE SNAPSHOT
