@@ -1362,7 +1362,7 @@ body * {
     flex-wrap: nowrap !important;
     justify-content: center !important;
 
-    gap: 15px !important;
+    gap: 8px !important;
 }
 
 .tables-section .table-box {
