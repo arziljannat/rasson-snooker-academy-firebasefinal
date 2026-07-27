@@ -1115,14 +1115,31 @@ function hasBookingConflict(
                 );
 
 
-            const existingEnd =
-                new Date(
-                    existingEndDate +
-                    "T" +
-                    booking.end_time +
-                    ":00"
-                );
+let existingEnd;
 
+/*
+   Agar booking wala customer checkout
+   kar chuka hai to actual checkout time
+   booking ka effective end hoga.
+*/
+if (booking.actual_end_at) {
+
+    existingEnd =
+        new Date(
+            booking.actual_end_at
+        );
+
+} else {
+
+    existingEnd =
+        new Date(
+            existingEndDate +
+            "T" +
+            booking.end_time +
+            ":00"
+        );
+
+}
 
             /*
                OVERLAP:
