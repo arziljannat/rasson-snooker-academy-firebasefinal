@@ -2307,12 +2307,54 @@ if (startDiff < 5000 && endDiff < 5000) {
 }
     });
 
-    if (targetSession) {
-        await updateDoc(doc(window.db, "sessions", targetSession.id), {
+if (targetSession) {
+
+    const sessionData = targetSession.data();
+
+    const fullGameAmount = Number(
+        sessionData.final_game_amount ??
+        sessionData.final_amount ??
+        0
+    );
+
+    const bookingAdvance = Number(
+        sessionData.booking_advance || 0
+    );
+
+    const isBookingSession =
+        sessionData.from_booking === true ||
+        !!sessionData.booking_id;
+
+    // Advance sirf GAME collection se minus hoga.
+    // Canteen collection ko touch nahi karna.
+    const collectedGameAmount = isBookingSession
+        ? Math.max(0, fullGameAmount - bookingAdvance)
+        : fullGameAmount;
+
+    const paidAt = new Date().toISOString();
+
+    console.log("🔥 HISTORY PAYMENT:", {
+        fullGameAmount,
+        bookingAdvance,
+        isBookingSession,
+        collectedGameAmount
+    });
+
+    await updateDoc(
+        doc(window.db, "sessions", targetSession.id),
+        {
             paid: true,
-            paid_time: new Date().toISOString()
-        });
-    }
+            paid_time: paidAt,
+
+            // 🔥 amount actually collected NOW
+            game_collection_amount: collectedGameAmount
+        }
+    );
+
+    // local history sync
+    h.paid = true;
+    h.paidTime = new Date(paidAt).getTime();
+}
 
     // ✅ CLOSE BILL
     document.getElementById("billPopup").classList.add("hidden");
@@ -5646,8 +5688,16 @@ bookingAdvancePaidAt:
 remainingPayment:
     Number(
         s.remaining_payment ??
-        s.final_amount ??
-        0
+        Math.max(
+            0,
+            (
+                Number(s.final_game_amount || s.final_amount || 0)
+                +
+                Number(s.canteen_total || 0)
+            )
+            -
+            Number(s.booking_advance || 0)
+        )
     ),
 
 totalBillAmount:
@@ -5768,8 +5818,16 @@ bookingAdvancePaidAt:
 remainingPayment:
     Number(
         s.remaining_payment ??
-        s.final_amount ??
-        0
+        Math.max(
+            0,
+            (
+                Number(s.final_game_amount || s.final_amount || 0)
+                +
+                Number(s.canteen_total || 0)
+            )
+            -
+            Number(s.booking_advance || 0)
+        )
     ),
 
 totalBillAmount:
