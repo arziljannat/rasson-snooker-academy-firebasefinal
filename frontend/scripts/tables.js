@@ -1299,6 +1299,96 @@ function checkOut(id) {
     ).classList.remove("hidden");
 }
 
+// =====================================================
+// 👥 PLAYER CHECKOUT POPUP ACTIONS
+// =====================================================
+
+async function confirmPlayerCheckout(playerNumber) {
+
+    if (!pendingPlayerCheckout) {
+        console.warn("⚠️ No pending player checkout");
+        return;
+    }
+
+    const {
+        tableId,
+        player1,
+        player2
+    } = pendingPlayerCheckout;
+
+    const selectedPlayer =
+        playerNumber === 1
+            ? player1
+            : player2;
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t) return;
+
+    // Selected billed player temporarily table par save
+    t.checkoutPlayer = selectedPlayer;
+
+    console.log(
+        "👤 GAME OFF PLAYER SELECTED:",
+        selectedPlayer
+    );
+
+    // Popup close
+    document.getElementById(
+        "playerCheckoutPopup"
+    )?.classList.add("hidden");
+
+    // Pending clear BEFORE original checkout
+    pendingPlayerCheckout = null;
+
+    // Original checkout continue
+    await completeCheckOut(tableId);
+}
+
+
+function cancelPlayerCheckout() {
+
+    document.getElementById(
+        "playerCheckoutPopup"
+    )?.classList.add("hidden");
+
+    pendingPlayerCheckout = null;
+
+    console.log("❌ PLAYER CHECKOUT CANCELLED");
+}
+
+
+// PLAYER 1 BUTTON
+document.getElementById(
+    "checkoutPlayer1Btn"
+)?.addEventListener("click", function () {
+
+    confirmPlayerCheckout(1);
+
+});
+
+
+// PLAYER 2 BUTTON
+document.getElementById(
+    "checkoutPlayer2Btn"
+)?.addEventListener("click", function () {
+
+    confirmPlayerCheckout(2);
+
+});
+
+
+// CANCEL BUTTON
+document.getElementById(
+    "cancelPlayerCheckoutBtn"
+)?.addEventListener("click", function () {
+
+    cancelPlayerCheckout();
+
+});
+
 
 async function completeCheckOut(id) {
 
