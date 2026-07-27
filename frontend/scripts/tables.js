@@ -2594,10 +2594,6 @@ const bookingAdvance =
     );
 
 
-        liveData.gameCollection +=
-            bookingAdvance;
-
-
 liveData.advanceCollection = bookingAdvance;
 
 liveData.closingCash =
