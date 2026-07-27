@@ -1053,6 +1053,23 @@ function hasBookingConflict(
     return bookings.some(
         booking => {
 
+                        // ==========================================
+            // 🔥 CURRENT OPERATIONAL DAY ONLY
+            // Purane Day Close ki bookings conflict
+            // create nahi karengi.
+            // ==========================================
+
+            const currentDayId =
+                getCurrentBookingDayId();
+
+            if (
+                currentDayId &&
+                String(booking.day_id || "") !==
+                String(currentDayId)
+            ) {
+                return false;
+            }
+
             /* Editing mein apni booking ignore */
             if (
                 editingBookingId &&
