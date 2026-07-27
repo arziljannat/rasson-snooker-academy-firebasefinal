@@ -958,7 +958,4 @@ body * {
     color: #ff5555 !important;
     text-shadow: 0 0 10px #ff4444 !important;
 }
-    .history-summary-box:last-child {
-        grid-column: span 2;
-    }
-}
+
