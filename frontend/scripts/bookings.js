@@ -1070,6 +1070,22 @@ function hasBookingConflict(
                 return false;
             }
 
+            console.log("🔍 CONFLICT CHECK BOOKING:", {
+    id: booking.id,
+    currentDayId: currentDayId,
+    bookingDayId: booking.day_id,
+    status: booking.status,
+    resource_id: booking.resource_id,
+    resource_name: booking.resource_name,
+    start_date: booking.start_date,
+    end_date: booking.end_date,
+    start_time: booking.start_time,
+    end_time: booking.end_time,
+    actual_end_at: booking.actual_end_at,
+    checked_out_at: booking.checked_out_at,
+    completed_at: booking.completed_at
+});
+
             /* Editing mein apni booking ignore */
             if (
                 editingBookingId &&
@@ -1166,11 +1182,58 @@ if (booking.actual_end_at) {
                New End > Existing Start
             */
 
-            return (
-                newStart < existingEnd &&
-                newEnd > existingStart
-            );
+const isConflict =
+    newStart < existingEnd &&
+    newEnd > existingStart;
 
+
+if (isConflict) {
+
+    console.log(
+        "❌ BOOKING CAUSING CONFLICT:",
+        {
+            bookingId:
+                booking.id,
+
+            resource:
+                booking.resource_name,
+
+            status:
+                booking.status,
+
+            bookingDayId:
+                booking.day_id,
+
+            existingStart:
+                existingStart.toString(),
+
+            existingEnd:
+                existingEnd.toString(),
+
+            originalEndTime:
+                booking.end_time,
+
+            actual_end_at:
+                booking.actual_end_at,
+
+            checked_out_at:
+                booking.checked_out_at,
+
+            completed_at:
+                booking.completed_at,
+
+            newStart:
+                newStart.toString(),
+
+            newEnd:
+                newEnd.toString()
+        }
+    );
+
+}
+
+
+return isConflict;
         }
     );
 
