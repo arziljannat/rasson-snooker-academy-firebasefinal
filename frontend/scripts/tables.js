@@ -5426,6 +5426,60 @@ window.onload = function(){
     win.document.close();
 }
 
+// 👥 SAVE PLAYER NAMES IN RUNNING SESSION
+window.savePlayerNames = async function(tableId) {
+
+    const t = tables.find(x => String(x.id) === String(tableId));
+    if (!t) return;
+
+    const p1Input = document.getElementById(`player1-${tableId}`);
+    const p2Input = document.getElementById(`player2-${tableId}`);
+
+    const player1 = p1Input ? p1Input.value.trim() : "";
+    const player2 = p2Input ? p2Input.value.trim() : "";
+
+    // local state update
+    t.player1 = player1;
+    t.player2 = player2;
+
+    // sirf running session mein Firebase update
+    if (!t.isRunning) return;
+
+    try {
+
+        const q = query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("table_id", "==", t.name),
+            where("end_time", "==", null)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            console.log("⚠️ Running session not found for player names:", t.name);
+            return;
+        }
+
+        for (const docSnap of snap.docs) {
+
+            await updateDoc(docSnap.ref, {
+                player1_name: player1,
+                player2_name: player2
+            });
+
+        }
+
+        console.log("👥 PLAYER NAMES SAVED:", t.name, player1, player2);
+
+    } catch (err) {
+
+        console.error("❌ PLAYER NAME SAVE ERROR:", err);
+
+    }
+};
+
+
 
 async function restoreRunningTables() {
 
