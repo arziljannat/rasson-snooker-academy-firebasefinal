@@ -1524,6 +1524,25 @@ player_checkout_at:
     );
 
 
+    // 👥 VERIFY PLAYER CHECKOUT DATA
+const verifySnap = await getDoc(
+    doc(window.db, "sessions", latestSession.id)
+);
+
+const verifyData = verifySnap.data();
+
+console.log("========== 👥 PLAYER CHECKOUT SAVED ==========");
+console.log("SESSION ID:", latestSession.id);
+console.log("TABLE:", t.name);
+console.log("PLAYER 1:", verifyData?.player1_name);
+console.log("PLAYER 2:", verifyData?.player2_name);
+console.log("GAME OFF:", verifyData?.game_off_player);
+console.log("BILLED PLAYER:", verifyData?.billed_player_name);
+console.log("MATCH:", verifyData?.players_match);
+console.log("AMOUNT:", verifyData?.final_game_amount);
+console.log("==============================================");
+  
+
     // ==========================================
     // 🔥 BOOKING SLOT RELEASE ON CHECKOUT
     // ==========================================
