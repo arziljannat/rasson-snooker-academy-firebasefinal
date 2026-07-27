@@ -1339,3 +1339,33 @@ body * {
         width: 95% !important;
     }
 }
+
+/* ============================================================
+   FORCE 5 TABLE CARDS IN ONE ROW
+============================================================ */
+
+.tables-grid {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.game-section {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.tables-section .game-section-grid {
+    width: 100% !important;
+    max-width: none !important;
+
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+
+    gap: 15px !important;
+}
+
+.tables-section .table-box {
+    flex: 0 0 250px !important;
+    width: 250px !important;
+}
