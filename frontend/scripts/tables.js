@@ -2115,10 +2115,31 @@ t.history.sort((a, b) => {
             body.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td>${formatTime(h.checkin)}</td>
-                    <td>${formatTime(h.checkout)}</td>
-                    <td>${formatSeconds(h.playSeconds)}</td>
-                    <td>${h.rate}</td>
+<td>
+    ${formatTime(h.checkin)}
+
+    ${h.fromBooking
+        ? `
+        <div style="
+            margin-top:4px;
+            display:inline-block;
+            background:#d4af37;
+            color:#000;
+            padding:2px 7px;
+            border-radius:5px;
+            font-size:10px;
+            font-weight:bold;
+        ">
+            BOOKING
+        </div>
+        `
+        : ""
+    }
+</td>
+
+<td>${formatTime(h.checkout)}</td>
+<td>${formatSeconds(h.playSeconds)}</td>
+<td>${h.rate}</td>
                     
                     <td>${h.originalAmount || h.amount || 0}</td>
                     
