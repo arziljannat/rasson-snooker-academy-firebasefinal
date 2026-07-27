@@ -2256,43 +2256,6 @@ function openBillFromHistory(tableId, historyIndex) {
     alert("Bill data not found ❌");
     return;
 }
-
-// 🔥 HISTORY SELECTED SESSION BILL DATA
-const historyOriginalAmount =
-    Number(h.originalAmount || h.amount || 0);
-
-const historyDiscount =
-    Number(h.discount || 0);
-
-const historyGameAmount =
-    Math.max(
-        0,
-        historyOriginalAmount - historyDiscount
-    );
-
-const historyCanteenAmount =
-    Number(h.canteenAmount || 0);
-
-const historyTotalBill =
-    Number(
-        h.totalBillAmount ??
-        (
-            historyGameAmount +
-            historyCanteenAmount
-        )
-    );
-
-const historyBookingAdvance =
-    h.fromBooking
-        ? Number(h.bookingAdvance || 0)
-        : 0;
-
-const historyRemaining =
-    Math.max(
-        0,
-        historyTotalBill -
-        historyBookingAdvance
-    );
     
 
     let academy = localStorage.getItem("academyName") || "Rasson Snooker Academy";
