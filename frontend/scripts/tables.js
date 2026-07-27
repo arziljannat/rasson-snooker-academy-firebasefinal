@@ -680,6 +680,27 @@ sortedTables.forEach(t => {
 
             <div class="table-title">${t.name}</div>
 
+            <div class="table-title">${t.name}</div>
+
+<!-- 🔥 PLAYER NAMES -->
+<div class="player-names-box">
+    <input
+        type="text"
+        id="player1-${t.id}"
+        class="player-name-input"
+        placeholder="Player 1"
+        value="${t.player1 || ''}"
+    >
+
+    <input
+        type="text"
+        id="player2-${t.id}"
+        class="player-name-input"
+        placeholder="Player 2"
+        value="${t.player2 || ''}"
+    >
+</div>
+
 <div class="rate-selector">
 <select onchange="handleRateChange('${t.id}', this)">
 
