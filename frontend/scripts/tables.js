@@ -5692,11 +5692,35 @@ if (!sessionDayId || sessionDayId !== currentDayId) {
 }
 
         let t = tables.find(x => x.name === s.table_id);
-
+      
         if (!t) {
             console.log("⛔ TABLE NOT FOUND:", s.table_id);
             return;
         }
+
+
+        // ==========================================
+// DUPLICATE HISTORY PROTECTION
+// ==========================================
+
+const sessionStart = new Date(s.start_time).getTime();
+const sessionEnd = new Date(s.end_time).getTime();
+
+const alreadyExists = t.history.some(h =>
+    Number(h.checkin) === Number(sessionStart) &&
+    Number(h.checkout) === Number(sessionEnd)
+);
+
+if (alreadyExists) {
+    console.warn(
+        "⚠️ DUPLICATE HISTORY SKIPPED:",
+        t.name,
+        s.start_time,
+        s.end_time
+    );
+    return;
+}
+      
 
         t.history.push({
             checkin: new Date(s.start_time).getTime(),
