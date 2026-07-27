@@ -330,6 +330,10 @@ selectedRate:
         checkinTime: old?.checkinTime || null,
         checkoutTime: old?.checkoutTime || null,
 
+  // 👥 KEEP PLAYER NAMES DURING TABLE REALTIME REFRESH
+        player1: old?.player1 || "",
+        player2: old?.player2 || "",
+
         playSeconds: old?.playSeconds || 0,
         liveAmount: old?.liveAmount || 0,
 
@@ -682,22 +686,24 @@ sortedTables.forEach(t => {
 
 
 <!-- 🔥 PLAYER NAMES -->
-<div class="player-names-box">
-    <input
-        type="text"
-        id="player1-${t.id}"
-        class="player-name-input"
-        placeholder="Player 1"
-        value="${t.player1 || ''}"
-    >
+<div class="player-names-box" style="display:${t.running ? 'flex' : 'none'};">
+<input
+    type="text"
+    id="player1-${t.id}"
+    class="player-name-input"
+    placeholder="Player 1"
+    value="${t.player1 || ''}"
+    onchange="savePlayerNames('${t.id}')"
+>
 
-    <input
-        type="text"
-        id="player2-${t.id}"
-        class="player-name-input"
-        placeholder="Player 2"
-        value="${t.player2 || ''}"
-    >
+<input
+    type="text"
+    id="player2-${t.id}"
+    class="player-name-input"
+    placeholder="Player 2"
+    value="${t.player2 || ''}"
+    onchange="savePlayerNames('${t.id}')"
+>
 </div>
 
 <div class="rate-selector">
@@ -830,6 +836,106 @@ setTimeout(() => {
 
 
 } // renderTables END
+
+/******************************************************
+ * SAVE PLAYER NAMES — RUNNING SESSION
+ ******************************************************/
+async function savePlayerNames(tableId) {
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t || !t.isRunning) return;
+
+    const player1Input =
+        document.getElementById(`player1-${tableId}`);
+
+    const player2Input =
+        document.getElementById(`player2-${tableId}`);
+
+    const player1 =
+        player1Input?.value.trim() || "";
+
+    const player2 =
+        player2Input?.value.trim() || "";
+
+    // Local state
+    t.player1 = player1;
+    t.player2 = player2;
+
+    try {
+
+        // Current running session
+        const q = query(
+            collection(window.db, "sessions"),
+            where("table_id", "==", t.name),
+            where("branch", "==", BRANCH),
+            where("end_time", "==", null)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            console.warn(
+                "⚠️ Running session not found for players:",
+                t.name
+            );
+            return;
+        }
+
+        // Safety: latest running session
+        let latestDoc = null;
+        let latestTime = 0;
+
+        snap.forEach(docSnap => {
+
+            const data = docSnap.data();
+
+            const time =
+                new Date(data.start_time).getTime();
+
+            if (time > latestTime) {
+                latestTime = time;
+                latestDoc = docSnap;
+            }
+
+        });
+
+        if (!latestDoc) return;
+
+        await updateDoc(
+            doc(
+                window.db,
+                "sessions",
+                latestDoc.id
+            ),
+            {
+                player1_name: player1,
+                player2_name: player2,
+                players_updated_at:
+                    new Date().toISOString()
+            }
+        );
+
+        console.log(
+            "✅ PLAYER NAMES SAVED:",
+            t.name,
+            player1 || "Guest Player 1",
+            "VS",
+            player2 || "Guest Player 2"
+        );
+
+    }
+    catch (err) {
+
+        console.error(
+            "❌ PLAYER NAME SAVE ERROR:",
+            err
+        );
+
+    }
+}
 
 
 /******************************************************
@@ -5269,8 +5375,12 @@ async function restoreRunningTables() {
             return;
         }
 
-        t.isRunning = true;
+t.isRunning = true;
 t.checkinTime = start;
+
+// 👥 RESTORE PLAYER NAMES FROM SESSION
+t.player1 = s.player1_name || "";
+t.player2 = s.player2_name || "";
 
 // 🔥 IMPORTANT RESET
 t.afterCheckout = false;
@@ -5336,6 +5446,10 @@ if (t.afterCheckout) return;
 
 t.isRunning = true;
 t.checkinTime = start;
+
+// 👥 REALTIME PLAYER NAMES
+t.player1 = s.player1_name || "";
+t.player2 = s.player2_name || "";
 
 runTimer(t.id);
         });
