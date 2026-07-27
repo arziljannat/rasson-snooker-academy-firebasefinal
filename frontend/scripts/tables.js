@@ -1077,30 +1077,98 @@ if (latestSession) {
 
     checkoutSessionData = latestSession.data();
 
-    await updateDoc(doc(window.db, "sessions", latestSession.id), {
-    end_time: new Date().toISOString(),
+    // Exact same time session + booking dono ke liye
+    const checkoutNow =
+        new Date().toISOString();
 
-original_game_amount: t.finalAmount,
+    await updateDoc(
+        doc(
+            window.db,
+            "sessions",
+            latestSession.id
+        ),
+        {
+            end_time: checkoutNow,
 
-discount: t.discount || 0,
+            original_game_amount:
+                t.finalAmount,
 
-final_game_amount:
-    t.finalAmount - (t.discount || 0),
+            discount:
+                t.discount || 0,
 
-final_amount:
-    t.finalAmount - (t.discount || 0),
+            final_game_amount:
+                t.finalAmount - (t.discount || 0),
 
-final_seconds: t.finalSeconds,
+            final_amount:
+                t.finalAmount - (t.discount || 0),
 
-canteen_total: t.canteenTotal,
-     selected_rate: t.selectedRate || 0,
-selected_play_type: t.selectedPlayType || t.playType,
+            final_seconds:
+                t.finalSeconds,
 
-    canteen_items: t.canteenItems, // 🔥 ADD THIS
+            canteen_total:
+                t.canteenTotal,
 
-    paid: false,
-    day_id: window.currentDayId
-});
+            selected_rate:
+                t.selectedRate || 0,
+
+            selected_play_type:
+                t.selectedPlayType || t.playType,
+
+            canteen_items:
+                t.canteenItems,
+
+            paid: false,
+
+            day_id:
+                window.currentDayId
+        }
+    );
+
+
+    // ==========================================
+    // 🔥 BOOKING SLOT RELEASE ON CHECKOUT
+    // ==========================================
+
+    if (checkoutSessionData?.booking_id) {
+
+        try {
+
+            await updateDoc(
+                doc(
+                    window.db,
+                    "bookings",
+                    checkoutSessionData.booking_id
+                ),
+                {
+                    actual_end_at:
+                        checkoutNow,
+
+                    checked_out_at:
+                        checkoutNow,
+
+                    updated_at:
+                        checkoutNow
+                }
+            );
+
+            console.log(
+                "✅ BOOKING SLOT RELEASED ON CHECKOUT:",
+                checkoutSessionData.booking_id
+            );
+
+        }
+
+        catch (bookingError) {
+
+            console.error(
+                "❌ BOOKING CHECKOUT RELEASE ERROR:",
+                bookingError
+            );
+
+        }
+
+    }
+
 }
   // 🔥 SAVE HISTORY (MAIN FIX)
 t.history.push({
@@ -1753,13 +1821,30 @@ await updateDoc(
                     "bookings",
                     latestSession.booking_id
                 ),
-                {
-                    status: "completed",
+{
+    status: "completed",
 
-                    completed_at: paidNow,
+    completed_at:
+        paidNow,
 
-                    updated_at: paidNow
-                }
+    /*
+       Checkout par actual_end_at pehle
+       save ho chuka hoga.
+
+       Agar kisi reason se nahi hua,
+       Paid par bhi slot release ho jayega.
+    */
+    actual_end_at:
+        latestSession.end_time ||
+        paidNow,
+
+    checked_out_at:
+        latestSession.end_time ||
+        paidNow,
+
+    updated_at:
+        paidNow
+}
             );
 
             console.log(
