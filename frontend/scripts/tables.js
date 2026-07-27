@@ -5665,6 +5665,7 @@ async function rebuildHistoryFromSessions() {
     snap.forEach(docSnap => {
 
         const s = docSnap.data();
+      const sessionDocId = docSnap.id;
       // 🔥 skip deleted
 if (s.is_deleted === true) {
     return;
@@ -5703,26 +5704,23 @@ if (!sessionDayId || sessionDayId !== currentDayId) {
 // DUPLICATE HISTORY PROTECTION
 // ==========================================
 
-const sessionStart = new Date(s.start_time).getTime();
-const sessionEnd = new Date(s.end_time).getTime();
-
 const alreadyExists = t.history.some(h =>
-    Number(h.checkin) === Number(sessionStart) &&
-    Number(h.checkout) === Number(sessionEnd)
+    String(h.sessionId) === String(sessionDocId)
 );
 
 if (alreadyExists) {
     console.warn(
-        "⚠️ DUPLICATE HISTORY SKIPPED:",
-        t.name,
-        s.start_time,
-        s.end_time
+        "⚠️ DUPLICATE SESSION SKIPPED:",
+        sessionDocId,
+        t.name
     );
     return;
 }
       
 
         t.history.push({
+            sessionId: sessionDocId,
+          
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
 
@@ -5835,8 +5833,11 @@ async function rebuildSpecificDayHistory(dayId) {
     tables.forEach(t => t.history = []);
 
     snap.forEach(docSnap => {
+      
 
         const s = docSnap.data();
+        const sessionDocId = docSnap.id;
+      
 
         // 🔥 SKIP DELETED
         if (s.is_deleted === true) return;
@@ -5852,6 +5853,7 @@ async function rebuildSpecificDayHistory(dayId) {
         if (!t) return;
 
         t.history.push({
+          sessionId: docSnap.id,
 
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
@@ -5953,103 +5955,81 @@ playType:
 /******************************************************
  * SOFT DELETE SESSION
  ******************************************************/
+/******************************************************
+ * SOFT DELETE SESSION — EXACT FIRESTORE DOC
+ ******************************************************/
 async function softDeleteSession(tableId, historyIndex) {
 
     if (ROLE !== "admin") {
         alert("Only admin can delete ❌");
-        return;
+        return false;
     }
 
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
 
-    let t = tables.find(x => String(x.id) === String(tableId));
+    if (!t) {
+        console.error("❌ Table not found:", tableId);
+        return false;
+    }
 
-    if (!t) return;
+    const h = t.history[historyIndex];
 
-    let h = t.history[historyIndex];
+    if (!h) {
+        console.error("❌ History not found:", historyIndex);
+        return false;
+    }
 
-    if (!h) return;
+    // 🔥 EXACT FIRESTORE SESSION DOCUMENT ID
+    const sessionId = h.sessionId;
+
+    console.log("🔥 DELETE HISTORY:", h);
+    console.log("🔥 EXACT SESSION ID:", sessionId);
+
+    if (!sessionId) {
+        console.error("❌ sessionId missing from history:", h);
+        alert("Session ID not found ❌");
+        return false;
+    }
 
     try {
 
-        const q = query(
-    collection(window.db, "sessions"),
-    where("table_id", "==", t.name),
-    where("branch", "==", BRANCH)
-);
-
-        const snap = await getDocs(q);
-
-        let targetSession = null;
-let smallestDiff = Infinity;
-
-snap.forEach(d => {
-
-    const data = d.data();
-
-    // 🔥 skip already deleted
-    if (data.is_deleted === true) {
-        return;
-    }
-
-    // ❌ skip running session
-    if (!data.end_time) return;
-
-    // 🔥 DAY FILTER
-    const firebaseDayId = String(data.day_id || "").trim();
-    const historyDayId = String(window.currentDayId || "").trim();
-
-    // old sessions allow
-    if (firebaseDayId && firebaseDayId !== historyDayId) {
-        return;
-    }
-
-    const startDiff = Math.abs(
-        new Date(data.start_time).getTime() - h.checkin
-    );
-
-    const endDiff = Math.abs(
-        new Date(data.end_time).getTime() - h.checkout
-    );
-
-    const totalDiff = startDiff + endDiff;
-
-    if (totalDiff < smallestDiff) {
-
-        smallestDiff = totalDiff;
-
-        targetSession = d;
-    }
-});
-      console.log("🔥 TARGET SESSION:", targetSession?.data());
-console.log("🔥 HISTORY:", h);
-
-        if (!targetSession) {
-            alert("Session not found ❌");
-            return;
-        }
-
-        // 🔥 SOFT DELETE
-        await updateDoc(
-            doc(window.db, "sessions", targetSession.id),
-            {
-                is_deleted: true,
-                deleted_at: new Date().toISOString(),
-                deleted_by: ROLE
-            }
+        // 🔥 NO QUERY
+        // 🔥 NO TIME MATCHING
+        // 🔥 DIRECT EXACT DOCUMENT
+        const sessionRef = doc(
+            window.db,
+            "sessions",
+            sessionId
         );
 
-        // 🔥 LOCAL REMOVE
+        await updateDoc(sessionRef, {
+            is_deleted: true,
+            deleted_at: new Date().toISOString(),
+            deleted_by: ROLE
+        });
+
+        console.log(
+            "✅ EXACT SESSION SOFT DELETED:",
+            sessionId
+        );
+
+        // 🔥 REMOVE FROM LOCAL HISTORY
         t.history.splice(historyIndex, 1);
 
-
-
-      
+        return true;
 
     } catch (err) {
 
-        console.error(err);
+        console.error(
+            "❌ SOFT DELETE FAILED:",
+            sessionId,
+            err
+        );
 
         alert("Delete failed ❌");
+        return false;
     }
 }
 //fix deployment issues
