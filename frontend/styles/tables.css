@@ -957,6 +957,98 @@ body * {
         grid-template-columns: repeat(2, 1fr);
     }
 
+
+   /* ============================================================
+   HISTORY COUNTERS - FORCE PREMIUM CARDS
+============================================================ */
+
+#historyPopup .history-summary-counters {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 12px !important;
+    margin: 8px 0 15px 0 !important;
+}
+
+#historyPopup .history-summary-box {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 70px !important;
+    padding: 10px 6px !important;
+
+    background: rgba(0, 20, 16, 0.85) !important;
+
+    border: 2px solid #00ff88 !important;
+    border-radius: 12px !important;
+
+    box-shadow:
+        0 0 10px rgba(0,255,136,0.7),
+        inset 0 0 10px rgba(0,255,136,0.15) !important;
+
+    box-sizing: border-box !important;
+}
+
+#historyPopup .history-summary-box span {
+    display: block !important;
+    color: #ccffee !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    margin-bottom: 7px !important;
+    text-align: center !important;
+}
+
+#historyPopup .history-summary-box strong {
+    display: block !important;
+
+    color: #00ffcc !important;
+
+    font-size: 25px !important;
+    font-weight: 900 !important;
+
+    line-height: 1 !important;
+
+    text-shadow: 0 0 10px #00ffcc !important;
+}
+
+
+/* BOOKING PLAY - GOLD */
+#historyPopup .history-summary-box:nth-child(3) {
+    border-color: #ffd700 !important;
+
+    box-shadow:
+        0 0 12px rgba(255,215,0,0.7),
+        inset 0 0 10px rgba(255,215,0,0.15) !important;
+}
+
+#historyPopup .history-summary-box:nth-child(3) strong {
+    color: #ffd700 !important;
+    text-shadow: 0 0 10px #ffd700 !important;
+}
+
+
+/* PAID - GREEN */
+#historyPopup .history-summary-box:nth-child(4) strong {
+    color: #00ff88 !important;
+    text-shadow: 0 0 10px #00ff88 !important;
+}
+
+
+/* UNPAID - RED */
+#historyPopup .history-summary-box:nth-child(5) {
+    border-color: #ff4444 !important;
+
+    box-shadow:
+        0 0 12px rgba(255,68,68,0.7),
+        inset 0 0 10px rgba(255,68,68,0.15) !important;
+}
+
+#historyPopup .history-summary-box:nth-child(5) strong {
+    color: #ff5555 !important;
+    text-shadow: 0 0 10px #ff4444 !important;
+}
     .history-summary-box:last-child {
         grid-column: span 2;
     }
