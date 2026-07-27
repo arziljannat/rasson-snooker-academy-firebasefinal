@@ -1497,6 +1497,25 @@ if (latestSession) {
             canteen_items:
                 t.canteenItems,
 
+          // 👥 PLAYER / GAME OFF DATA
+player1_name:
+    t.player1 || "",
+
+player2_name:
+    t.player2 || "",
+
+billed_player_name:
+    t.checkoutPlayer || "",
+
+game_off_player:
+    t.checkoutPlayer || "",
+
+players_match:
+    `${t.player1 || "Guest Player 1"} VS ${t.player2 || "Guest Player 2"}`,
+
+player_checkout_at:
+    checkoutNow,
+
             paid: false,
 
             day_id:
