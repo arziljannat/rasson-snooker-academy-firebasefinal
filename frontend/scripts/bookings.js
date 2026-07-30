@@ -1815,6 +1815,9 @@ if (!currentDayId) {
 
                     day_id: currentDayId,
 
+                    booking_source:
+                        "staff_manual",
+
                     customer_name:
                         customerName,
 
@@ -3123,8 +3126,25 @@ if (
                         booking.resource_type
                     )}
                 </td>
-
-
+                
+                
+                <td>
+                    ${
+                        booking.booking_source === "online_customer"
+                            ? `
+                                <span class="booking-source online">
+                                    ONLINE
+                                </span>
+                            `
+                            : `
+                                <span class="booking-source staff">
+                                    STAFF
+                                </span>
+                            `
+                    }
+                </td>
+                
+                
                 <td>
                     ${escapeBookingText(
                         booking.resource_name
