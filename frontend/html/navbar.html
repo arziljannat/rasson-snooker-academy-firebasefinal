@@ -27,7 +27,21 @@
         
         <button class="nav-btn" data-page="dashboard" onclick="goTo('dashboard')">Dashboard</button>
         <button class="nav-btn" data-page="tables" onclick="goTo('tables')">Tables</button>
-        <button class="nav-btn" data-page="bookings" onclick="goTo('bookings')">Bookings</button>
+        <button
+    class="nav-btn booking-nav-btn"
+    data-page="bookings"
+    onclick="goTo('bookings')"
+>
+    Bookings
+
+    <span
+        id="bookingNotificationBadge"
+        class="booking-notification-badge"
+    >
+        0
+    </span>
+
+</button>
         <button class="nav-btn" data-page="expenses" onclick="goTo('expenses')">Expenses</button>
         <button class="nav-btn" data-page="easypaisa" onclick="goTo('easypaisa')">EasyPaisa</button>
 
@@ -51,6 +65,7 @@
         
         <!-- FIXED LOGOUT BUTTON -->
         <button id="logoutBtn" class="logout-btn">Logout</button>
+        <div id="bookingNotificationContainer"></div>
 
     </div>
 
