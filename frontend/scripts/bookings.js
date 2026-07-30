@@ -2934,20 +2934,12 @@ function renderBookings() {
 const currentDayId =
     getCurrentBookingDayId();
 
-const isOnlineBooking =
-    booking.booking_source ===
-    "online_customer";
-
 /*
-   Manual/software booking:
-   current operational day match hona zaroori.
-
-   Online customer booking:
-   day_id na hone par bhi selected date
-   ke through Bookings page par show hogi.
+   Manual + Online dono bookings
+   sirf CURRENT OPERATIONAL DAY ki
+   show hongi.
 */
 if (
-    !isOnlineBooking &&
     currentDayId &&
     String(booking.day_id || "") !==
     String(currentDayId)
