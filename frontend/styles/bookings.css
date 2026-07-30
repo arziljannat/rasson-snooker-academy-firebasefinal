@@ -972,3 +972,56 @@ body {
 .booking-field textarea {
     font-size: 15px;
 }
+
+
+/* =========================================
+   BOOKING SOURCE BADGES
+========================================= */
+
+.booking-source {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 62px;
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+
+    white-space: nowrap;
+}
+
+/* ONLINE CUSTOMER BOOKING */
+
+.booking-source.online {
+    color: #00ffb3;
+
+    background:
+        rgba(0, 255, 179, 0.10);
+
+    border:
+        1px solid rgba(0, 255, 179, 0.45);
+
+    box-shadow:
+        0 0 8px rgba(0, 255, 179, 0.12);
+}
+
+
+/* STAFF / MANUAL BOOKING */
+
+.booking-source.staff {
+    color: #ffd45a;
+
+    background:
+        rgba(255, 212, 90, 0.10);
+
+    border:
+        1px solid rgba(255, 212, 90, 0.45);
+
+    box-shadow:
+        0 0 8px rgba(255, 212, 90, 0.10);
+}
