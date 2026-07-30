@@ -233,6 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     listenEasyRealtime();
     listenInventoryRealtime();
     listenTablesRealtime();
+    listenBookingNotifications();  
     listenRunningSessionsRealtime();
     listenHistoryRealtime();
 
@@ -6526,3 +6527,51 @@ async function softDeleteSession(tableId, historyIndex) {
     }
 }
 //fix deployment issues
+
+function listenBookingNotifications() {
+
+    if (!window.db || !window.fs) return;
+
+    const {
+        collection,
+        query,
+        where,
+        onSnapshot
+    } = window.fs;
+
+    const q = query(
+        collection(window.db, "bookings"),
+        where("branch", "==", BRANCH),
+        where("booking_source", "==", "online_customer"),
+        where("notification_unread", "==", true)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+        if (snapshot.empty) return;
+
+        snapshot.forEach((docSnap) => {
+
+            const booking = {
+                id: docSnap.id,
+                ...docSnap.data()
+            };
+
+            // navbar popup function
+if (typeof showBookingPopup === "function") {
+    showBookingPopup(booking);
+}
+
+updateDoc(
+    doc(window.db, "bookings", booking.id),
+    {
+        notification_unread: false,
+        notification_popup: true
+    }
+).catch(console.error);
+
+        });
+
+    });
+
+}
