@@ -997,6 +997,45 @@ function loadBookings() {
                 }
             );
 
+            snapshot.forEach(async (documentSnapshot) => {
+
+    const data = documentSnapshot.data();
+
+    if (
+        data.booking_source === "online_customer" &&
+        data.notification_unread === true
+    ) {
+
+        try {
+
+            await updateDoc(
+
+                doc(
+                    window.db,
+                    "bookings",
+                    documentSnapshot.id
+                ),
+
+                {
+                    notification_unread: false,
+                    notification_popup: true
+                }
+
+            );
+
+        } catch (e) {
+
+            console.error(
+                "Notification update failed:",
+                e
+            );
+
+        }
+
+    }
+
+});
+
 
             console.log(
                 "CURRENT BRANCH BOOKINGS:",
