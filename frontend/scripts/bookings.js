@@ -3187,6 +3187,13 @@ if (
     filteredBookings.forEach(
         booking => {
 
+            console.log("BOOKING STATE", {
+    id: booking.id,
+    payment_status: booking.payment_status,
+    status: booking.status,
+    transaction_id: booking.transaction_id
+});
+            
             const row =
                 document.createElement(
                     "tr"
