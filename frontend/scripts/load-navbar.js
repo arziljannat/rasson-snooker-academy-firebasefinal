@@ -216,10 +216,81 @@ function startBookingNotificationListener() {
                 "🔔 NEW ONLINE BOOKING",
                 change.doc.data()
             );
+            showBookingPopup(
+    change.doc.data()
+);
 
         });
 
     });
+
+}
+
+function showBookingPopup(booking) {
+
+    const container =
+        document.getElementById(
+            "bookingNotificationContainer"
+        );
+
+    if (!container) return;
+
+    // 🔊 SOUND
+    const sound =
+        new Audio("../assets/notification.mp3");
+
+    sound.volume = 0.9;
+
+    sound.play().catch(() => {});
+
+    const popup =
+        document.createElement("div");
+
+    popup.className =
+        "booking-popup";
+
+    popup.innerHTML = `
+        <div class="booking-popup-title">
+            🔔 NEW ONLINE BOOKING
+        </div>
+
+        <div class="booking-popup-row">
+            👤 <b>${booking.customer_name || "-"}</b>
+        </div>
+
+        <div class="booking-popup-row">
+            🎱 ${booking.resource_name || "-"}
+        </div>
+
+        <div class="booking-popup-row">
+            👥 ${booking.players || 1} Players
+        </div>
+
+        <div class="booking-popup-row">
+            ⏰ ${booking.start_time || "-"}
+        </div>
+
+        <button
+            class="booking-popup-btn">
+            View Booking
+        </button>
+    `;
+
+    popup
+        .querySelector("button")
+        .onclick = () => {
+
+            window.location.href =
+                "../html/bookings.html";
+        };
+
+    container.prepend(popup);
+
+    setTimeout(() => {
+
+        popup.remove();
+
+    }, 6000);
 
 }
 
