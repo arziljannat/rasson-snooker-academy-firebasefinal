@@ -472,3 +472,94 @@
     pointer-events:none;
 
 }
+
+/* =====================================
+   ONLINE BOOKING POPUP
+===================================== */
+
+.booking-popup{
+
+    width:340px;
+
+    background:rgba(15,15,15,.94);
+
+    border:2px solid #00ff88;
+
+    border-radius:14px;
+
+    padding:18px;
+
+    color:#fff;
+
+    box-shadow:
+        0 0 18px rgba(0,255,120,.55);
+
+    animation:
+        popupIn .35s ease;
+
+    pointer-events:auto;
+}
+
+.booking-popup-title{
+
+    color:#00ff88;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    margin-bottom:12px;
+}
+
+.booking-popup-row{
+
+    margin:6px 0;
+
+    font-size:15px;
+}
+
+.booking-popup-btn{
+
+    width:100%;
+
+    margin-top:15px;
+
+    background:#00ff88;
+
+    color:#000;
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:10px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.booking-popup-btn:hover{
+
+    background:#31ff9e;
+}
+
+@keyframes popupIn{
+
+    from{
+
+        opacity:0;
+
+        transform:
+            translateX(60px);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+            translateX(0);
+    }
+
+}
