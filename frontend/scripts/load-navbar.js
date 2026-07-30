@@ -212,13 +212,18 @@ function startBookingNotificationListener() {
             if(change.type!=="added")
                 return;
 
-            console.log(
-                "🔔 NEW ONLINE BOOKING",
-                change.doc.data()
-            );
-            showBookingPopup(
+console.log(
+    "🔔 NEW ONLINE BOOKING",
     change.doc.data()
 );
+
+if (!window.disableBookingNotificationPopup) {
+
+    showBookingPopup(
+        change.doc.data()
+    );
+
+}
 
         });
 
