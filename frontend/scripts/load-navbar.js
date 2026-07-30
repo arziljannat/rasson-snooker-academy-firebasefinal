@@ -139,6 +139,19 @@ function initializeNavbar() {
 }
 function startBookingNotificationListener() {
 
+    // Firebase ready hone ka wait
+    if (!window.db || !window.fs) {
+
+        console.log("Waiting for Firebase...");
+
+        setTimeout(
+            startBookingNotificationListener,
+            500
+        );
+
+        return;
+    }
+
     const db = window.db;
 
     const {
@@ -149,9 +162,11 @@ function startBookingNotificationListener() {
     } = window.fs;
 
     const branch =
-        localStorage.getItem("branch");
-
-    if (!branch) return;
+        (
+            localStorage.getItem("branch") || ""
+        )
+        .replace(/\s+/g,"")
+        .toLowerCase();
 
     const badge =
         document.getElementById(
@@ -159,9 +174,9 @@ function startBookingNotificationListener() {
         );
 
     const q = query(
-        collection(db, "bookings"),
+        collection(db,"bookings"),
 
-        where("branch", "==", branch),
+        where("branch","==",branch),
 
         where(
             "booking_source",
@@ -176,31 +191,29 @@ function startBookingNotificationListener() {
         )
     );
 
-    onSnapshot(q, snapshot => {
+    onSnapshot(q,(snapshot)=>{
 
         const unread =
             snapshot.size;
 
-        if (badge) {
+        if(badge){
 
             badge.textContent =
                 unread;
 
             badge.style.display =
-                unread > 0
-                    ? "flex"
-                    : "none";
-
+                unread
+                ? "flex"
+                : "none";
         }
 
-        snapshot.docChanges().forEach(change => {
+        snapshot.docChanges().forEach(change=>{
 
-            if (change.type !== "added") {
+            if(change.type!=="added")
                 return;
-            }
 
             console.log(
-                "🔔 NEW BOOKING:",
+                "🔔 NEW ONLINE BOOKING",
                 change.doc.data()
             );
 
