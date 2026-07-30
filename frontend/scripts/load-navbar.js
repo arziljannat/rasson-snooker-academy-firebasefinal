@@ -1,6 +1,9 @@
 
 console.log("LOAD-NAVBAR JS LOADED");
 
+
+let lastBookingIds = new Set();
+
 document.addEventListener("DOMContentLoaded", () => {
     fetch("../html/navbar.html")
         .then(res => res.text())
@@ -130,5 +133,70 @@ function initializeNavbar() {
         updateClock,
         1000
     );
+
+    startBookingNotificationListener();
+
+}
+
+function startBookingNotificationListener() {
+
+    const db = window.db;
+
+const {
+    collection,
+    query,
+    where,
+    onSnapshot
+} = window.fs;
+
+    const branch =
+        localStorage.getItem("branch");
+
+    if (!branch) return;
+
+    const badge =
+        document.getElementById(
+            "bookingNotificationBadge"
+        );
+
+    const q = query(
+        collection(db, "bookings"),
+        where("branch", "==", branch),
+        where("booking_source", "==", "online_customer")
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+        let unread = 0;
+
+        snapshot.forEach(doc => {
+
+            unread++;
+
+            if (!lastBookingIds.has(doc.id)) {
+
+                lastBookingIds.add(doc.id);
+
+                console.log(
+                    "🔔 NEW ONLINE BOOKING:",
+                    doc.data()
+                );
+
+            }
+
+        });
+
+        if (badge) {
+
+            badge.textContent = unread;
+
+            badge.style.display =
+                unread > 0
+                    ? "flex"
+                    : "none";
+
+        }
+
+    });
 
 }
