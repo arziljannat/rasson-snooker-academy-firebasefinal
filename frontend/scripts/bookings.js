@@ -3274,6 +3274,13 @@ if (
                 </td>
 
 <td>
+    ${escapeBookingText(
+        booking.transaction_id || "-"
+    )}
+</td>
+
+
+<td>
 
     <span class="booking-payment-status
         ${
