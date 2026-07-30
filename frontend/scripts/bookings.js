@@ -37,6 +37,7 @@ let editingBookingId = null;
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+    window.disableBookingNotificationPopup = true;
 
     console.log("BOOKINGS JS LOADED");
     console.log("CURRENT BOOKING BRANCH:", BRANCH);
