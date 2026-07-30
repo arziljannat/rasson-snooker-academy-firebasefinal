@@ -2366,6 +2366,35 @@ fillBookingTimePicker(
 
 };
 
+
+window.verifyPayment = async function (bookingId) {
+
+    try {
+
+        await updateDoc(
+            doc(window.db, "bookings", bookingId),
+            {
+                payment_status: "paid",
+                advance_paid: true,
+                advance_paid_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+        );
+
+        alert("Payment verified successfully.");
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Payment verification failed.");
+
+    }
+
+};
+
+
+
 window.acceptBooking = async function (bookingId) {
 
     try {
@@ -3244,20 +3273,26 @@ if (
                     ).toLocaleString()}
                 </td>
 
-                <td>
+<td>
 
-    <span
-        class="booking-payment-status ${
+    <span class="booking-payment-status
+        ${
             booking.payment_status === "paid"
                 ? "paid"
+                : booking.payment_status === "verification_pending"
+                ? "pending"
                 : "unpaid"
         }"
     >
+
         ${
             booking.payment_status === "paid"
-                ? "Paid"
-                : "Unpaid"
+                ? "🟢 Paid"
+                : booking.payment_status === "verification_pending"
+                ? "🟠 Verification Pending"
+                : "🔴 Unpaid"
         }
+
     </span>
 
 </td>
@@ -3297,13 +3332,33 @@ if (
 ${
     booking.status === "pending"
     ? `
-        <button
-            type="button"
-            class="booking-action-btn arrived"
-            onclick="acceptBooking('${booking.id}')"
-        >
-            Accept
-        </button>
+        ${
+            booking.payment_status === "verification_pending"
+            ? `
+                <button
+                    type="button"
+                    class="booking-action-btn proceed"
+                    onclick="verifyPayment('${booking.id}')"
+                >
+                    Verify Payment
+                </button>
+            `
+            : ""
+        }
+
+        ${
+            booking.payment_status === "paid"
+            ? `
+                <button
+                    type="button"
+                    class="booking-action-btn arrived"
+                    onclick="acceptBooking('${booking.id}')"
+                >
+                    Accept
+                </button>
+            `
+            : ""
+        }
 
         <button
             type="button"
