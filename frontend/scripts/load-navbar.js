@@ -137,6 +137,77 @@ function initializeNavbar() {
     startBookingNotificationListener();
 
 }
+function startBookingNotificationListener() {
 
+    const db = window.db;
+
+    const {
+        collection,
+        query,
+        where,
+        onSnapshot
+    } = window.fs;
+
+    const branch =
+        localStorage.getItem("branch");
+
+    if (!branch) return;
+
+    const badge =
+        document.getElementById(
+            "bookingNotificationBadge"
+        );
+
+    const q = query(
+        collection(db, "bookings"),
+
+        where("branch", "==", branch),
+
+        where(
+            "booking_source",
+            "==",
+            "online_customer"
+        ),
+
+        where(
+            "notification_unread",
+            "==",
+            true
+        )
+    );
+
+    onSnapshot(q, snapshot => {
+
+        const unread =
+            snapshot.size;
+
+        if (badge) {
+
+            badge.textContent =
+                unread;
+
+            badge.style.display =
+                unread > 0
+                    ? "flex"
+                    : "none";
+
+        }
+
+        snapshot.docChanges().forEach(change => {
+
+            if (change.type !== "added") {
+                return;
+            }
+
+            console.log(
+                "🔔 NEW BOOKING:",
+                change.doc.data()
+            );
+
+        });
+
+    });
+
+}
 
 
