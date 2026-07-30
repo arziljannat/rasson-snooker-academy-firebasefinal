@@ -2366,6 +2366,51 @@ fillBookingTimePicker(
 
 };
 
+window.acceptBooking = async function (bookingId) {
+
+    try {
+
+        await updateDoc(
+            doc(window.db, "bookings", bookingId),
+            {
+                status: "confirmed",
+                updated_at: new Date().toISOString()
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Booking could not be accepted.");
+
+    }
+
+};
+
+window.rejectBooking = async function (bookingId) {
+
+    try {
+
+        await updateDoc(
+            doc(window.db, "bookings", bookingId),
+            {
+                status: "rejected",
+                updated_at: new Date().toISOString()
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Booking could not be rejected.");
+
+    }
+
+};
+
+
+
+
 /* =========================================================
    MARK BOOKING AS ARRIVED
    ========================================================= */
@@ -3250,6 +3295,29 @@ if (
 <td>
 
 ${
+    booking.status === "pending"
+    ? `
+        <button
+            type="button"
+            class="booking-action-btn arrived"
+            onclick="acceptBooking('${booking.id}')"
+        >
+            Accept
+        </button>
+
+        <button
+            type="button"
+            class="booking-action-btn cancel"
+            onclick="rejectBooking('${booking.id}')"
+        >
+            Reject
+        </button>
+    `
+    : ""
+}
+
+
+${
     booking.status === "confirmed"
     ? `
         <button
@@ -3533,6 +3601,20 @@ function formatBookingTime(
 function getBookingStatusLabel(
     status
 ) {
+    if (
+    status === "pending"
+) {
+
+    return "Pending";
+
+}
+    if (
+    status === "rejected"
+) {
+
+    return "Rejected";
+
+}
 
     if (
         status === "no_show"
@@ -3578,6 +3660,21 @@ function getBookingStatusLabel(
 function getBookingStatusClass(
     status
 ) {
+    if (
+    status === "pending"
+) {
+
+    return "pending";
+
+}
+
+    if (
+    status === "rejected"
+) {
+
+    return "rejected";
+
+}
 
     if (
         status === "no_show"
