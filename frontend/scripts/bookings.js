@@ -2948,14 +2948,19 @@ if (
 }
                 
 
-                if (
-                    selectedDate &&
-                    booking.date !== selectedDate
-                ) {
+const bookingDisplayDate =
+    booking.start_date ||
+    booking.date ||
+    "";
 
-                    return false;
+if (
+    selectedDate &&
+    bookingDisplayDate !== selectedDate
+) {
 
-                }
+    return false;
+
+}
 
 
                 if (
