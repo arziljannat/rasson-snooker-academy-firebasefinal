@@ -772,6 +772,16 @@ body {
     color: #ff9292;
 }
 
+.booking-status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.booking-status.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 
 /* =========================================================
    ACTION BUTTONS
