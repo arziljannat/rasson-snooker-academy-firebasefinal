@@ -2537,15 +2537,21 @@ function openHistory(id) {
         ? t.history
         : [];
 
-    const totalGame = historyList.length;
+  const shift1History = historyList.filter(h => Number(h.shiftNumber || 1) === 1);
+const shift2History = historyList.filter(h => Number(h.shiftNumber || 1) === 2);
 
-    const bookingPlay = historyList.filter(h =>
-        h.fromBooking === true
-    ).length;
+const totalGame = historyList.length;
 
-    const guestPlay = historyList.filter(h =>
-        h.fromBooking !== true
-    ).length;
+const shift1Game = shift1History.length;
+const shift2Game = shift2History.length;
+
+const bookingPlay = historyList.filter(h =>
+    h.fromBooking === true
+).length;
+
+const guestPlay = historyList.filter(h =>
+    h.fromBooking !== true
+).length;
 
     const paidCount = historyList.filter(h =>
         h.paid === true
@@ -2566,6 +2572,13 @@ const unpaidAmount = historyList
     // UPDATE TOP BOXES
     document.getElementById("historyTotalGame").textContent =
         totalGame;
+
+    document.getElementById("historyShift1Game").textContent =
+    shift1Game;
+
+    document.getElementById("historyShift2Game").textContent =
+    shift2Game;
+  
 
     document.getElementById("historyGuestPlay").textContent =
         guestPlay;
