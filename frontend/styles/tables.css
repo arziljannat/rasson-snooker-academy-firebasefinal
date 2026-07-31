@@ -1634,3 +1634,101 @@ body * {
     box-shadow:
         0 0 8px #00ffcc;
 }
+
+/* ==========================================
+   HISTORY SHIFT CARDS - FINAL UI
+========================================== */
+
+#historyPopup .history-summary-counters{
+
+    display:grid !important;
+    grid-template-columns:repeat(5,1fr) !important;
+
+    gap:18px !important;
+
+    margin:18px 0 25px !important;
+}
+
+#historyPopup .history-summary-box{
+
+    min-height:175px !important;
+
+    padding:16px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    justify-content:flex-start !important;
+    align-items:center !important;
+
+    border-radius:14px !important;
+}
+
+#historyPopup .history-summary-box span{
+
+    font-size:18px !important;
+
+    font-weight:800 !important;
+
+    margin-bottom:14px !important;
+}
+
+/* Shift Labels */
+
+#historyPopup .history-summary-box div{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin:8px 0;
+
+    font-size:16px;
+
+    color:#ddd;
+}
+
+/* Numbers */
+
+#historyPopup .history-summary-box strong{
+
+    font-size:40px !important;
+
+    line-height:1 !important;
+}
+
+/* Amount */
+
+#historyPopup .history-summary-box .history-money{
+
+    display:block;
+
+    width:100%;
+
+    text-align:right;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    margin-top:-2px;
+
+    margin-bottom:10px;
+}
+
+/* Divider */
+
+#historyPopup .history-summary-box hr{
+
+    width:100%;
+
+    border:none;
+
+    border-top:1px solid rgba(255,255,255,.15);
+
+    margin:12px 0;
+}
