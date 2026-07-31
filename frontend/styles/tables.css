@@ -1936,3 +1936,187 @@ body * {
 
     gap:20px;
 }
+/* ===========================
+   HISTORY POPUP (NEW DESIGN)
+===========================*/
+
+.history-popup-box{
+
+    width:min(1500px,95vw);
+
+    max-height:90vh;
+
+    overflow:hidden;
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:25px;
+
+    border-radius:22px;
+
+}
+
+.history-popup-box h2{
+
+    text-align:center;
+
+    color:#fff;
+
+    margin-bottom:20px;
+}
+
+/* TOP CARDS */
+
+.history-summary-counters{
+
+    display:grid;
+
+    grid-template-columns:repeat(5,1fr);
+
+    gap:16px;
+
+    margin-bottom:20px;
+
+}
+
+.history-summary-box{
+
+    background:#08130f;
+
+    border:2px solid #00ffc8;
+
+    border-radius:16px;
+
+    padding:16px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    min-height:150px;
+
+}
+
+.history-summary-box.green{
+
+    border-color:#00ff9c;
+}
+
+.history-summary-box.gold{
+
+    border-color:#ffd700;
+}
+
+.history-summary-box.red{
+
+    border-color:#ff4b4b;
+}
+
+.history-title{
+
+    text-align:center;
+
+    color:#fff;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    margin-bottom:12px;
+}
+
+.history-line{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    font-size:15px;
+
+    color:#ddd;
+
+    margin:6px 0;
+}
+
+.history-line strong{
+
+    color:#00ffc8;
+
+    font-size:24px;
+}
+
+.history-money{
+
+    text-align:right;
+
+    color:#00ff88;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    margin-top:3px;
+}
+
+/* TABLE */
+
+.table-mobile-wrapper{
+
+    flex:1;
+
+    overflow:auto;
+
+    border:1px solid rgba(255,255,255,.15);
+
+    border-radius:14px;
+
+}
+
+.history-table{
+
+    width:100%;
+
+    min-width:1100px;
+
+    border-collapse:collapse;
+
+}
+
+.history-table th{
+
+    position:sticky;
+
+    top:0;
+
+    background:#101010;
+
+    z-index:2;
+}
+
+.history-table td,
+.history-table th{
+
+    padding:12px;
+
+    text-align:center;
+}
+
+/* BUTTONS */
+
+.popup-buttons{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:18px;
+
+    margin-top:18px;
+
+}
