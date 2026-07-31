@@ -1635,100 +1635,94 @@ body * {
         0 0 8px #00ffcc;
 }
 
-/* ==========================================
-   HISTORY SHIFT CARDS - FINAL UI
-========================================== */
+/* ===== HISTORY CARDS CLEAN ===== */
 
 #historyPopup .history-summary-counters{
-
-    display:grid !important;
-    grid-template-columns:repeat(5,1fr) !important;
-
-    gap:18px !important;
-
-    margin:18px 0 25px !important;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:15px;
+    margin:15px 0 20px;
 }
 
 #historyPopup .history-summary-box{
 
-    min-height:175px !important;
+    background:#08110f;
 
-    padding:16px !important;
+    border:2px solid #00ff88;
 
-    display:flex !important;
-    flex-direction:column !important;
+    border-radius:14px;
 
-    justify-content:flex-start !important;
-    align-items:center !important;
+    padding:12px;
 
-    border-radius:14px !important;
+    min-height:145px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    box-sizing:border-box;
 }
 
 #historyPopup .history-summary-box span{
 
-    font-size:18px !important;
+    font-size:17px;
+    font-weight:bold;
 
-    font-weight:800 !important;
+    margin-bottom:12px;
 
-    margin-bottom:14px !important;
+    text-decoration:underline;
 }
-
-/* Shift Labels */
 
 #historyPopup .history-summary-box div{
 
     width:100%;
 
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
 
-    margin:8px 0;
+    margin:3px 0;
 
-    font-size:16px;
-
-    color:#ddd;
+    font-size:14px;
 }
-
-/* Numbers */
 
 #historyPopup .history-summary-box strong{
 
-    font-size:40px !important;
-
-    line-height:1 !important;
+    font-size:22px;
+    font-weight:bold;
 }
 
-/* Amount */
+.history-money{
 
-#historyPopup .history-summary-box .history-money{
-
-    display:block;
-
-    width:100%;
-
-    text-align:right;
-
-    font-size:18px;
+    font-size:16px;
 
     font-weight:bold;
 
-    margin-top:-2px;
+    color:#00ff88;
 
-    margin-bottom:10px;
+    margin-bottom:6px;
 }
 
-/* Divider */
-
-#historyPopup .history-summary-box hr{
+#historyPopup hr{
 
     width:100%;
 
-    border:none;
+    opacity:.2;
 
-    border-top:1px solid rgba(255,255,255,.15);
+    margin:8px 0;
+}
+#historyPopup .table-mobile-wrapper{
 
-    margin:12px 0;
+    width:100%;
+
+    overflow-x:auto;
+
+    margin-top:10px;
+}
+
+#historyPopup .history-table{
+
+    width:100%;
+
+    min-width:900px;
 }
