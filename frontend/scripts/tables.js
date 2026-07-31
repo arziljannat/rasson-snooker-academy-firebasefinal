@@ -2858,6 +2858,42 @@ if (targetSession) {
     printThermalBill(tableId, h);
 };
 
+  // Apply Discount
+document.getElementById("applyDiscountBtn").onclick = () => {
+
+    const input = document.getElementById("discountInput");
+
+    let discount = Number(input.value || 0);
+
+    const original =
+        h.originalAmount ||
+        h.amount ||
+        0;
+
+    if (discount < 0) discount = 0;
+
+    if (discount > original) {
+        alert("Discount too high ❌");
+        return;
+    }
+
+    h.discount = discount;
+    h.originalAmount = original;
+    h.amount = original - discount;
+    h.total = (original - discount) + (h.canteenAmount || 0);
+
+    openBillFromHistory(tableId, historyIndex);
+
+    input.value = 0;
+
+    alert("Discount Applied ✅");
+};
+
+// Cancel
+document.getElementById("cancelBillBtn").onclick = () => {
+    document.getElementById("billPopup").classList.add("hidden");
+};
+
 // 🔥 CANTEEN LIST
 let canteenHTML = "";
 let canteenTotal = 0;
