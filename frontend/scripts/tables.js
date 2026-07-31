@@ -2859,7 +2859,7 @@ if (targetSession) {
 };
 
   // Apply Discount
-document.getElementById("applyDiscountBtn").onclick = () => {
+document.getElementById("applyDiscountBtn").onclick = async () => {
 
     const input = document.getElementById("discountInput");
 
@@ -2877,10 +2877,62 @@ document.getElementById("applyDiscountBtn").onclick = () => {
         return;
     }
 
-    h.discount = discount;
-    h.originalAmount = original;
-    h.amount = original - discount;
-    h.total = (original - discount) + (h.canteenAmount || 0);
+h.discount = discount;
+
+h.originalAmount = original;
+
+h.amount = original - discount;
+
+h.total =
+    (original - discount) +
+    canteenTotal;
+
+h.totalBillAmount = h.total;
+
+  // 🔥 SAVE DISCOUNT TO FIREBASE
+
+const q = query(
+    collection(window.db, "sessions"),
+    where("table_id", "==", t.name),
+    where("branch", "==", BRANCH),
+    where("is_deleted", "==", false)
+);
+
+const snap = await getDocs(q);
+
+let targetSession = null;
+
+snap.forEach(d => {
+
+    const data = d.data();
+
+    const startDiff = Math.abs(
+        new Date(data.start_time).getTime() - h.checkin
+    );
+
+    const endDiff = Math.abs(
+        new Date(data.end_time).getTime() - h.checkout
+    );
+
+    if (startDiff < 5000 && endDiff < 5000) {
+        targetSession = d;
+    }
+
+});
+
+if (targetSession) {
+
+    await updateDoc(
+        doc(window.db, "sessions", targetSession.id),
+        {
+            discount: discount,
+            final_game_amount: h.amount,
+            final_amount: h.total,
+            total_bill_amount: h.totalBillAmount
+        }
+    );
+
+}
 
     openBillFromHistory(tableId, historyIndex);
 
@@ -2937,19 +2989,12 @@ const bookingAdvance =
         ? Number(h.bookingAdvance || 0)
         : 0;
 
-const totalBillAmount =
-    Number(
-        h.totalBillAmount ??
-        finalTotal
-    );
+const totalBillAmount = finalTotal;
 
 const remainingPayment =
     isBookingSession
-        ? Number(
-            h.remainingPayment ??
-            Math.max(0, totalBillAmount - bookingAdvance)
-        )
-        : finalTotal;
+        ? Math.max(0, totalBillAmount - bookingAdvance)
+        : totalBillAmount;
   
 
 bill.innerHTML = `
