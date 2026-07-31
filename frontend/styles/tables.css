@@ -1635,94 +1635,138 @@ body * {
         0 0 8px #00ffcc;
 }
 
-/* ===== HISTORY CARDS CLEAN ===== */
+/* =========================================
+   HISTORY POPUP FINAL
+========================================= */
+
+#historyPopup .popup-box{
+
+    width:1150px !important;
+
+    max-width:95vw !important;
+
+    padding:25px !important;
+
+    display:flex !important;
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
 
 #historyPopup .history-summary-counters{
+
     display:grid;
+
     grid-template-columns:repeat(5,1fr);
+
     gap:15px;
-    margin:15px 0 20px;
+
 }
 
 #historyPopup .history-summary-box{
 
-    background:#08110f;
+    background:#08120f;
 
     border:2px solid #00ff88;
 
-    border-radius:14px;
+    border-radius:12px;
 
-    padding:12px;
-
-    min-height:145px;
+    padding:15px;
 
     display:flex;
-    flex-direction:column;
-    align-items:center;
 
-    box-sizing:border-box;
+    flex-direction:column;
+
+    justify-content:flex-start;
+
+    min-height:180px;
+
 }
 
 #historyPopup .history-summary-box span{
 
-    font-size:17px;
+    text-align:center;
+
+    font-size:18px;
+
     font-weight:bold;
 
-    margin-bottom:12px;
+    color:white;
 
-    text-decoration:underline;
+    margin-bottom:15px;
+
 }
 
 #historyPopup .history-summary-box div{
 
-    width:100%;
-
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
 
-    margin:3px 0;
+    margin:6px 0;
 
-    font-size:14px;
+    font-size:15px;
+
 }
 
 #historyPopup .history-summary-box strong{
 
-    font-size:22px;
-    font-weight:bold;
+    font-size:18px;
+
+    color:#00ffcc;
+
 }
 
 .history-money{
 
-    font-size:16px;
+    text-align:right;
 
-    font-weight:bold;
+    font-size:16px;
 
     color:#00ff88;
 
-    margin-bottom:6px;
+    font-weight:bold;
+
+    margin-bottom:8px;
+
 }
 
 #historyPopup hr{
 
-    width:100%;
+    border:none;
 
-    opacity:.2;
+    border-top:1px solid rgba(255,255,255,.15);
 
     margin:8px 0;
+
 }
+
 #historyPopup .table-mobile-wrapper{
 
     width:100%;
 
     overflow-x:auto;
 
-    margin-top:10px;
 }
 
 #historyPopup .history-table{
 
     width:100%;
 
-    min-width:900px;
+    min-width:1000px;
+
+}
+
+#historyPopup .popup-buttons{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:15px;
+
 }
