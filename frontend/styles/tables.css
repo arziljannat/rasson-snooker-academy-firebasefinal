@@ -2727,247 +2727,114 @@ body * {
 }
 
 /* ============================================================
-   FINAL CANTEEN POPUP
+   FINAL CANTEEN ITEMS + BUTTONS FIX
    DESKTOP + MOBILE
    ONLY CANTEEN POPUP
 ============================================================ */
 
-
-/* =========================
-   DESKTOP
-========================= */
-
-#canteenPopup {
-    padding: 20px !important;
-    box-sizing: border-box !important;
-}
-
-#canteenPopup .popup-box {
-    width: 650px !important;
-    max-width: 90vw !important;
-
-    max-height: 85vh !important;
-
-    padding: 25px !important;
-    margin: 0 auto !important;
-
-    box-sizing: border-box !important;
-
-    overflow: hidden !important;
-
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-}
-
-
-/* TITLE */
-
-#canteenPopup h2 {
+/* Item list */
+#canteenPopup #canteenItems {
     width: 100% !important;
-
-    text-align: center !important;
-
-    font-size: 28px !important;
-
-    margin: 0 0 18px 0 !important;
-
-    color: #00ffcc !important;
-
-    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
 }
 
-
-/* CANTEEN ITEMS AREA */
-
-#canteenList {
+/* Har item ki row */
+#canteenPopup #canteenItems > div {
     width: 100% !important;
-
-    max-height: 58vh !important;
-
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-
     box-sizing: border-box !important;
 
-    padding: 5px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 12px !important;
+
+    border: 1px solid rgba(0, 255, 136, 0.30);
+    border-radius: 10px;
+
+    background: rgba(0, 255, 136, 0.04);
 }
 
+/* PLUS / MINUS buttons */
+#canteenPopup #canteenItems button {
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
 
-/* ITEMS INSIDE CANTEEN */
+    height: 34px !important;
 
-#canteenList > * {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-}
+    padding: 0 !important;
+    margin: 7px 5px 0 0 !important;
 
-
-/* INPUTS */
-
-#canteenPopup input,
-#canteenPopup select {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-
-/* CLOSE BUTTON AREA */
-
-#canteenPopup .popup-buttons {
-    width: 100% !important;
-
-    display: flex !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
 
-    margin-top: 18px !important;
+    border: 2px solid #00ff88 !important;
+    border-radius: 7px !important;
 
-    flex-shrink: 0 !important;
+    background: rgba(0, 255, 136, 0.08) !important;
+    color: #00ffcc !important;
+
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+
+    box-shadow:
+        0 0 8px rgba(0,255,136,.35),
+        inset 0 0 6px rgba(0,255,136,.12) !important;
+
+    cursor: pointer;
 }
 
-#canteenPopup .popup-buttons button {
-    min-width: 180px !important;
-    height: 45px !important;
+/* Hover - desktop */
+#canteenPopup #canteenItems button:hover {
+    background: #00ff88 !important;
+    color: #000 !important;
+}
 
+/* Item name */
+#canteenPopup #canteenItems b {
+    color: #ffffff !important;
     font-size: 16px !important;
 }
 
-
-/* SCROLLBAR */
-
-#canteenList::-webkit-scrollbar {
-    width: 8px;
-}
-
-#canteenList::-webkit-scrollbar-track {
-    background: #07120f;
-    border-radius: 20px;
-}
-
-#canteenList::-webkit-scrollbar-thumb {
-    background: #00ff88;
-    border-radius: 20px;
+/* Stock */
+#canteenPopup #canteenItems small {
+    display: inline-block !important;
+    margin-top: 4px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
 }
 
 
-/* ============================================================
-   MOBILE / APK
-============================================================ */
+/* =========================
+   MOBILE ONLY
+========================= */
 
 @media screen and (max-width: 600px) {
 
-    #canteenPopup {
-        padding: 8px !important;
-
-        box-sizing: border-box !important;
-
-        align-items: center !important;
-        justify-content: center !important;
+    #canteenPopup #canteenItems > div {
+        padding: 12px !important;
+        margin-bottom: 10px !important;
     }
 
+    #canteenPopup #canteenItems button {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
 
-    #canteenPopup .popup-box {
-        width: calc(100vw - 16px) !important;
-        max-width: calc(100vw - 16px) !important;
+        height: 40px !important;
 
-        height: auto !important;
-        max-height: calc(100dvh - 20px) !important;
+        display: inline-flex !important;
 
-        padding: 14px !important;
-        margin: 0 !important;
+        margin: 8px 6px 0 0 !important;
 
-        border-radius: 15px !important;
-
-        overflow: hidden !important;
-
-        box-sizing: border-box !important;
-
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
+        font-size: 22px !important;
     }
 
-
-    /* TITLE */
-
-    #canteenPopup h2 {
-        width: 100% !important;
-
-        font-size: 24px !important;
-
-        text-align: center !important;
-
-        margin: 0 0 12px 0 !important;
-
-        flex-shrink: 0 !important;
+    #canteenPopup #canteenItems b {
+        font-size: 17px !important;
     }
 
-
-    /* ITEMS SCROLL AREA */
-
-    #canteenList {
-        width: 100% !important;
-
-        max-height: calc(100dvh - 155px) !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-
-        -webkit-overflow-scrolling: touch !important;
-
-        padding: 3px !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    #canteenList > * {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    /* INPUTS */
-
-    #canteenPopup input,
-    #canteenPopup select {
-        max-width: 100% !important;
-
-        box-sizing: border-box !important;
-
-        font-size: 14px !important;
-    }
-
-
-    /* CLOSE BUTTON */
-
-    #canteenPopup .popup-buttons {
-        width: 100% !important;
-
-        display: flex !important;
-        flex-direction: column !important;
-
-        gap: 8px !important;
-
-        margin-top: 12px !important;
-
-        flex-shrink: 0 !important;
-    }
-
-
-    #canteenPopup .popup-buttons button {
-        width: 100% !important;
-
-        min-width: 0 !important;
-
-        margin: 0 !important;
-
-        padding: 11px !important;
-
-        height: auto !important;
-
+    #canteenPopup #canteenItems small {
         font-size: 15px !important;
     }
-
 }
