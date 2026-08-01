@@ -8,7 +8,8 @@ import {
   query,
   where,
   onSnapshot,
-  deleteDoc
+  deleteDoc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1518,10 +1519,13 @@ players_match:
 player_checkout_at:
     checkoutNow,
 
-            paid: false,
+paid: false,
 
-            day_id:
-                window.currentDayId
+day_id:
+    window.currentDayId,
+
+shift_number:
+    shift2 ? 2 : 1
         }
     );
 
@@ -1603,6 +1607,8 @@ if (
 ) {
     t.history.push({
         sessionId: latestSession.id,
+      shiftNumber:
+    shift2 ? 2 : 1,
 
     checkin: t.checkinTime,
     checkout: t.checkoutTime,
@@ -3893,10 +3899,61 @@ if (!docRef?.id) {
     alert("Shift1 save failed ❌");
     return;
 }
+
+await migrateOnlineBookingsToShift1();
+  
 alert("Shift 1 closed successfully ✅");
   loadShiftsFromFirebase();
 }
 
+
+/******************************************************
+ * MIGRATE ONLINE BOOKINGS TO SHIFT 1
+ ******************************************************/
+async function migrateOnlineBookingsToShift1() {
+
+    try {
+
+        const q = query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("bookingType", "==", "online")
+        );
+
+        const snap = await getDocs(q);
+
+        const batch = writeBatch(window.db);
+
+        snap.forEach(docSnap => {
+
+            const data = docSnap.data();
+
+            // already migrated
+            if (data.shift_number) return;
+
+            // today's booking only
+            if (
+                data.day_id &&
+                data.day_id !== window.currentDayId
+            ) return;
+
+          batch.update(docSnap.ref, {
+              shift_number: 1,
+              shift_assigned_at: new Date().toISOString()
+          });
+        });
+
+        await batch.commit();
+
+        console.log("✅ Online bookings moved to Shift 1");
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+}
 
 
 
@@ -6503,6 +6560,9 @@ async function rebuildSpecificDayHistory(dayId) {
 
         t.history.push({
           sessionId: docSnap.id,
+
+            shiftNumber:
+            Number(s.shift_number || 1),
 
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
