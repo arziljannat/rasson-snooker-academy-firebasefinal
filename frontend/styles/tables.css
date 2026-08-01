@@ -2236,4 +2236,100 @@ body * {
 
 }
 
+/* ==========================================================
+   HISTORY POPUP V2 - PART 2 (TOP CARDS)
+========================================================== */
 
+#historyPopup .history-summary-box{
+
+    min-height:140px !important;
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    justify-content:flex-start !important;
+
+    align-items:center !important;
+
+    padding:14px !important;
+
+    text-align:center !important;
+
+    position:relative;
+
+}
+
+#historyPopup .history-summary-box h4{
+
+    margin:0 0 12px 0 !important;
+
+    font-size:20px !important;
+
+    color:#fff !important;
+
+    font-weight:700 !important;
+
+}
+
+#historyPopup .history-summary-box .shift-row{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin:6px 0;
+
+    font-size:17px;
+
+}
+
+#historyPopup .history-summary-box .shift-label{
+
+    color:#d8d8d8;
+
+    font-weight:600;
+
+}
+
+#historyPopup .history-summary-box .shift-value{
+
+    font-size:20px;
+
+    font-weight:bold;
+
+}
+
+#historyPopup .history-summary-box .amount{
+
+    display:block;
+
+    margin-top:5px;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+}
+
+#historyPopup .paid-card{
+
+    border:2px solid #00ff88 !important;
+
+}
+
+#historyPopup .unpaid-card{
+
+    border:2px solid #ff4444 !important;
+
+}
+
+#historyPopup .booking-card{
+
+    border:2px solid #ffd700 !important;
+
+}
