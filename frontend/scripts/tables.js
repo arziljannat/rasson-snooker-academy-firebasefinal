@@ -210,6 +210,23 @@ expenses: d.expenses,
 });
 }
 
+
+/******************************************************
+ * GET CURRENT RUNNING SHIFT
+ ******************************************************/
+function getCurrentShiftNumber() {
+
+    // Shift 1 close ho chuki hai aur Shift 2 abhi close nahi hui
+    if (shift1 && !shift2) {
+        return 2;
+    }
+
+    // Default = Shift 1
+    return 1;
+}
+
+
+
 let editTargetId = null;
 let deleteTargetId = null;
 
@@ -1467,11 +1484,9 @@ if (latestSession) {
   console.log("===== UPDATE DATA =====");
 console.log({
     day_id: window.currentDayId,
-    shift_number: shift2 ? 2 : 1,
-    shift2,
+    shift_number: getCurrentShiftNumber(),
     table: t.name
 });
-
     await updateDoc(
         doc(
             window.db,
@@ -1533,7 +1548,7 @@ day_id:
     window.currentDayId,
 
 shift_number:
-    shift2 ? 2 : 1
+    getCurrentShiftNumber()
         }
     );
 
