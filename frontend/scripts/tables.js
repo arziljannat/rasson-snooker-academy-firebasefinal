@@ -2542,6 +2542,15 @@ function openHistory(id) {
     const historyList = Array.isArray(t.history)
         ? t.history
         : [];
+
+  console.table(
+    historyList.map(h => ({
+        shift: h.shiftNumber,
+        paid: h.paid,
+        total: h.total,
+        booking: h.fromBooking
+    }))
+);
   
 
   const shift1History = historyList.filter(h => Number(h.shiftNumber || 1) === 1);
@@ -6436,7 +6445,13 @@ if (alreadyExists) {
     );
     return;
 }
-      
+      console.log(
+    "SESSION SHIFT:",
+    s.table_id,
+    s.shift_number,
+    s.start_time,
+    s.end_time
+);
 
         t.history.push({
             sessionId: sessionDocId,
@@ -6533,6 +6548,12 @@ playType:
 
 canteenItems: s.canteen_items || {}
         });
+
+      console.log(
+    "HISTORY SHIFT:",
+    t.name,
+    Number(s.shift_number || 1)
+);
 
         console.log("✅ HISTORY PUSHED:", t.name);
 
