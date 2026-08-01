@@ -975,3 +975,641 @@ body * {
     0 0 18px rgba(255,80,80,.30);
 
 }
+
+/* ============================================================
+   HISTORY POPUP PREMIUM V4 (PART 1)
+============================================================ */
+
+/* POPUP */
+#historyPopup .popup-box{
+
+    width:1400px !important;
+    max-width:96vw !important;
+
+    height:88vh !important;
+    max-height:88vh !important;
+
+    padding:25px !important;
+
+    border-radius:20px;
+
+    background:#08110f !important;
+
+    border:2px solid #00ff88 !important;
+
+    box-shadow:
+        0 0 25px rgba(0,255,136,.35);
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+}
+
+
+/* TITLE */
+
+#historyTableTitle{
+
+    font-size:36px !important;
+
+    font-weight:800;
+
+    text-align:center;
+
+    color:#ffffff;
+
+    margin:0 0 24px;
+
+    letter-spacing:1px;
+}
+
+
+/* ===========================
+   TOP CARDS
+=========================== */
+
+.history-summary-counters{
+
+    display:grid !important;
+
+    grid-template-columns:repeat(5,minmax(220px,1fr));
+
+    gap:18px;
+
+    margin-bottom:22px;
+
+    flex-shrink:0;
+
+    align-items:stretch;
+}
+
+
+/* CARD */
+
+.history-summary-box{
+
+    background:rgba(255,255,255,.03);
+
+    border-radius:18px;
+
+    padding:18px;
+
+    min-height:165px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:flex-start;
+
+    align-items:center;
+
+    transition:.25s;
+}
+
+
+/* COLORS */
+
+.history-summary-box.green{
+
+    border:2px solid #00ff88;
+
+    box-shadow:0 0 18px rgba(0,255,136,.28);
+
+}
+
+.history-summary-box.gold{
+
+    border:2px solid gold;
+
+    box-shadow:0 0 18px rgba(255,215,0,.28);
+
+}
+
+.history-summary-box.red{
+
+    border:2px solid #ff5555;
+
+    box-shadow:0 0 18px rgba(255,70,70,.28);
+
+}
+
+
+/* CARD TITLE */
+
+.history-title{
+
+    font-size:18px;
+
+    font-weight:800;
+
+    color:#ffffff;
+
+    margin-bottom:16px;
+
+    letter-spacing:.5px;
+
+    text-transform:uppercase;
+}
+
+
+/* SHIFT ROW */
+
+.history-line{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin:8px 0;
+}
+
+
+/* LABEL */
+
+.history-line span{
+
+    color:#d8d8d8;
+
+    font-size:15px;
+
+    font-weight:600;
+}
+
+
+/* VALUE */
+
+.history-line strong{
+
+    font-size:22px;
+
+    font-weight:900;
+
+    color:#00ffd0;
+
+    text-shadow:0 0 8px #00ffcc;
+}
+
+
+/* MONEY */
+
+.history-money{
+
+    width:100%;
+
+    text-align:right;
+
+    margin-top:4px;
+
+    font-size:18px;
+
+    font-weight:800;
+
+    color:#00ff88;
+}
+
+
+/* SEPARATOR */
+
+.history-summary-box hr{
+
+    width:100%;
+
+    border:none;
+
+    border-top:1px solid rgba(255,255,255,.15);
+
+    margin:12px 0;
+}
+
+/* ============================================================
+   HISTORY POPUP PREMIUM V4 (PART 2)
+============================================================ */
+
+
+/* ===========================
+   TABLE AREA
+=========================== */
+
+.table-mobile-wrapper{
+
+    flex:1;
+
+    overflow:auto;
+
+    border:1px solid rgba(255,255,255,.10);
+
+    border-radius:16px;
+
+    margin-top:10px;
+
+    background:rgba(255,255,255,.02);
+
+}
+
+
+/* TABLE */
+
+.history-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    min-width:1200px;
+
+}
+
+
+/* HEADER */
+
+.history-table thead{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:20;
+
+    background:#06110d;
+
+}
+
+
+.history-table thead th{
+
+    padding:14px 10px;
+
+    color:#00ffe1;
+
+    font-size:17px;
+
+    font-weight:800;
+
+    text-align:center;
+
+    border-bottom:2px solid #00ff88;
+
+}
+
+
+/* BODY */
+
+.history-table tbody td{
+
+    padding:13px 10px;
+
+    text-align:center;
+
+    color:#ffffff;
+
+    font-size:15px;
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+}
+
+
+.history-table tbody tr{
+
+    transition:.25s;
+
+}
+
+
+.history-table tbody tr:hover{
+
+    background:rgba(0,255,136,.08);
+
+}
+
+
+/* PAID BADGE */
+
+.history-table .paid{
+
+    background:#00cc66;
+
+    color:#fff;
+
+    padding:6px 14px;
+
+    border-radius:8px;
+
+    font-weight:700;
+
+}
+
+
+/* UNPAID BADGE */
+
+.history-table .unpaid{
+
+    background:#ff4444;
+
+    color:#fff;
+
+    padding:6px 14px;
+
+    border-radius:8px;
+
+    font-weight:700;
+
+}
+
+
+/* CHECKBOX */
+
+.history-table input[type="checkbox"]{
+
+    transform:scale(1.25);
+
+    cursor:pointer;
+
+}
+
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.popup-buttons{
+
+    margin-top:18px;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+}
+
+
+.popup-buttons button{
+
+    min-width:170px;
+
+    height:48px;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    border-radius:12px;
+
+}
+
+
+/* DELETE */
+
+#deleteSelectedHistoryBtn{
+
+    background:#8b0000;
+
+    border:2px solid #ff4444;
+
+    color:#fff;
+
+}
+
+
+/* CLOSE */
+
+#closeHistoryBtn{
+
+    background:#111;
+
+    border:2px solid #00ff88;
+
+    color:#fff;
+
+}
+
+/* ============================================================
+   HISTORY POPUP PREMIUM V4 (PART 3)
+============================================================ */
+
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+.table-mobile-wrapper::-webkit-scrollbar{
+
+    width:10px;
+
+    height:10px;
+
+}
+
+.table-mobile-wrapper::-webkit-scrollbar-track{
+
+    background:#07120f;
+
+    border-radius:20px;
+
+}
+
+.table-mobile-wrapper::-webkit-scrollbar-thumb{
+
+    background:#00ff88;
+
+    border-radius:20px;
+
+}
+
+.table-mobile-wrapper::-webkit-scrollbar-thumb:hover{
+
+    background:#00e676;
+
+}
+
+
+/* ===========================
+   CARD HOVER
+=========================== */
+
+.history-summary-box{
+
+    transition:.30s ease;
+
+}
+
+.history-summary-box:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.history-summary-box.green:hover{
+
+    box-shadow:
+        0 0 28px rgba(0,255,136,.55);
+
+}
+
+.history-summary-box.gold:hover{
+
+    box-shadow:
+        0 0 28px rgba(255,215,0,.55);
+
+}
+
+.history-summary-box.red:hover{
+
+    box-shadow:
+        0 0 28px rgba(255,80,80,.55);
+
+}
+
+
+/* ===========================
+   TABLE HOVER
+=========================== */
+
+.history-table tbody tr{
+
+    transition:.25s;
+
+}
+
+.history-table tbody tr:hover{
+
+    background:rgba(0,255,136,.08);
+
+}
+
+.history-table tbody tr:hover td{
+
+    color:#fff;
+
+}
+
+
+/* ===========================
+   BUTTON HOVER
+=========================== */
+
+.popup-buttons button{
+
+    transition:.25s;
+
+}
+
+.popup-buttons button:hover{
+
+    transform:translateY(-2px);
+
+}
+
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width:1500px){
+
+#historyPopup .popup-box{
+
+    width:96vw !important;
+
+    height:90vh !important;
+
+}
+
+.history-summary-counters{
+
+    grid-template-columns:repeat(5,minmax(180px,1fr));
+
+}
+
+}
+
+
+@media (max-width:1200px){
+
+.history-summary-counters{
+
+    grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+
+@media (max-width:768px){
+
+.history-summary-counters{
+
+    grid-template-columns:1fr;
+
+}
+
+.history-summary-box{
+
+    min-height:auto;
+
+}
+
+#historyTableTitle{
+
+    font-size:28px;
+
+}
+
+.popup-buttons{
+
+    flex-direction:column;
+
+    align-items:center;
+
+}
+
+.popup-buttons button{
+
+    width:100%;
+
+    max-width:280px;
+
+}
+
+}
+
+
+/* ===========================
+   ANIMATION
+=========================== */
+
+#historyPopup .popup-box{
+
+    animation:historyPopupShow .25s ease;
+
+}
+
+@keyframes historyPopupShow{
+
+    from{
+
+        opacity:0;
+
+        transform:scale(.95);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:scale(1);
+
+    }
+
+}
