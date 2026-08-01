@@ -1937,3 +1937,75 @@ body * {
         0 0 10px rgba(0,207,255,.35),
         inset 0 0 8px rgba(0,207,255,.18) !important;
 }
+
+/* ==========================================
+   ROOM BUTTON COLORS
+========================================== */
+
+/* CHECK IN = GOLD */
+.rooms-section .checkin-btn,
+.rooms-section .big-btn.checkin-btn{
+
+    background:rgba(255,215,0,.08) !important;
+
+    border:2px solid #ffd700 !important;
+
+    color:#ffd700 !important;
+
+    box-shadow:
+        0 0 10px rgba(255,215,0,.45),
+        inset 0 0 8px rgba(255,215,0,.20) !important;
+}
+
+.rooms-section .checkin-btn:hover,
+.rooms-section .big-btn.checkin-btn:hover{
+
+    background:#ffd700 !important;
+    color:#000 !important;
+}
+
+
+/* CHECK OUT = RED */
+
+.rooms-section .checkout-btn,
+.rooms-section .big-btn.checkout-btn{
+
+    background:rgba(255,60,60,.08) !important;
+
+    border:2px solid #ff4444 !important;
+
+    color:#ff6666 !important;
+
+    box-shadow:
+        0 0 10px rgba(255,60,60,.45),
+        inset 0 0 8px rgba(255,60,60,.20) !important;
+}
+
+.rooms-section .checkout-btn:hover,
+.rooms-section .big-btn.checkout-btn:hover{
+
+    background:#ff4444 !important;
+    color:#fff !important;
+}
+
+
+/* DELETE = RED */
+
+.rooms-section .delete-btn{
+
+    background:rgba(255,60,60,.08) !important;
+
+    border:2px solid #ff4444 !important;
+
+    color:#ff6666 !important;
+
+    box-shadow:
+        0 0 10px rgba(255,60,60,.45),
+        inset 0 0 8px rgba(255,60,60,.20) !important;
+}
+
+.rooms-section .delete-btn:hover{
+
+    background:#ff4444 !important;
+    color:#fff !important;
+}
