@@ -1660,15 +1660,14 @@ body * {
 /* 5 cards per row */
 .tables-section .table-box{
 
-    flex:0 0 calc((100% - 72px)/5) !important;
+.tables-section .table-box{
 
-    width:320px !important;
+    flex:1 1 280px !important;
 
-    min-width:320px !important;
+    max-width:300px !important;
 
-    max-width:320px !important;
+    min-width:260px !important;
 
-    box-sizing:border-box;
 }
 
 
@@ -1721,13 +1720,14 @@ body * {
 
 .player-name-input{
 
-    width:46% !important;
+    flex:1;
 
-    min-width:0 !important;
+    width:auto;
 
-    flex:0 0 46% !important;
+    min-width:0;
 
     box-sizing:border-box;
+
 }
 
 /* VS */
@@ -1818,6 +1818,7 @@ body * {
 
     font-size:11px;
 
+}
 }
 /* ==========================================
    SECTION COLORS
