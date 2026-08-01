@@ -2381,20 +2381,54 @@ list.innerHTML = "";
 
 inventoryItems.forEach(item => {
 
+    const itemName = getItemName(item);
+    const itemPrice = item.selling_price || item.price || 0;
+    const itemStock = getItemStock(item);
+    const selectedQty = t.canteenItems?.[item.id]?.qty || 0;
+
     list.innerHTML += `
-        <div style="margin-bottom:10px;">
-            <b>${getItemName(item)}</b> - Rs ${item.selling_price || item.price || 0}
-            <br>
-            <small style="color:${getItemStock(item) <= 5 ? 'red' : 'lime'}">
-                Stock: ${getItemStock(item)}
-                ${getItemStock(item) <= 5 ? '⚠️ LOW' : ''}
-            </small>
-            <button 
-                ${getItemStock(item) <= 0 ? 'disabled style="opacity:0.3"' : ''}
-                onclick="addItem('${id}', '${item.id}', ${item.selling_price || item.price || 0}, '${getItemName(item)}')">
-                ➕
-            </button>
-            <button onclick="removeItem('${id}', '${item.id}', ${item.selling_price || item.price || 0}, '${getItemName(item)}')">➖</button>
+        <div class="canteen-item-card">
+
+            <div class="canteen-item-info">
+
+                <div class="canteen-item-name">
+                    ${itemName}
+                </div>
+
+                <div class="canteen-item-price">
+                    Rs ${itemPrice}
+                </div>
+
+                <div class="canteen-stock ${itemStock <= 5 ? 'low-stock' : ''}">
+                    Stock: ${itemStock}
+                    ${itemStock <= 5 ? ' ⚠ LOW' : ''}
+                </div>
+
+            </div>
+
+            <div class="canteen-qty-controls">
+
+                <button
+                    type="button"
+                    class="canteen-qty-btn minus"
+                    onclick="removeItem('${id}', '${item.id}', ${itemPrice}, '${itemName}')">
+                    −
+                </button>
+
+                <div class="canteen-qty-number">
+                    ${selectedQty}
+                </div>
+
+                <button
+                    type="button"
+                    class="canteen-qty-btn plus"
+                    ${itemStock <= 0 ? 'disabled' : ''}
+                    onclick="addItem('${id}', '${item.id}', ${itemPrice}, '${itemName}')">
+                    +
+                </button>
+
+            </div>
+
         </div>
     `;
 });
