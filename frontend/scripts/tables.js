@@ -5522,7 +5522,24 @@ function renderHistoryPage() {
     let start = (historyPage - 1) * historyPerPage;
     let end = start + historyPerPage;
 
-    let pageRows = t.history.slice(start, end);
+    let start = (historyPage - 1) * historyPerPage;
+let end = start + historyPerPage;
+
+let selectedShift =
+    document.getElementById("tableHistoryShiftSelect").value;
+
+let history = [...t.history];
+
+if (selectedShift === "1") {
+    history = history.filter(h => Number(h.shiftNumber) === 1);
+}
+else if (selectedShift === "2") {
+    history = history.filter(h => Number(h.shiftNumber) === 2);
+}
+
+// Combined = sab records
+
+let pageRows = history.slice(start, end);
 
     pageRows.forEach((h, index) => {
         body.innerHTML += `
@@ -5538,7 +5555,7 @@ function renderHistoryPage() {
 <td>
 ${h.paid
     ? `<button class="paid-btn" disabled>PAID</button>`
-    : `<button class="unpaid-btn" onclick="openBillFromHistory('${tableId}', ${start + index})">UNPAID</button>`
+    : `<button class="unpaid-btn" onclick="openBillFromHistory('${tableId}', ${t.history.indexOf(h)})">UNPAID</button>`
 }
 </td>
 
@@ -6426,7 +6443,9 @@ if (alreadyExists) {
 
         t.history.push({
             sessionId: sessionDocId,
-          
+        
+            shiftNumber: Number(s.shift_number || 1),
+        
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
 
@@ -6558,14 +6577,13 @@ async function rebuildSpecificDayHistory(dayId) {
 
         if (!t) return;
 
-        t.history.push({
+      t.history.push({
           sessionId: docSnap.id,
-
-            shiftNumber:
-            Number(s.shift_number || 1),
-
-            checkin: new Date(s.start_time).getTime(),
-            checkout: new Date(s.end_time).getTime(),
+      
+          shiftNumber: Number(s.shift_number || 1),
+      
+          checkin: new Date(s.start_time).getTime(),
+          checkout: new Date(s.end_time).getTime(),
 
             playSeconds: s.final_seconds || 0,
             originalAmount:
