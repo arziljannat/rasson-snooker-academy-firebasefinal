@@ -1469,7 +1469,7 @@ console.log({
     day_id: window.currentDayId,
     shift_number: shift2 ? 2 : 1,
     shift2,
-    table: table.name
+    table: t.name
 });
 
     await updateDoc(
