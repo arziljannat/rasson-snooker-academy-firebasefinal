@@ -2040,6 +2040,52 @@ body * {
     color:#00cfff !important;
 }
 
+/* TABLE */
+.tables-section .player-name-input{
+    background:rgba(0,255,136,.12) !important;
+    border:2px solid #00ff88 !important;
+    color:#00ff88 !important;
+}
+
+/* ROOM */
+.rooms-section .player-name-input{
+    background:rgba(255,215,0,.12) !important;
+    border:2px solid #ffd700 !important;
+    color:#ffd700 !important;
+}
+
+/* POOL */
+.pool-section .player-name-input{
+    background:rgba(0,207,255,.12) !important;
+    border:2px solid #00cfff !important;
+    color:#00cfff !important;
+}
+
 .player-name-input::placeholder{
     color:inherit !important;
+}
+
+/* ROOM RED BUTTONS */
+
+.rooms-section .neon-btn.red{
+
+    color:#ff3b3b !important;
+    border-color:#ff3b3b !important;
+
+    box-shadow:
+        0 0 10px rgba(255,59,59,.5),
+        inset 0 0 8px rgba(255,59,59,.25) !important;
+}
+
+
+/* POOL RED BUTTONS */
+
+.pool-section .neon-btn.red{
+
+    color:#ff3b3b !important;
+    border-color:#ff3b3b !important;
+
+    box-shadow:
+        0 0 10px rgba(255,59,59,.5),
+        inset 0 0 8px rgba(255,59,59,.25) !important;
 }
