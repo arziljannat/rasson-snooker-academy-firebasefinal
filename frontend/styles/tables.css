@@ -2009,3 +2009,37 @@ body * {
     background:#ff4444 !important;
     color:#fff !important;
 }
+/* =========================
+   PLAYER INPUT COLORS
+========================= */
+
+/* TABLE */
+
+.tables-section .player-name-input{
+
+    background:rgba(0,255,136,.10) !important;
+    border:2px solid #00ff88 !important;
+    color:#00ff88 !important;
+}
+
+/* ROOM */
+
+.rooms-section .player-name-input{
+
+    background:rgba(255,215,0,.10) !important;
+    border:2px solid #ffd700 !important;
+    color:#ffd700 !important;
+}
+
+/* POOL */
+
+.pool-section .player-name-input{
+
+    background:rgba(0,207,255,.10) !important;
+    border:2px solid #00cfff !important;
+    color:#00cfff !important;
+}
+
+.player-name-input::placeholder{
+    color:inherit !important;
+}
