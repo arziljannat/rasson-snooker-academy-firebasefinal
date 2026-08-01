@@ -1662,9 +1662,13 @@ body * {
 
     flex:0 0 calc((100% - 72px)/5) !important;
 
-    max-width:300px !important;
+    width:320px !important;
 
-    min-width:285px !important;
+    min-width:320px !important;
+
+    max-width:320px !important;
+
+    box-sizing:border-box;
 }
 
 
@@ -1717,25 +1721,11 @@ body * {
 
 .player-name-input{
 
-    flex:1;
+    width:46% !important;
 
-    height:32px;
+    min-width:0 !important;
 
-    padding:0 8px;
-
-    border-radius:7px;
-
-    background:#101010;
-
-    border:1px solid #00ff88;
-
-    color:#fff;
-
-    font-size:12px;
-
-    font-weight:700;
-
-    text-align:center;
+    flex:0 0 46% !important;
 
     box-sizing:border-box;
 }
