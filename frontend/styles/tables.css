@@ -1613,3 +1613,221 @@ body * {
     }
 
 }
+
+/* ============================================================
+   FINAL PLAYER NAME + TABLE SEQUENCE
+============================================================ */
+
+/* Main wrapper */
+.tables-grid{
+    width:100% !important;
+    max-width:1700px !important;
+    margin:25px auto !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    gap:35px !important;
+}
+
+/* Sections */
+.game-section{
+    width:100%;
+}
+
+/* Headings */
+.game-section-title{
+    text-align:center;
+    margin:0 0 18px;
+}
+
+/* -------- TABLES -------- */
+
+.tables-section .game-section-grid{
+
+    display:flex !important;
+    flex-wrap:wrap !important;
+
+    justify-content:center !important;
+
+    gap:18px !important;
+
+    max-width:1600px !important;
+
+    margin:auto !important;
+}
+
+/* 5 cards per row */
+.tables-section .table-box{
+
+    flex:0 0 calc((100% - 72px)/5) !important;
+
+    max-width:300px !important;
+
+    min-width:285px !important;
+}
+
+
+/* -------- ROOMS -------- */
+
+.rooms-section .game-section-grid{
+
+    display:flex !important;
+
+    justify-content:center !important;
+
+    flex-wrap:wrap !important;
+
+    gap:18px !important;
+}
+
+
+/* -------- POOL -------- */
+
+.pool-section .game-section-grid{
+
+    display:flex !important;
+
+    justify-content:center !important;
+
+    flex-wrap:wrap !important;
+
+    gap:18px !important;
+}
+
+
+/* ===========================
+      PLAYER NAMES
+=========================== */
+
+.player-names-box{
+
+    width:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:8px;
+
+    margin:10px 0;
+}
+
+.player-name-input{
+
+    flex:1;
+
+    height:32px;
+
+    padding:0 8px;
+
+    border-radius:7px;
+
+    background:#101010;
+
+    border:1px solid #00ff88;
+
+    color:#fff;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    text-align:center;
+
+    box-sizing:border-box;
+}
+
+/* VS */
+.player-names-box::before{
+
+    content:"VS";
+
+    order:2;
+
+    flex:none;
+
+    color:#ffffff;
+
+    font-size:13px;
+
+    font-weight:900;
+
+    padding:0 2px;
+}
+
+.player-name-input:first-child{
+    order:1;
+}
+
+.player-name-input:last-child{
+    order:3;
+}
+
+.player-name-input:focus{
+
+    outline:none;
+
+    border-color:#00ffcc;
+
+    box-shadow:0 0 8px #00ffcc;
+}
+
+
+/* MOBILE */
+
+@media(max-width:1500px){
+
+.tables-section .table-box{
+
+    flex:0 0 calc((100% - 54px)/4) !important;
+
+}
+
+}
+
+@media(max-width:1200px){
+
+.tables-section .table-box{
+
+    flex:0 0 calc((100% - 36px)/3) !important;
+
+}
+
+}
+
+@media(max-width:900px){
+
+.tables-section .table-box{
+
+    flex:0 0 calc((100% - 18px)/2) !important;
+
+}
+
+}
+
+@media(max-width:600px){
+
+.tables-section .table-box{
+
+    flex:0 0 100% !important;
+
+    max-width:100% !important;
+
+}
+
+.player-names-box{
+
+    gap:6px;
+
+}
+
+.player-name-input{
+
+    font-size:11px;
+
+}
+
+}
