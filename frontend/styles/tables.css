@@ -2725,3 +2725,249 @@ body * {
     }
 
 }
+
+/* ============================================================
+   FINAL CANTEEN POPUP
+   DESKTOP + MOBILE
+   ONLY CANTEEN POPUP
+============================================================ */
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+#canteenPopup {
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+
+#canteenPopup .popup-box {
+    width: 650px !important;
+    max-width: 90vw !important;
+
+    max-height: 85vh !important;
+
+    padding: 25px !important;
+    margin: 0 auto !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
+
+/* TITLE */
+
+#canteenPopup h2 {
+    width: 100% !important;
+
+    text-align: center !important;
+
+    font-size: 28px !important;
+
+    margin: 0 0 18px 0 !important;
+
+    color: #00ffcc !important;
+
+    flex-shrink: 0 !important;
+}
+
+
+/* CANTEEN ITEMS AREA */
+
+#canteenList {
+    width: 100% !important;
+
+    max-height: 58vh !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    box-sizing: border-box !important;
+
+    padding: 5px !important;
+}
+
+
+/* ITEMS INSIDE CANTEEN */
+
+#canteenList > * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+
+/* INPUTS */
+
+#canteenPopup input,
+#canteenPopup select {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+
+/* CLOSE BUTTON AREA */
+
+#canteenPopup .popup-buttons {
+    width: 100% !important;
+
+    display: flex !important;
+    justify-content: center !important;
+
+    margin-top: 18px !important;
+
+    flex-shrink: 0 !important;
+}
+
+#canteenPopup .popup-buttons button {
+    min-width: 180px !important;
+    height: 45px !important;
+
+    font-size: 16px !important;
+}
+
+
+/* SCROLLBAR */
+
+#canteenList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#canteenList::-webkit-scrollbar-track {
+    background: #07120f;
+    border-radius: 20px;
+}
+
+#canteenList::-webkit-scrollbar-thumb {
+    background: #00ff88;
+    border-radius: 20px;
+}
+
+
+/* ============================================================
+   MOBILE / APK
+============================================================ */
+
+@media screen and (max-width: 600px) {
+
+    #canteenPopup {
+        padding: 8px !important;
+
+        box-sizing: border-box !important;
+
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+
+    #canteenPopup .popup-box {
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
+
+        height: auto !important;
+        max-height: calc(100dvh - 20px) !important;
+
+        padding: 14px !important;
+        margin: 0 !important;
+
+        border-radius: 15px !important;
+
+        overflow: hidden !important;
+
+        box-sizing: border-box !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+
+    /* TITLE */
+
+    #canteenPopup h2 {
+        width: 100% !important;
+
+        font-size: 24px !important;
+
+        text-align: center !important;
+
+        margin: 0 0 12px 0 !important;
+
+        flex-shrink: 0 !important;
+    }
+
+
+    /* ITEMS SCROLL AREA */
+
+    #canteenList {
+        width: 100% !important;
+
+        max-height: calc(100dvh - 155px) !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        -webkit-overflow-scrolling: touch !important;
+
+        padding: 3px !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    #canteenList > * {
+        width: 100% !important;
+        max-width: 100% !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    /* INPUTS */
+
+    #canteenPopup input,
+    #canteenPopup select {
+        max-width: 100% !important;
+
+        box-sizing: border-box !important;
+
+        font-size: 14px !important;
+    }
+
+
+    /* CLOSE BUTTON */
+
+    #canteenPopup .popup-buttons {
+        width: 100% !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+
+        gap: 8px !important;
+
+        margin-top: 12px !important;
+
+        flex-shrink: 0 !important;
+    }
+
+
+    #canteenPopup .popup-buttons button {
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+        margin: 0 !important;
+
+        padding: 11px !important;
+
+        height: auto !important;
+
+        font-size: 15px !important;
+    }
+
+}
