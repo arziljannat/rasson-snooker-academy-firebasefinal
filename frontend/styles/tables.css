@@ -2443,3 +2443,285 @@ body * {
     }
 
 }
+
+/* ============================================================
+   FINAL DESKTOP DAY + TABLE HISTORY FIX
+   DESKTOP ONLY - MOBILE APK SAFE
+============================================================ */
+
+@media screen and (min-width: 601px) {
+
+    /* =====================================
+       DAY HISTORY + TABLE HISTORY POPUP
+    ===================================== */
+
+    #dayHistoryPopup,
+    #tableHistoryPopup {
+        padding: 20px !important;
+        box-sizing: border-box !important;
+    }
+
+    #dayHistoryPopup .popup-box,
+    #tableHistoryPopup .popup-box {
+        width: 1100px !important;
+        max-width: 92vw !important;
+
+        height: auto !important;
+        max-height: 88vh !important;
+
+        padding: 28px !important;
+        margin: 0 auto !important;
+
+        box-sizing: border-box !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        align-items: stretch !important;
+    }
+
+
+    /* =====================================
+       TITLES
+    ===================================== */
+
+    #dayHistoryPopup h2,
+    #tableHistoryPopup h2 {
+        width: 100% !important;
+
+        text-align: center !important;
+
+        font-size: 28px !important;
+
+        margin: 0 0 25px 0 !important;
+    }
+
+    #dayHistoryPopup h3,
+    #tableHistoryPopup h3 {
+        width: 100% !important;
+
+        text-align: center !important;
+
+        font-size: 20px !important;
+
+        margin: 25px 0 10px 0 !important;
+    }
+
+
+    /* =====================================
+       LABELS + SELECTS
+    ===================================== */
+
+    #dayHistoryPopup label,
+    #tableHistoryPopup label {
+        display: block !important;
+
+        width: 100% !important;
+
+        text-align: center !important;
+
+        margin: 5px 0 8px 0 !important;
+    }
+
+    #dayHistoryPopup select,
+    #tableHistoryPopup select {
+        display: block !important;
+
+        width: 100% !important;
+        max-width: 100% !important;
+
+        box-sizing: border-box !important;
+
+        margin: 0 0 15px 0 !important;
+    }
+
+    #dayHistoryBranch,
+    #tableHistoryBranch {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+
+    /* =====================================
+       REMOVE BAD HORIZONTAL SCROLL
+    ===================================== */
+
+    #dayHistoryPopup .table-mobile-wrapper,
+    #tableHistoryPopup .table-mobile-wrapper {
+        display: block !important;
+
+        width: 100% !important;
+        max-width: 100% !important;
+
+        overflow: visible !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    /* =====================================
+       TABLE CONTAINERS
+    ===================================== */
+
+    #dayHistoryPopup table,
+    #tableHistoryPopup table {
+        display: table !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+
+        table-layout: auto !important;
+
+        margin: 0 !important;
+
+        border-collapse: collapse !important;
+    }
+
+    #dayHistoryPopup tbody,
+    #dayHistoryPopup tr,
+    #dayHistoryPopup td,
+
+    #tableHistoryPopup tbody,
+    #tableHistoryPopup tr,
+    #tableHistoryPopup td {
+        visibility: visible !important;
+    }
+
+
+    /* =====================================
+       DAY HISTORY DATA BOX
+    ===================================== */
+
+    #dayHistoryPopup .summary-box {
+        display: flex !important;
+
+        flex-direction: column !important;
+
+        width: 100% !important;
+
+        padding: 15px 20px !important;
+
+        box-sizing: border-box !important;
+
+        background: rgba(0, 255, 136, 0.04) !important;
+
+        border-radius: 10px !important;
+    }
+
+    #dayHistoryPopup .summary-row {
+        display: flex !important;
+
+        width: 100% !important;
+
+        justify-content: space-between !important;
+        align-items: center !important;
+
+        box-sizing: border-box !important;
+
+        padding: 8px 12px !important;
+
+        font-size: 15px !important;
+    }
+
+    #dayHistoryPopup .summary-row span:first-child {
+        text-align: left !important;
+    }
+
+    #dayHistoryPopup .summary-row span:last-child {
+        margin-left: auto !important;
+
+        text-align: right !important;
+
+        color: #00ffcc !important;
+        font-weight: bold !important;
+    }
+
+
+    /* =====================================
+       TABLE HISTORY DATA BOX
+    ===================================== */
+
+    #tableHistoryPopup .history-box {
+        display: flex !important;
+
+        flex-direction: column !important;
+
+        width: 100% !important;
+
+        padding: 15px 20px !important;
+
+        box-sizing: border-box !important;
+
+        background: rgba(0, 255, 136, 0.04) !important;
+
+        border-radius: 10px !important;
+    }
+
+    #tableHistoryPopup .history-title {
+        width: 100% !important;
+
+        text-align: center !important;
+
+        font-size: 17px !important;
+
+        margin-bottom: 8px !important;
+    }
+
+    #tableHistoryPopup .history-row {
+        display: flex !important;
+
+        width: 100% !important;
+
+        justify-content: space-between !important;
+        align-items: center !important;
+
+        box-sizing: border-box !important;
+
+        padding: 8px 12px !important;
+
+        font-size: 15px !important;
+    }
+
+    #tableHistoryPopup .history-row span:first-child {
+        text-align: left !important;
+    }
+
+    #tableHistoryPopup .history-row span:last-child {
+        margin-left: auto !important;
+
+        text-align: right !important;
+
+        color: #00ffcc !important;
+        font-weight: bold !important;
+    }
+
+
+    /* =====================================
+       BUTTONS
+    ===================================== */
+
+    #dayHistoryPopup .popup-buttons,
+    #tableHistoryPopup .popup-buttons {
+        width: 100% !important;
+
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        justify-content: center !important;
+
+        gap: 20px !important;
+
+        margin-top: 25px !important;
+    }
+
+    #dayHistoryPopup .popup-buttons button,
+    #tableHistoryPopup .popup-buttons button {
+        width: 170px !important;
+
+        margin: 0 !important;
+
+        padding: 10px 20px !important;
+    }
+
+}
