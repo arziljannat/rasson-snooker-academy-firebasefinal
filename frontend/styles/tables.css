@@ -1739,6 +1739,8 @@ body * {
 
 }
 
+
+
 /* VS */
 .player-names-box::before{
 
@@ -1878,4 +1880,60 @@ body * {
 
 .pool-section .game-section-title{
     color:#00cfff !important;
+}
+
+/* ==========================================
+   ROOM INNER COLORS
+========================================== */
+
+.rooms-section .player-name-input,
+.rooms-section .timer-box,
+.rooms-section .rate-selector select{
+
+    border:2px solid #ffd700 !important;
+    color:#ffd700 !important;
+
+    box-shadow:
+        0 0 10px rgba(255,215,0,.35),
+        inset 0 0 8px rgba(255,215,0,.15) !important;
+}
+
+.rooms-section .timer-line span:last-child{
+    color:#ffd700 !important;
+}
+
+.rooms-section .neon-btn{
+    border-color:#ffd700 !important;
+    color:#ffd700 !important;
+    box-shadow:
+        0 0 10px rgba(255,215,0,.35),
+        inset 0 0 8px rgba(255,215,0,.18) !important;
+}
+
+/* ==========================================
+   POOL INNER COLORS
+========================================== */
+
+.pool-section .player-name-input,
+.pool-section .timer-box,
+.pool-section .rate-selector select{
+
+    border:2px solid #00cfff !important;
+    color:#00cfff !important;
+
+    box-shadow:
+        0 0 10px rgba(0,207,255,.35),
+        inset 0 0 8px rgba(0,207,255,.15) !important;
+}
+
+.pool-section .timer-line span:last-child{
+    color:#00cfff !important;
+}
+
+.pool-section .neon-btn{
+    border-color:#00cfff !important;
+    color:#00cfff !important;
+    box-shadow:
+        0 0 10px rgba(0,207,255,.35),
+        inset 0 0 8px rgba(0,207,255,.18) !important;
 }
