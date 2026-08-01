@@ -2838,3 +2838,203 @@ body * {
         font-size: 15px !important;
     }
 }
+
+/* ============================================================
+   CANTEEN POPUP FINAL PREMIUM FIX
+   DESKTOP + MOBILE SEPARATE
+============================================================ */
+
+
+/* ==========================
+   DESKTOP ONLY
+========================== */
+
+@media screen and (min-width: 601px) {
+
+    #canteenPopup .popup-box {
+        width: 650px !important;
+        max-width: 90vw !important;
+
+        padding: 30px 35px !important;
+
+        box-sizing: border-box !important;
+        align-items: stretch !important;
+
+        gap: 18px !important;
+    }
+
+    #canteenPopup h2 {
+        width: 100% !important;
+        text-align: center !important;
+
+        font-size: 28px !important;
+
+        margin: 0 0 15px 0 !important;
+    }
+
+    #canteenPopup #canteenItems {
+        width: 100% !important;
+    }
+
+    #canteenPopup #canteenItems > div {
+        width: 100% !important;
+
+        padding: 14px 18px !important;
+        margin-bottom: 12px !important;
+
+        box-sizing: border-box !important;
+
+        border: 1px solid rgba(0,255,136,.30) !important;
+        border-radius: 10px !important;
+
+        background: rgba(0,255,136,.04) !important;
+    }
+
+    #canteenPopup #canteenItems b {
+        font-size: 18px !important;
+    }
+
+    #canteenPopup #canteenItems small {
+        font-size: 15px !important;
+    }
+
+    /* + / - BUTTONS */
+
+    #canteenPopup #canteenItems button {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+
+        height: 38px !important;
+
+        margin: 8px 8px 0 0 !important;
+        padding: 0 !important;
+
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        background: rgba(0,255,136,.08) !important;
+
+        border: 2px solid #00ff88 !important;
+        border-radius: 8px !important;
+
+        color: #00ffcc !important;
+
+        font-size: 22px !important;
+        font-weight: 900 !important;
+
+        box-shadow:
+            0 0 8px rgba(0,255,136,.40),
+            inset 0 0 6px rgba(0,255,136,.15) !important;
+    }
+
+    #canteenPopup .popup-buttons {
+        width: 100% !important;
+
+        display: flex !important;
+        justify-content: center !important;
+
+        margin-top: 10px !important;
+    }
+
+    #canteenPopup .popup-buttons button {
+        width: 220px !important;
+        min-width: 220px !important;
+
+        height: 46px !important;
+
+        margin: 0 !important;
+    }
+}
+
+
+/* ==========================
+   MOBILE ONLY
+========================== */
+
+@media screen and (max-width: 600px) {
+
+    #canteenPopup {
+        padding: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    #canteenPopup .popup-box {
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+
+        padding: 22px 18px !important;
+
+        box-sizing: border-box !important;
+
+        align-items: stretch !important;
+    }
+
+    #canteenPopup h2 {
+        width: 100% !important;
+
+        text-align: center !important;
+
+        font-size: 26px !important;
+
+        margin: 0 0 18px 0 !important;
+    }
+
+    #canteenPopup #canteenItems {
+        width: 100% !important;
+    }
+
+    #canteenPopup #canteenItems > div {
+        width: 100% !important;
+
+        padding: 12px !important;
+        margin-bottom: 10px !important;
+
+        box-sizing: border-box !important;
+    }
+
+    #canteenPopup #canteenItems b {
+        font-size: 17px !important;
+    }
+
+    #canteenPopup #canteenItems small {
+        font-size: 15px !important;
+    }
+
+    /* Mobile + / - side by side */
+
+    #canteenPopup #canteenItems button {
+        width: 65px !important;
+        min-width: 65px !important;
+        max-width: 65px !important;
+
+        height: 40px !important;
+
+        display: inline-flex !important;
+
+        margin: 8px 6px 0 0 !important;
+
+        padding: 0 !important;
+
+        font-size: 22px !important;
+    }
+
+    #canteenPopup .popup-buttons {
+        width: 100% !important;
+
+        display: flex !important;
+        justify-content: center !important;
+
+        margin-top: 15px !important;
+    }
+
+    #canteenPopup .popup-buttons button {
+        width: 100% !important;
+        max-width: none !important;
+
+        height: 48px !important;
+
+        margin: 0 !important;
+    }
+}
