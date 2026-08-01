@@ -2069,12 +2069,24 @@ body * {
 
 .rooms-section .neon-btn.red{
 
-    color:#ff3b3b !important;
-    border-color:#ff3b3b !important;
+    background:rgba(255,60,60,.08) !important;
+
+    color:#ff6666 !important;
+
+    border:2px solid #ff4444 !important;
 
     box-shadow:
-        0 0 10px rgba(255,59,59,.5),
-        inset 0 0 8px rgba(255,59,59,.25) !important;
+        0 0 10px rgba(255,60,60,.45),
+        inset 0 0 8px rgba(255,60,60,.20) !important;
+}
+
+.rooms-section .neon-btn.red:hover{
+
+    background:#ff4444 !important;
+
+    color:#ffffff !important;
+
+    border-color:#ff4444 !important;
 }
 
 
@@ -2082,10 +2094,22 @@ body * {
 
 .pool-section .neon-btn.red{
 
-    color:#ff3b3b !important;
-    border-color:#ff3b3b !important;
+    background:rgba(255,60,60,.08) !important;
+
+    color:#ff6666 !important;
+
+    border:2px solid #ff4444 !important;
 
     box-shadow:
-        0 0 10px rgba(255,59,59,.5),
-        inset 0 0 8px rgba(255,59,59,.25) !important;
+        0 0 10px rgba(255,60,60,.45),
+        inset 0 0 8px rgba(255,60,60,.20) !important;
+}
+
+.pool-section .neon-btn.red:hover{
+
+    background:#ff4444 !important;
+
+    color:#ffffff !important;
+
+    border-color:#ff4444 !important;
 }
