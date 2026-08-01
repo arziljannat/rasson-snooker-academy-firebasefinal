@@ -1658,7 +1658,6 @@ body * {
 }
 
 /* 5 cards per row */
-.tables-section .table-box{
 
 .tables-section .table-box{
 
@@ -1727,6 +1726,16 @@ body * {
     min-width:0;
 
     box-sizing:border-box;
+
+   height:34px;
+
+   padding:0 8px;
+   
+   border-radius:8px;
+   
+   text-align:center;
+   
+   font-size:13px;
 
 }
 
