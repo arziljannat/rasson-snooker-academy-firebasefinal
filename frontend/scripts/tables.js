@@ -5522,9 +5522,6 @@ function renderHistoryPage() {
     let start = (historyPage - 1) * historyPerPage;
     let end = start + historyPerPage;
 
-    let start = (historyPage - 1) * historyPerPage;
-let end = start + historyPerPage;
-
 let selectedShift =
     document.getElementById("tableHistoryShiftSelect").value;
 
