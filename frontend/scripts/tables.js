@@ -1464,6 +1464,14 @@ if (latestSession) {
     const checkoutNow =
         new Date().toISOString();
 
+  console.log("===== UPDATE DATA =====");
+console.log({
+    day_id: window.currentDayId,
+    shift_number: shift2 ? 2 : 1,
+    shift2,
+    table: table.name
+});
+
     await updateDoc(
         doc(
             window.db,
@@ -1529,6 +1537,8 @@ shift_number:
         }
     );
 
+  console.log("UPDATE SUCCESS");
+
 
     // 👥 VERIFY PLAYER CHECKOUT DATA
 const verifySnap = await getDoc(
@@ -1540,6 +1550,8 @@ const verifyData = verifySnap.data();
 console.log("========== 👥 PLAYER CHECKOUT SAVED ==========");
 console.log("SESSION ID:", latestSession.id);
 console.log("TABLE:", t.name);
+console.log("SHIFT SAVED:", verifyData?.shift_number);
+console.log("DAY ID:", verifyData?.day_id);
 console.log("PLAYER 1:", verifyData?.player1_name);
 console.log("PLAYER 2:", verifyData?.player2_name);
 console.log("GAME OFF:", verifyData?.game_off_player);
