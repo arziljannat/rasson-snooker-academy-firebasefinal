@@ -2115,157 +2115,310 @@ body * {
 }
 
 /* ============================================================
-   FINAL MOBILE RESPONSIVE FIX - RASSON TABLES
-   Android / Mobile only
+   FINAL APK MOBILE POPUP FIX
+   ONLY MOBILE - DESKTOP WILL NOT CHANGE
 ============================================================ */
 
 @media screen and (max-width: 600px) {
 
-    /* --------------------------------
-       PAGE
-    -------------------------------- */
+    /* =========================
+       ALL MAIN POPUPS
+    ========================= */
 
-    html,
-    body {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: hidden !important;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    .page-top-area {
-        width: 100% !important;
-        padding: 10px 12px !important;
-        margin-top: 10px !important;
-    }
-
-    .tables-heading {
-        font-size: 24px !important;
-    }
-
-
-    /* --------------------------------
-       TOP BUTTONS
-    -------------------------------- */
-
-    .page-top-area .add-table-btn {
-        width: calc(50% - 8px) !important;
-        margin: 4px 2px !important;
-        padding: 10px 5px !important;
-        font-size: 13px !important;
-    }
-
-
-    /* --------------------------------
-       TABLE SECTIONS
-    -------------------------------- */
-
-    .tables-grid,
-    .game-section,
-    .game-section-grid {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    .game-section-grid {
-        padding: 0 14px !important;
-    }
-
-    .tables-section .table-box,
-    .rooms-section .table-box,
-    .pool-section .table-box,
-    .table-box {
-        flex: 0 0 100% !important;
-
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-
-
-    /* --------------------------------
-       ALL POPUP BACKGROUNDS
-    -------------------------------- */
-
-    .popup {
-        width: 100vw !important;
-        height: 100dvh !important;
-
-        padding: 12px !important;
-
+    #historyPopup,
+    #shiftSummaryPopup,
+    #dayHistoryPopup,
+    #tableHistoryPopup {
+        padding: 8px !important;
+        box-sizing: border-box !important;
         align-items: center !important;
         justify-content: center !important;
-
-        overflow: hidden !important;
     }
 
+    #historyPopup .popup-box,
+    #shiftSummaryPopup .popup-box,
+    #dayHistoryPopup .popup-box,
+    #tableHistoryPopup .popup-box {
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
 
-    /* --------------------------------
-       ALL POPUP BOXES
-    -------------------------------- */
-
-    .popup-box,
-    .large-popup,
-    .popup-content {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-
-        max-height: calc(100dvh - 24px) !important;
-
-        padding: 16px !important;
+        height: auto !important;
+        max-height: calc(100dvh - 20px) !important;
 
         margin: 0 !important;
+        padding: 14px !important;
 
         overflow-y: auto !important;
         overflow-x: hidden !important;
 
-        border-radius: 16px !important;
-    }
-
-    .popup-box h2,
-    .large-popup h2 {
-        font-size: 25px !important;
-        margin: 5px 0 15px !important;
-    }
-
-    .popup-box h3,
-    .large-popup h3 {
-        font-size: 20px !important;
-        margin: 20px 0 10px !important;
+        box-sizing: border-box !important;
     }
 
 
-    /* --------------------------------
-       INPUT / SELECT
-    -------------------------------- */
+    /* =========================
+       HISTORY POPUP
+    ========================= */
 
-    .popup-box input,
-    .popup-box select,
-    .large-popup select,
-    .popup-content select {
+    #historyPopup .history-summary-counters {
+        width: 100% !important;
+
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+        gap: 10px !important;
+    }
+
+    #historyPopup .history-summary-box {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    #historyPopup .history-summary-box:last-child {
+        grid-column: 1 / -1 !important;
+    }
+
+
+    /* GAME SESSION TABLE MUST SHOW */
+    #historyPopup .table-mobile-wrapper {
+        display: block !important;
+
         width: 100% !important;
         max-width: 100% !important;
 
-        min-width: 0 !important;
+        min-height: 120px !important;
+        max-height: 42vh !important;
 
-        font-size: 16px !important;
+        margin-top: 15px !important;
 
-        padding: 11px !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+
+        -webkit-overflow-scrolling: touch !important;
+
+        flex: none !important;
+    }
+
+    #historyPopup .history-table {
+        display: table !important;
+
+        width: max-content !important;
+        min-width: 850px !important;
+
+        table-layout: auto !important;
+    }
+
+    #historyPopup .history-table thead {
+        display: table-header-group !important;
+    }
+
+    #historyPopup .history-table tbody {
+        display: table-row-group !important;
+    }
+
+    #historyPopup .history-table tr {
+        display: table-row !important;
+    }
+
+    #historyPopup .history-table th,
+    #historyPopup .history-table td {
+        display: table-cell !important;
+
+        white-space: nowrap !important;
+
+        font-size: 12px !important;
+        padding: 7px !important;
     }
 
 
-    /* --------------------------------
-       POPUP BUTTONS
-    -------------------------------- */
+    /* =========================
+       SHIFT SUMMARY
+    ========================= */
 
-    .popup-buttons {
+    #shiftSummaryPopup .table-mobile-wrapper {
+        display: block !important;
+
+        width: 100% !important;
+        max-width: 100% !important;
+
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+
+        -webkit-overflow-scrolling: touch !important;
+
+        flex: none !important;
+    }
+
+    #shiftSummaryPopup table {
+        width: max-content !important;
+        min-width: 1200px !important;
+
+        table-layout: auto !important;
+    }
+
+    #shiftSummaryPopup th,
+    #shiftSummaryPopup td {
+        white-space: nowrap !important;
+
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+
+        font-size: 12px !important;
+        padding: 8px !important;
+    }
+
+
+    /* =========================
+       DAY HISTORY
+    ========================= */
+
+    #dayHistoryPopup .table-mobile-wrapper {
+        display: block !important;
+
+        width: 100% !important;
+        max-width: 100% !important;
+
+        overflow: visible !important;
+
+        flex: none !important;
+    }
+
+    #dayHistoryPopup table {
+        display: table !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+
+        table-layout: auto !important;
+    }
+
+    #dayHistoryPopup tbody,
+    #dayHistoryPopup tr,
+    #dayHistoryPopup td {
+        visibility: visible !important;
+    }
+
+    #dayHistoryPopup .summary-box {
+        display: flex !important;
+
+        width: 100% !important;
+
+        flex-direction: column !important;
+
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    #dayHistoryPopup .summary-row {
+        display: flex !important;
+
+        width: 100% !important;
+
+        justify-content: space-between !important;
+        align-items: center !important;
+
+        font-size: 13px !important;
+    }
+
+
+    /* =========================
+       TABLE HISTORY
+    ========================= */
+
+    #tableHistoryPopup .table-mobile-wrapper {
+        display: block !important;
+
+        width: 100% !important;
+        max-width: 100% !important;
+
+        overflow: visible !important;
+
+        flex: none !important;
+    }
+
+    #tableHistoryPopup table {
+        display: table !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+
+        table-layout: auto !important;
+    }
+
+    #tableHistoryPopup tbody,
+    #tableHistoryPopup tr,
+    #tableHistoryPopup td {
+        visibility: visible !important;
+    }
+
+    #tableHistoryPopup .history-box {
+        display: flex !important;
+
+        width: 100% !important;
+
+        flex-direction: column !important;
+
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    #tableHistoryPopup .history-row {
+        display: flex !important;
+
+        width: 100% !important;
+
+        justify-content: space-between !important;
+        align-items: center !important;
+
+        font-size: 13px !important;
+    }
+
+
+    /* =========================
+       SELECT BOXES
+    ========================= */
+
+    #dayHistoryPopup select,
+    #tableHistoryPopup select {
+        width: 100% !important;
+        max-width: 100% !important;
+
+        font-size: 14px !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    /* =========================
+       TITLES
+    ========================= */
+
+    #historyPopup h2,
+    #shiftSummaryPopup h2,
+    #dayHistoryPopup h2,
+    #tableHistoryPopup h2 {
+        font-size: 25px !important;
+        text-align: center !important;
+    }
+
+    #dayHistoryPopup h3,
+    #tableHistoryPopup h3 {
+        width: 100% !important;
+
+        margin: 18px 0 8px !important;
+
+        text-align: center !important;
+    }
+
+
+    /* =========================
+       BUTTONS
+    ========================= */
+
+    #historyPopup .popup-buttons,
+    #shiftSummaryPopup .popup-buttons,
+    #dayHistoryPopup .popup-buttons,
+    #tableHistoryPopup .popup-buttons {
         width: 100% !important;
 
         display: flex !important;
@@ -2276,414 +2429,17 @@ body * {
         margin-top: 15px !important;
     }
 
-    .popup-buttons button {
-        width: 100% !important;
-
-        margin: 0 !important;
-
-        min-height: 48px !important;
-
-        font-size: 16px !important;
-    }
-
-
-    /* ========================================================
-       HISTORY POPUP
-    ======================================================== */
-
-    #historyPopup {
-        padding: 10px !important;
-    }
-
-    #historyPopup .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        height: auto !important;
-        max-height: calc(100dvh - 20px) !important;
-
-        padding: 14px !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    #historyTableTitle {
-        font-size: 25px !important;
-
-        margin: 3px 0 14px !important;
-    }
-
-
-    /* HISTORY COUNTERS */
-
-    #historyPopup .history-summary-counters {
-        width: 100% !important;
-
-        display: grid !important;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr)) !important;
-
-        gap: 10px !important;
-
-        margin-bottom: 15px !important;
-    }
-
-    #historyPopup .history-summary-box {
-        width: 100% !important;
-
-        min-width: 0 !important;
-        min-height: 0 !important;
-
-        padding: 10px !important;
-    }
-
-    #historyPopup .history-title {
-        font-size: 13px !important;
-    }
-
-    #historyPopup .history-line span {
-        font-size: 13px !important;
-    }
-
-    #historyPopup .history-line strong {
-        font-size: 16px !important;
-    }
-
-    #historyPopup .history-money {
-        font-size: 14px !important;
-    }
-
-
-    /* Last UNPAID card full width */
-
-    #historyPopup .history-summary-box:last-child {
-        grid-column: 1 / -1 !important;
-    }
-
-
-    /* HISTORY TABLE */
-
-    #historyPopup .table-mobile-wrapper {
-        width: 100% !important;
-
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    #historyPopup .history-table {
-        width: max-content !important;
-        min-width: 850px !important;
-
-        table-layout: auto !important;
-    }
-
-    #historyPopup .history-table th,
-    #historyPopup .history-table td {
-        white-space: nowrap !important;
-
-        word-break: normal !important;
-        overflow-wrap: normal !important;
-
-        font-size: 12px !important;
-
-        padding: 7px !important;
-    }
-
-
-    /* ========================================================
-       SHIFT SUMMARY
-    ======================================================== */
-
-    #shiftSummaryPopup {
-        padding: 10px !important;
-    }
-
-    #shiftSummaryPopup .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        max-height: calc(100dvh - 20px) !important;
-
-        padding: 14px !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    #shiftSummaryPopup h2,
-    #shiftSummaryTitle {
-        font-size: 26px !important;
-
-        margin: 5px 0 15px !important;
-    }
-
-
-    /* THIS IS IMPORTANT:
-       table ko squeeze nahi karna */
-
-    #shiftSummaryPopup .table-mobile-wrapper {
-        display: block !important;
-
-        width: 100% !important;
-        max-width: 100% !important;
-
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-
-        -webkit-overflow-scrolling: touch !important;
-
-        border-radius: 12px !important;
-    }
-
-    #shiftSummaryPopup table {
-        width: max-content !important;
-
-        min-width: 1200px !important;
-
-        table-layout: auto !important;
-
-        border-collapse: collapse !important;
-    }
-
-    #shiftSummaryPopup th,
-    #shiftSummaryPopup td {
-        width: auto !important;
-
-        min-width: 80px !important;
-
-        white-space: nowrap !important;
-
-        word-break: normal !important;
-        overflow-wrap: normal !important;
-
-        text-align: center !important;
-
-        font-size: 12px !important;
-
-        padding: 8px 7px !important;
-    }
-
-    #shiftSummaryPopup th:first-child,
-    #shiftSummaryPopup td:first-child {
-        min-width: 55px !important;
-    }
-
-    #shiftSummaryPopup th:nth-last-child(-n+2),
-    #shiftSummaryPopup td:nth-last-child(-n+2) {
-        min-width: 150px !important;
-    }
-
-
-    /* SHIFT BUTTONS */
-
-    #shiftSummaryPopup .popup-buttons {
-        width: 100% !important;
-
-        margin-top: 16px !important;
-    }
-
-    #shiftSummaryPopup button {
+    #historyPopup .popup-buttons button,
+    #shiftSummaryPopup .popup-buttons button,
+    #dayHistoryPopup .popup-buttons button,
+    #tableHistoryPopup .popup-buttons button {
         width: 100% !important;
 
         margin: 0 !important;
 
         padding: 12px !important;
 
-        font-size: 16px !important;
-    }
-
-
-    /* ========================================================
-       DAY HISTORY
-    ======================================================== */
-
-    #dayHistoryPopup {
-        padding: 10px !important;
-    }
-
-    #dayHistoryPopup .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        max-height: calc(100dvh - 20px) !important;
-
-        padding: 16px !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    #dayHistoryPopup .table-mobile-wrapper {
-        width: 100% !important;
-
-        overflow-x: auto !important;
-
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    #dayHistoryPopup table {
-        width: 100% !important;
-
-        min-width: 0 !important;
-
-        table-layout: auto !important;
-    }
-
-    #dayHistoryPopup td,
-    #dayHistoryPopup th {
-        word-break: normal !important;
-        overflow-wrap: normal !important;
-
-        font-size: 13px !important;
-    }
-
-    #dayHistoryPopup .summary-box,
-    #dayHistoryPopup .history-box {
-        width: 100% !important;
-
-        padding: 10px !important;
-    }
-
-    #dayHistoryPopup .summary-row,
-    #dayHistoryPopup .history-row {
-        width: 100% !important;
-
-        font-size: 13px !important;
-
-        gap: 10px !important;
-    }
-
-
-    /* ========================================================
-       TABLE HISTORY
-    ======================================================== */
-
-    #tableHistoryPopup {
-        padding: 10px !important;
-    }
-
-    #tableHistoryPopup .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        max-height: calc(100dvh - 20px) !important;
-
-        padding: 16px !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    #tableHistoryPopup .table-mobile-wrapper {
-        width: 100% !important;
-
-        overflow-x: auto !important;
-
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    #tableHistoryPopup table {
-        width: 100% !important;
-
-        min-width: 0 !important;
-
-        table-layout: auto !important;
-    }
-
-    #tableHistoryPopup .history-box {
-        width: 100% !important;
-
-        padding: 10px !important;
-    }
-
-    #tableHistoryPopup .history-row {
-        width: 100% !important;
-
-        font-size: 13px !important;
-
-        gap: 10px !important;
-    }
-
-
-    /* ========================================================
-       CANTEEN / BILL / ADD / EDIT / DELETE / SHIFT TABLE
-    ======================================================== */
-
-    #canteenPopup .popup-box,
-    #billPopup .popup-box,
-    #addTablePopup .popup-box,
-    #editTablePopup .popup-box,
-    #deletePopup .popup-box,
-    #playerCheckoutPopup .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        max-height: calc(100dvh - 24px) !important;
-
-        overflow-y: auto !important;
-    }
-
-    #shiftTablePopup .popup-content {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        min-width: 0 !important;
-
-        padding: 18px !important;
-    }
-
-
-    /* BILL */
-
-    #billDetails,
-    .bill-print-box {
-        max-width: 100% !important;
-    }
-
-
-    /* --------------------------------
-       PLAYER NAMES
-    -------------------------------- */
-
-    .player-names-box {
-        width: 100% !important;
-
-        gap: 6px !important;
-    }
-
-    .player-name-input {
-        min-width: 0 !important;
-
-        width: 100% !important;
-
-        font-size: 13px !important;
-    }
-
-
-    /* --------------------------------
-       TIMER
-    -------------------------------- */
-
-    .timer-line {
-        width: 100% !important;
-
-        gap: 8px !important;
-
-        font-size: 14px !important;
-    }
-
-
-    /* --------------------------------
-       CARD BUTTONS
-    -------------------------------- */
-
-    .big-btn,
-    .small-btn {
-        max-width: 100% !important;
+        font-size: 15px !important;
     }
 
 }
