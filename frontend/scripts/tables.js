@@ -7101,9 +7101,29 @@ async function restoreRunningTables() {
 t.isRunning = true;
 t.checkinTime = start;
 
-// 👥 RESTORE PLAYER NAMES FROM SESSION
-t.player1 = s.player1_name || "";
-t.player2 = s.player2_name || "";
+// =====================================================
+// 👤 RESTORE PLAYER / CUSTOMER DATA FROM SESSION
+// =====================================================
+
+t.player1 =
+    s.player1_name || "";
+
+t.player1CustomerId =
+    s.player1_customer_id || null;
+
+t.player1Phone =
+    s.player1_phone || "";
+
+
+t.player2 =
+    s.player2_name || "";
+
+t.player2CustomerId =
+    s.player2_customer_id || null;
+
+t.player2Phone =
+    s.player2_phone || "";
+
 
 // 🔥 IMPORTANT RESET
 t.afterCheckout = false;
@@ -7175,23 +7195,34 @@ t.checkinTime = start;
 // =====================================================
 
 t.player1 =
-    s.player1_name || "";
-
-t.player1CustomerId =
-    s.player1_customer_id || null;
-
-t.player1CustomerPhone =
-    s.player1_customer_phone || "";
-
+    s.player1_name ||
+    t.player1 ||
+    "";
 
 t.player2 =
-    s.player2_name || "";
+    s.player2_name ||
+    t.player2 ||
+    "";
+
+t.player1CustomerId =
+    s.player1_customer_id ||
+    t.player1CustomerId ||
+    null;
 
 t.player2CustomerId =
-    s.player2_customer_id || null;
+    s.player2_customer_id ||
+    t.player2CustomerId ||
+    null;
 
-t.player2CustomerPhone =
-    s.player2_customer_phone || "";
+t.player1Phone =
+    s.player1_phone ||
+    t.player1Phone ||
+    "";
+
+t.player2Phone =
+    s.player2_phone ||
+    t.player2Phone ||
+    "";
 
 
 console.log(
