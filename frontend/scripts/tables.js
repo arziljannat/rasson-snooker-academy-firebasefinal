@@ -7771,26 +7771,25 @@ let paymentStatus =
         ? "PARTIAL"
         : "PAID";
 
-
   // =====================================================
-// 👥 PLAYER / CUSTOMER DATA FOR THERMAL BILL
+// 💰 FINAL PAYMENT VALUES FOR THERMAL BILL
 // =====================================================
 
-let player1Name = h
-    ? (h.player1Name || "")
-    : (t.player1 || "");
+let totalBillAmount = finalTotal;
 
-let player2Name = h
-    ? (h.player2Name || "")
-    : (t.player2 || "");
+let finalReceivedAmount =
+    receivedAmount > 0
+        ? receivedAmount
+        : Math.max(
+            0,
+            totalBillAmount - balanceAmount
+        );
 
-let billedPlayerName = h
-    ? (h.billedPlayerName || h.balanceCustomerName || "")
-    : (t.checkoutPlayer || "");
-
-let gameOffPlayer = h
-    ? (h.gameOffPlayer || billedPlayerName || "")
-    : (t.checkoutPlayer || "");
+let finalBalanceAmount =
+    Math.max(
+        0,
+        balanceAmount
+    );
 
 
 let win = window.open("", "_blank", "width=300,height=600");
