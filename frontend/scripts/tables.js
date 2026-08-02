@@ -536,6 +536,76 @@ function renderCustomerPlayerList(searchText = "") {
 
 
 /* =========================================================
+   👤 FIND ACTIVE CUSTOMER USAGE
+   Same customer cannot play on multiple tables
+   ========================================================= */
+
+function findActiveCustomerUsage(customerId, currentTableId = null, currentPlayer = null) {
+
+    if (!customerId) return null;
+
+    for (const table of tables) {
+
+        // Running table OR current table par selected players check karo
+        const shouldCheck =
+            table.isRunning ||
+            String(table.id) === String(currentTableId);
+
+        if (!shouldCheck) continue;
+
+
+        // PLAYER 1
+        if (
+            table.player1CustomerId &&
+            String(table.player1CustomerId) === String(customerId)
+        ) {
+
+            // Apni existing same slot selection ko allow karo
+            if (
+                String(table.id) === String(currentTableId) &&
+                Number(currentPlayer) === 1
+            ) {
+                continue;
+            }
+
+            return {
+                tableId: table.id,
+                tableName: table.name,
+                player: 1
+            };
+        }
+
+
+        // PLAYER 2
+        if (
+            table.player2CustomerId &&
+            String(table.player2CustomerId) === String(customerId)
+        ) {
+
+            if (
+                String(table.id) === String(currentTableId) &&
+                Number(currentPlayer) === 2
+            ) {
+                continue;
+            }
+
+            return {
+                tableId: table.id,
+                tableName: table.name,
+                player: 2
+            };
+        }
+    }
+
+    return null;
+}
+
+
+
+
+
+
+/* =========================================================
    SELECT CUSTOMER
    ========================================================= */
 
@@ -557,15 +627,43 @@ function selectCustomerForPlayer(customerDocId) {
             String(customerPlayerPopupTableId)
         );
 
-    if (!table) {
-        alert("Table not found.");
-        return;
-    }
+if (!table) {
+    alert("Table not found.");
+    return;
+}
 
-    const playerNumber =
-        Number(customerPlayerPopupNumber);
+const playerNumber =
+    Number(customerPlayerPopupNumber);
 
-    if (playerNumber === 1) {
+
+// =====================================================
+// 👤 BUSY CUSTOMER CHECK
+// =====================================================
+
+const activeUsage =
+    findActiveCustomerUsage(
+        customer.id,
+        table.id,
+        playerNumber
+    );
+
+if (activeUsage) {
+
+    alert(
+        `${customer.name || "Customer"} already selected/playing on ` +
+        `${activeUsage.tableName || "another table"} ` +
+        `as Player ${activeUsage.player}.`
+    );
+
+    return;
+}
+
+
+// =====================================================
+// 👤 SAVE SELECTED CUSTOMER
+// =====================================================
+
+if (playerNumber === 1) {
 
         table.player1 = customer.name || "";
         table.player1CustomerId = customer.id;
@@ -2012,12 +2110,28 @@ console.log({
             canteen_items:
                 t.canteenItems,
 
-          // 👥 PLAYER / GAME OFF DATA
+// =====================================================
+// 👤 PLAYER / CUSTOMER / GAME OFF DATA
+// =====================================================
+
 player1_name:
     t.player1 || "",
 
+player1_customer_id:
+    t.player1CustomerId || null,
+
+player1_customer_phone:
+    t.player1CustomerPhone || "",
+
+
 player2_name:
     t.player2 || "",
+
+player2_customer_id:
+    t.player2CustomerId || null,
+
+player2_customer_phone:
+    t.player2CustomerPhone || "",
 
 billed_player_name:
     t.checkoutPlayer || "",
@@ -2176,8 +2290,30 @@ remainingPayment: 0
 
 
 
-    updateButtons(id, "afterCheckout");
-    updateDisplay(id);
+// =====================================================
+// 👤 RELEASE CUSTOMERS AFTER SUCCESSFUL CHECKOUT
+// =====================================================
+
+// Session/history mein player data pehle hi save ho chuka hai.
+// Ab table ko next game ke liye free kar rahe hain.
+
+t.player1 = "";
+t.player1CustomerId = null;
+t.player1CustomerPhone = "";
+
+t.player2 = "";
+t.player2CustomerId = null;
+t.player2CustomerPhone = "";
+
+t.checkoutPlayer = "";
+
+console.log(
+    "✅ CUSTOMERS RELEASED AFTER CHECKOUT:",
+    t.name
+);
+
+updateButtons(id, "afterCheckout");
+updateDisplay(id);
 }
 /******************************************************
  * TIMER — (1 SEC = 1 MIN CHARGE FIX)
@@ -3801,24 +3937,80 @@ async function shiftPlayerToNewTable() {
 
     if (!oldT || !newT) return;
 
-    // 🔥 MOVE SESSION (LOCAL)
-    newT.isRunning = true;
-    newT.checkinTime = oldT.checkinTime;
-    newT.playSeconds = oldT.playSeconds;
-    newT.liveAmount = oldT.liveAmount;
-    newT.canteenTotal = oldT.canteenTotal;
-    newT.canteenItems = { ...oldT.canteenItems };
+// =====================================================
+// 🔥 MOVE SESSION (LOCAL)
+// =====================================================
 
-    runTimer(newT.id);
+newT.isRunning = true;
+newT.checkinTime = oldT.checkinTime;
+newT.playSeconds = oldT.playSeconds;
+newT.liveAmount = oldT.liveAmount;
 
-    // 🔥 RESET OLD TABLE
-    oldT.isRunning = false;
-    oldT.checkinTime = null;
-    oldT.checkoutTime = null;
-    oldT.playSeconds = 0;
-    oldT.liveAmount = 0;
-    oldT.canteenTotal = 0;
-    oldT.canteenItems = {};
+newT.canteenTotal = oldT.canteenTotal;
+newT.canteenItems = { ...oldT.canteenItems };
+
+
+// =====================================================
+// 👤 MOVE PLAYERS / CUSTOMERS WITH TABLE
+// =====================================================
+
+newT.player1 =
+    oldT.player1 || "";
+
+newT.player1CustomerId =
+    oldT.player1CustomerId || null;
+
+newT.player1CustomerPhone =
+    oldT.player1CustomerPhone || "";
+
+
+newT.player2 =
+    oldT.player2 || "";
+
+newT.player2CustomerId =
+    oldT.player2CustomerId || null;
+
+newT.player2CustomerPhone =
+    oldT.player2CustomerPhone || "";
+
+
+// 🔥 KEEP SAME GAME RATE
+newT.selectedPlayType =
+    oldT.selectedPlayType;
+
+newT.selectedRate =
+    oldT.selectedRate;
+
+
+runTimer(newT.id);
+
+// =====================================================
+// 🔥 RESET OLD TABLE
+// =====================================================
+
+oldT.isRunning = false;
+oldT.checkinTime = null;
+oldT.checkoutTime = null;
+
+oldT.playSeconds = 0;
+oldT.liveAmount = 0;
+
+oldT.canteenTotal = 0;
+oldT.canteenItems = {};
+
+
+// 👤 REMOVE PLAYERS FROM OLD TABLE ONLY
+// Customer new table par already transfer ho chuka hai.
+
+oldT.player1 = "";
+oldT.player1CustomerId = null;
+oldT.player1CustomerPhone = "";
+
+oldT.player2 = "";
+oldT.player2CustomerId = null;
+oldT.player2CustomerPhone = "";
+
+oldT.checkoutPlayer = "";
 
      
     renderTables();
@@ -3836,11 +4028,38 @@ async function shiftPlayerToNewTable() {
 
         const snap = await getDocs(q);
 
-        snap.forEach(async (d) => {
-            await updateDoc(doc(window.db, "sessions", d.id), {
-                table_id: newT.name
-            });
-        });
+snap.forEach(async (d) => {
+
+    await updateDoc(
+        doc(window.db, "sessions", d.id),
+        {
+            table_id:
+                newT.name,
+
+            player1_name:
+                newT.player1 || "",
+
+            player1_customer_id:
+                newT.player1CustomerId || null,
+
+            player1_customer_phone:
+                newT.player1CustomerPhone || "",
+
+            player2_name:
+                newT.player2 || "",
+
+            player2_customer_id:
+                newT.player2CustomerId || null,
+
+            player2_customer_phone:
+                newT.player2CustomerPhone || "",
+
+            players_updated_at:
+                new Date().toISOString()
+        }
+    );
+
+});
 
     } catch (err) {
         console.error("Shift Firebase error:", err);
