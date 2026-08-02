@@ -843,24 +843,30 @@ function selectPlayerCustomer(customer) {
     }
 
 
-    if (customerSelectorPlayerNo === 1) {
+if (customerSelectorPlayerNo === 1) {
 
-        table.player1 =
-            customer.name;
+    table.player1 =
+        customer.name;
 
-        table.player1CustomerId =
-            customer.id;
+    table.player1CustomerId =
+        customer.id;
 
-    }
-    else {
+    table.player1Phone =
+        customer.phone || "";
 
-        table.player2 =
-            customer.name;
+}
+else {
 
-        table.player2CustomerId =
-            customer.id;
+    table.player2 =
+        customer.name;
 
-    }
+    table.player2CustomerId =
+        customer.id;
+
+    table.player2Phone =
+        customer.phone || "";
+
+}
 
 
     renderTables();
@@ -1301,6 +1307,12 @@ selectedRate:
         player2CustomerId:
             old?.player2CustomerId || null,
 
+         player1Phone:
+            old?.player1Phone || "",
+    
+         player2Phone:
+            old?.player2Phone || "",
+
         playSeconds: old?.playSeconds || 0,
         liveAmount: old?.liveAmount || 0,
 
@@ -1671,11 +1683,24 @@ sortedTables.forEach(t => {
                 : 'Select Player 1 Customer'
         }"
     >
-        ${
-            t.player1
-                ? t.player1
-                : "Select Player 1"
-        }
+${
+    t.player1
+        ? `
+            <span style="display:block;font-weight:bold;">
+                ${t.player1}
+            </span>
+
+            <span style="
+                display:block;
+                font-size:10px;
+                opacity:.75;
+                margin-top:2px;
+            ">
+                ${t.player1Phone || ""}
+            </span>
+        `
+        : "Select Player 1"
+}
     </button>
 
 
@@ -1698,11 +1723,24 @@ sortedTables.forEach(t => {
                 : 'Select Player 2 Customer'
         }"
     >
-        ${
-            t.player2
-                ? t.player2
-                : "Select Player 2"
-        }
+${
+    t.player2
+        ? `
+            <span style="display:block;font-weight:bold;">
+                ${t.player2}
+            </span>
+
+            <span style="
+                display:block;
+                font-size:10px;
+                opacity:.75;
+                margin-top:2px;
+            ">
+                ${t.player2Phone || ""}
+            </span>
+        `
+        : "Select Player 2"
+}
     </button>
 
 </div>
