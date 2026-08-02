@@ -2144,7 +2144,27 @@ updateButtons(id, "idle");
 
     updateButtons(id, "running");
     runTimer(id);
-    
+
+
+    // =====================================================
+// 👤 CUSTOMER DUPLICATE SAFETY
+// =====================================================
+
+      if (
+          t.player1CustomerId &&
+          t.player2CustomerId &&
+          t.player1CustomerId === t.player2CustomerId
+      ) {
+      
+          alert(
+              "Same customer Player 1 aur Player 2 nahi ho sakta."
+          );
+      
+          window._creatingSession = false;
+          return;
+      }
+
+  
 
 // 🔥 STEP 1: check if already running session exists
 const q = query(
@@ -2194,16 +2214,40 @@ try {
         is_deleted: false
     };
 
-    // 👥 PLAYER NAMES
-sessionData.player1_name = t.player1 || "";
-sessionData.player2_name = t.player2 || "";
-sessionData.players_updated_at = new Date().toISOString();
+// 👥 PLAYER / CUSTOMER DETAILS
+sessionData.player1_name =
+    t.player1 || "";
+
+sessionData.player2_name =
+    t.player2 || "";
 
 
-  // 👤 WALK-IN CUSTOMER LINK
+// 👤 CUSTOMER DOCUMENT IDS
+sessionData.player1_customer_id =
+    t.player1CustomerId || null;
+
+sessionData.player2_customer_id =
+    t.player2CustomerId || null;
+
+
+// 📱 CUSTOMER PHONES
+sessionData.player1_phone =
+    t.player1Phone || "";
+
+sessionData.player2_phone =
+    t.player2Phone || "";
+
+
+sessionData.players_updated_at =
+    new Date().toISOString();
+
+
+// 👤 PRIMARY CUSTOMER LINK
+// Backward compatibility ke liye customer_id bhi rakhenge.
 if (!bookingForThisTable) {
+
     sessionData.customer_id =
-        t.customerId || null;
+        t.player1CustomerId || null;
 }
   
     // =====================================================
