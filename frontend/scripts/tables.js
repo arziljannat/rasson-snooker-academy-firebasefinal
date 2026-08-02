@@ -3905,10 +3905,31 @@ const bookingAdvance =
     const totalBillAmount =
         gameAfterDiscount + canteenAmount;
 
-    const remainingPayment =
-        Math.max(
+// =====================================================
+// 💰 PREVIOUS PARTIAL PAYMENT
+// =====================================================
+
+const alreadyReceived =
+    Number(
+        latestSession.game_received_amount || 0
+    );
+
+const oldCustomerBalance =
+    Number(
+        latestSession.game_balance_amount || 0
+    );
+
+
+// Booking advance + pehle received payment
+// dono minus karne ke baad sirf actual outstanding lena hai.
+const remainingPayment =
+    oldCustomerBalance > 0
+        ? oldCustomerBalance
+        : Math.max(
             0,
-            totalBillAmount - bookingAdvance
+            totalBillAmount
+            - bookingAdvance
+            - alreadyReceived
         );
 
   // 🔥 SYNC LOCAL HISTORY WITH PAYMENT
@@ -3926,6 +3947,22 @@ last.bookingAdvance = bookingAdvance;
 last.remainingPayment = remainingPayment;
 
 last.totalBillAmount = totalBillAmount;
+
+  // =====================================================
+// 💰 LOCAL HISTORY — PARTIAL BALANCE SETTLED
+// =====================================================
+
+last.gameReceivedAmount =
+    alreadyReceived + remainingPayment;
+
+last.gameBalanceAmount = 0;
+
+last.paid = true;
+
+last.paidTime =
+    new Date(paidNow).getTime();
+
+last.remainingPayment = 0;
 
 last.fromBooking =
     !!latestSession.booking_id;
@@ -3951,6 +3988,26 @@ await updateDoc(
     {
         paid: true,
         paid_time: paidNow,
+
+
+              // =====================================================
+        // 💰 PARTIAL BALANCE SETTLED
+        // =====================================================
+
+        game_received_amount:
+            alreadyReceived + remainingPayment,
+
+        game_balance_amount:
+            0,
+
+        game_collection_amount:
+            alreadyReceived + remainingPayment,
+
+        balance_paid_amount:
+            remainingPayment,
+
+        balance_paid_at:
+            paidNow,
 
         // GAME
         discount:
@@ -7900,6 +7957,34 @@ ${canteenHTML}
 
 <div class="big">TOTAL</div>
 <div class="big">Rs ${finalTotal}</div>
+
+${receivedAmount > 0 || balanceAmount > 0 ? `
+
+<div class="line"></div>
+
+<div class="big">PAYMENT DETAILS</div>
+
+<div class="row">
+    <span>Bill Customer</span>
+    <span>${billedPlayerName || "Guest"}</span>
+</div>
+
+<div class="row">
+    <span>Received</span>
+    <span>Rs ${finalReceivedAmount}</span>
+</div>
+
+<div class="row">
+    <span>Balance</span>
+    <span>Rs ${finalBalanceAmount}</span>
+</div>
+
+<div class="row">
+    <span>Status</span>
+    <span>${paymentStatus}</span>
+</div>
+
+` : ""}
 
 <div class="line"></div>
 
