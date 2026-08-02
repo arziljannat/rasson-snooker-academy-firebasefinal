@@ -1288,8 +1288,18 @@ selectedRate:
         checkoutTime: old?.checkoutTime || null,
 
   // 👥 KEEP PLAYER NAMES DURING TABLE REALTIME REFRESH
-        player1: old?.player1 || "",
-        player2: old?.player2 || "",
+        player1:
+            old?.player1 || "",
+        
+        player2:
+            old?.player2 || "",
+        
+        // 👤 CUSTOMER IDS
+        player1CustomerId:
+            old?.player1CustomerId || null,
+        
+        player2CustomerId:
+            old?.player2CustomerId || null,
 
         playSeconds: old?.playSeconds || 0,
         liveAmount: old?.liveAmount || 0,
@@ -1642,25 +1652,59 @@ sortedTables.forEach(t => {
             <div class="table-title">${t.name}</div>
 
 
-<!-- 🔥 PLAYER NAMES -->
+<!-- 👤 CUSTOMER PLAYER SELECTORS -->
 <div class="player-names-box">
-<input
-    type="text"
-    id="player1-${t.id}"
-    class="player-name-input"
-    placeholder="Player 1"
-    value="${t.player1 || ''}"
-    onchange="savePlayerNames('${t.id}')"
->
 
-<input
-    type="text"
-    id="player2-${t.id}"
-    class="player-name-input"
-    placeholder="Player 2"
-    value="${t.player2 || ''}"
-    onchange="savePlayerNames('${t.id}')"
->
+    <button
+        type="button"
+        class="player-name-input"
+        onclick="openPlayerCustomerSelector('${t.id}', 1)"
+        style="
+            cursor:pointer;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+        "
+        title="${
+            t.player1
+                ? `${t.player1} — Click to change customer`
+                : 'Select Player 1 Customer'
+        }"
+    >
+        ${
+            t.player1
+                ? t.player1
+                : "Select Player 1"
+        }
+    </button>
+
+
+    <span class="vs-text">VS</span>
+
+
+    <button
+        type="button"
+        class="player-name-input"
+        onclick="openPlayerCustomerSelector('${t.id}', 2)"
+        style="
+            cursor:pointer;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+        "
+        title="${
+            t.player2
+                ? `${t.player2} — Click to change customer`
+                : 'Select Player 2 Customer'
+        }"
+    >
+        ${
+            t.player2
+                ? t.player2
+                : "Select Player 2"
+        }
+    </button>
+
 </div>
 
 <div class="rate-selector">
