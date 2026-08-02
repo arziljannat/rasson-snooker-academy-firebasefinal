@@ -230,6 +230,57 @@ function getCurrentShiftNumber() {
 let editTargetId = null;
 let deleteTargetId = null;
 
+
+/* =========================================================
+   👤 GLOBAL CUSTOMERS FOR TABLE SESSION
+   ========================================================= */
+
+let globalCustomers = [];
+
+async function loadGlobalCustomersForTables() {
+
+    try {
+
+        const snap = await getDocs(
+            collection(window.db, "customers")
+        );
+
+        globalCustomers = [];
+
+        snap.forEach(docSnap => {
+
+            const data = docSnap.data();
+
+            globalCustomers.push({
+                id: docSnap.id,
+                customer_id: data.customer_id || "",
+                name: data.name || "",
+                phone: data.phone || "",
+                phone_normalized: data.phone_normalized || ""
+            });
+
+        });
+
+        globalCustomers.sort((a, b) =>
+            String(a.name).localeCompare(String(b.name))
+        );
+
+        console.log(
+            "👤 GLOBAL CUSTOMERS LOADED:",
+            globalCustomers.length
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ GLOBAL CUSTOMERS LOAD ERROR:",
+            error
+        );
+
+        globalCustomers = [];
+    }
+}
+
 /******************************************************
  * PAGE LOAD INITIALIZER
  ******************************************************/
@@ -245,6 +296,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     console.log("✅ DAY READY:", window.currentDayId);
+
+    // 👤 Load global customers
+// Failure does NOT block existing Tables system
+    await loadGlobalCustomersForTables();
 
     loadShiftsFromFirebase();
     listenExpensesRealtime();
@@ -1179,6 +1234,13 @@ try {
 sessionData.player1_name = t.player1 || "";
 sessionData.player2_name = t.player2 || "";
 sessionData.players_updated_at = new Date().toISOString();
+
+
+  // 👤 WALK-IN CUSTOMER LINK
+if (!bookingForThisTable) {
+    sessionData.customer_id =
+        t.customerId || null;
+}
   
     // =====================================================
     // 🔥 ATTACH BOOKING DATA TO SESSION
@@ -1193,6 +1255,10 @@ sessionData.players_updated_at = new Date().toISOString();
 
         sessionData.booking_customer_phone =
             bookingForThisTable.customer_phone || "";
+
+      // 👤 CUSTOMER LINK
+        sessionData.customer_id =
+            bookingForThisTable.customer_id || null;
 
 sessionData.booking_advance =
     Number(bookingForThisTable.advance_amount || 0);
