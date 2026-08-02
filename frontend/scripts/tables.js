@@ -7732,6 +7732,67 @@ originalAmount - discount;
 
     let finalTotal = gameAmount + canteenTotal;
 
+
+  // =====================================================
+// 👥 PLAYER / CUSTOMER DATA FOR THERMAL BILL
+// =====================================================
+
+let player1Name = h
+    ? (h.player1Name || "")
+    : (t.player1 || "");
+
+let player2Name = h
+    ? (h.player2Name || "")
+    : (t.player2 || "");
+
+let billedPlayerName = h
+    ? (h.billedPlayerName || h.balanceCustomerName || "")
+    : (t.checkoutPlayer || "");
+
+let gameOffPlayer = h
+    ? (h.gameOffPlayer || billedPlayerName || "")
+    : (t.checkoutPlayer || "");
+
+
+// =====================================================
+// 💰 PARTIAL PAYMENT DATA FOR THERMAL BILL
+// =====================================================
+
+let receivedAmount = h
+    ? Number(h.gameReceivedAmount || 0)
+    : Number(t.checkoutReceivedAmount || 0);
+
+let balanceAmount = h
+    ? Number(h.gameBalanceAmount || 0)
+    : Number(t.checkoutBalanceAmount || 0);
+
+let paymentStatus =
+    balanceAmount > 0
+        ? "PARTIAL"
+        : "PAID";
+
+
+  // =====================================================
+// 👥 PLAYER / CUSTOMER DATA FOR THERMAL BILL
+// =====================================================
+
+let player1Name = h
+    ? (h.player1Name || "")
+    : (t.player1 || "");
+
+let player2Name = h
+    ? (h.player2Name || "")
+    : (t.player2 || "");
+
+let billedPlayerName = h
+    ? (h.billedPlayerName || h.balanceCustomerName || "")
+    : (t.checkoutPlayer || "");
+
+let gameOffPlayer = h
+    ? (h.gameOffPlayer || billedPlayerName || "")
+    : (t.checkoutPlayer || "");
+
+
 let win = window.open("", "_blank", "width=300,height=600");
 
 if (!win) {
@@ -7781,6 +7842,28 @@ body {
 
 <div class="big">${academy.toUpperCase()}</div>
 <div>${branch.toUpperCase()}</div>
+
+<div class="line"></div>
+
+<div class="row">
+    <span>Player 1</span>
+    <span>${player1Name || "Guest"}</span>
+</div>
+
+<div class="row">
+    <span>Player 2</span>
+    <span>${player2Name || "Guest"}</span>
+</div>
+
+<div class="row">
+    <span>Bill Customer</span>
+    <span>${billedPlayerName || "Guest"}</span>
+</div>
+
+<div class="row">
+    <span>Game Off</span>
+    <span>${gameOffPlayer || "Guest"}</span>
+</div>
 
 <div class="line"></div>
 
