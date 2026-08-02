@@ -2389,24 +2389,60 @@ async function confirmPlayerCheckout(playerNumber) {
 
     if (!t) return;
 
-    // Selected billed player temporarily table par save
-    t.checkoutPlayer = selectedPlayer;
+// =====================================================
+// 👤 SELECT BILLED PLAYER / CUSTOMER
+// =====================================================
 
-    console.log(
-        "👤 GAME OFF PLAYER SELECTED:",
-        selectedPlayer
-    );
+t.checkoutPlayer = selectedPlayer;
+
+t.checkoutPlayerNumber = playerNumber;
+
+
+// Registered customer ID
+t.checkoutCustomerId =
+    playerNumber === 1
+        ? (t.player1CustomerId || null)
+        : (t.player2CustomerId || null);
+
+
+// Registered customer phone
+t.checkoutCustomerPhone =
+    playerNumber === 1
+        ? (
+            t.player1CustomerPhone ||
+            t.player1Phone ||
+            ""
+        )
+        : (
+            t.player2CustomerPhone ||
+            t.player2Phone ||
+            ""
+        );
+
+
+console.log(
+    "👤 GAME OFF PLAYER SELECTED:",
+    {
+        player: t.checkoutPlayer,
+        playerNumber: t.checkoutPlayerNumber,
+        customerId: t.checkoutCustomerId,
+        phone: t.checkoutCustomerPhone
+    }
+);
 
     // Popup close
     document.getElementById(
         "playerCheckoutPopup"
     )?.classList.add("hidden");
 
-    // Pending clear BEFORE original checkout
-    pendingPlayerCheckout = null;
+// Pending clear
+pendingPlayerCheckout = null;
 
-    // Original checkout continue
-    await completeCheckOut(tableId);
+// =====================================================
+// 💰 OPEN CHECKOUT PAYMENT POPUP
+// =====================================================
+
+openCheckoutPaymentPopup(tableId);
 }
 
 
@@ -2421,6 +2457,426 @@ function cancelPlayerCheckout() {
     console.log("❌ PLAYER CHECKOUT CANCELLED");
 }
 
+
+/* =========================================================
+   💰 CHECKOUT PAYMENT POPUP
+   ========================================================= */
+
+let pendingCheckoutPaymentTableId = null;
+
+
+function openCheckoutPaymentPopup(tableId) {
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t) return;
+
+
+    pendingCheckoutPaymentTableId = tableId;
+
+
+    // Current game amount
+    const gameAmount =
+        Math.max(
+            0,
+            Number(t.liveAmount || 0) -
+            Number(t.discount || 0)
+        );
+
+
+    // Old popup ho to remove
+    document
+        .getElementById("checkoutPaymentPopup")
+        ?.remove();
+
+
+    const overlay =
+        document.createElement("div");
+
+    overlay.id = "checkoutPaymentPopup";
+
+    overlay.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.90);
+        z-index:1000001;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:15px;
+    `;
+
+
+    overlay.innerHTML = `
+        <div style="
+            width:400px;
+            max-width:95vw;
+            background:#001a14;
+            border:2px solid #00ffd5;
+            border-radius:14px;
+            padding:20px;
+            box-shadow:0 0 30px rgba(0,255,213,.30);
+        ">
+
+            <div style="
+                color:#00ffd5;
+                font-size:20px;
+                font-weight:bold;
+                margin-bottom:5px;
+            ">
+                Checkout Payment
+            </div>
+
+
+            <div style="
+                color:white;
+                margin-bottom:15px;
+            ">
+                ${t.checkoutPlayer || "Guest Player"}
+            </div>
+
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:18px;
+                color:white;
+                margin-bottom:15px;
+            ">
+                <b>Game Bill</b>
+                <b>Rs ${gameAmount}</b>
+            </div>
+
+
+            <label style="
+                color:#aaa;
+                display:block;
+                margin-bottom:5px;
+            ">
+                Received Now
+            </label>
+
+
+            <input
+                id="checkoutReceivedAmount"
+                type="number"
+                min="0"
+                max="${gameAmount}"
+                value="${gameAmount}"
+                oninput="updateCheckoutPaymentRemaining()"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:12px;
+                    background:#00110d;
+                    border:1px solid #00ffd5;
+                    border-radius:7px;
+                    color:white;
+                    font-size:18px;
+                    outline:none;
+                    margin-bottom:15px;
+                "
+            >
+
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:18px;
+                color:#ffcc00;
+                margin-bottom:18px;
+            ">
+                <b>Remaining Balance</b>
+
+                <b>
+                    Rs
+                    <span id="checkoutRemainingAmount">
+                        0
+                    </span>
+                </b>
+            </div>
+
+
+            <div
+                id="checkoutRegistrationWarning"
+                style="
+                    display:none;
+                    background:#401515;
+                    border:1px solid #ff5555;
+                    color:#ff9999;
+                    padding:10px;
+                    border-radius:7px;
+                    margin-bottom:15px;
+                    font-size:13px;
+                "
+            >
+                Partial payment ke liye registered customer required hai.
+            </div>
+
+
+            <div style="
+                display:flex;
+                gap:10px;
+            ">
+
+                <button
+                    type="button"
+                    onclick="cancelCheckoutPayment()"
+                    style="
+                        flex:1;
+                        padding:11px;
+                        background:#333;
+                        border:1px solid #777;
+                        border-radius:7px;
+                        color:white;
+                        cursor:pointer;
+                    "
+                >
+                    CANCEL
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="confirmCheckoutPayment()"
+                    style="
+                        flex:1;
+                        padding:11px;
+                        background:#006b52;
+                        border:1px solid #00ffd5;
+                        border-radius:7px;
+                        color:#00ffd5;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    CONFIRM
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(overlay);
+
+    updateCheckoutPaymentRemaining();
+
+
+    setTimeout(() => {
+
+        const input =
+            document.getElementById(
+                "checkoutReceivedAmount"
+            );
+
+        if (input) {
+            input.focus();
+            input.select();
+        }
+
+    }, 50);
+}
+
+
+/* =========================================================
+   💰 UPDATE REMAINING
+   ========================================================= */
+
+function updateCheckoutPaymentRemaining() {
+
+    const tableId =
+        pendingCheckoutPaymentTableId;
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t) return;
+
+
+    const gameAmount =
+        Math.max(
+            0,
+            Number(t.liveAmount || 0) -
+            Number(t.discount || 0)
+        );
+
+
+    const input =
+        document.getElementById(
+            "checkoutReceivedAmount"
+        );
+
+
+    let received =
+        Number(input?.value || 0);
+
+
+    if (received < 0) {
+        received = 0;
+    }
+
+
+    if (received > gameAmount) {
+        received = gameAmount;
+
+        if (input) {
+            input.value = gameAmount;
+        }
+    }
+
+
+    const remaining =
+        Math.max(
+            0,
+            gameAmount - received
+        );
+
+
+    const remainingBox =
+        document.getElementById(
+            "checkoutRemainingAmount"
+        );
+
+    if (remainingBox) {
+        remainingBox.innerText = remaining;
+    }
+
+
+    // Guest + partial payment warning
+    const warning =
+        document.getElementById(
+            "checkoutRegistrationWarning"
+        );
+
+
+    if (warning) {
+
+        warning.style.display =
+            remaining > 0 &&
+            !t.checkoutCustomerId
+                ? "block"
+                : "none";
+    }
+}
+
+
+/* =========================================================
+   ❌ CANCEL PAYMENT
+   ========================================================= */
+
+function cancelCheckoutPayment() {
+
+    document
+        .getElementById("checkoutPaymentPopup")
+        ?.remove();
+
+    pendingCheckoutPaymentTableId = null;
+}
+
+
+/* =========================================================
+   ✅ CONFIRM PAYMENT — TEMPORARY
+   ========================================================= */
+
+async function confirmCheckoutPayment() {
+
+    const tableId =
+        pendingCheckoutPaymentTableId;
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t) return;
+
+
+    const gameAmount =
+        Math.max(
+            0,
+            Number(t.liveAmount || 0) -
+            Number(t.discount || 0)
+        );
+
+
+    let received =
+        Number(
+            document
+                .getElementById(
+                    "checkoutReceivedAmount"
+                )
+                ?.value || 0
+        );
+
+
+    if (received < 0) received = 0;
+
+    if (received > gameAmount) {
+        received = gameAmount;
+    }
+
+
+    const remaining =
+        Math.max(
+            0,
+            gameAmount - received
+        );
+
+
+    // =====================================================
+    // ⛔ GUEST CANNOT KEEP BALANCE
+    // =====================================================
+
+    if (
+        remaining > 0 &&
+        !t.checkoutCustomerId
+    ) {
+
+        alert(
+            "Partial payment ke liye customer register/select karna lazmi hai."
+        );
+
+        return;
+    }
+
+
+    // Temporary local payment values
+    t.checkoutGameAmount =
+        gameAmount;
+
+    t.checkoutReceivedAmount =
+        received;
+
+    t.checkoutBalanceAmount =
+        remaining;
+
+
+    console.log(
+        "💰 CHECKOUT PAYMENT:",
+        {
+            gameAmount,
+            received,
+            remaining,
+            customerId:
+                t.checkoutCustomerId || null
+        }
+    );
+
+
+    document
+        .getElementById("checkoutPaymentPopup")
+        ?.remove();
+
+    pendingCheckoutPaymentTableId = null;
+
+
+    // Existing checkout continue
+    await completeCheckOut(tableId);
+}
 
 // PLAYER 1 BUTTON
 document.getElementById(
