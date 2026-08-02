@@ -230,6 +230,57 @@ function getCurrentShiftNumber() {
 let editTargetId = null;
 let deleteTargetId = null;
 
+
+/* =========================================================
+   👤 GLOBAL CUSTOMERS FOR TABLE SESSION
+   ========================================================= */
+
+let globalCustomers = [];
+
+async function loadGlobalCustomersForTables() {
+
+    try {
+
+        const snap = await getDocs(
+            collection(window.db, "customers")
+        );
+
+        globalCustomers = [];
+
+        snap.forEach(docSnap => {
+
+            const data = docSnap.data();
+
+            globalCustomers.push({
+                id: docSnap.id,
+                customer_id: data.customer_id || "",
+                name: data.name || "",
+                phone: data.phone || "",
+                phone_normalized: data.phone_normalized || ""
+            });
+
+        });
+
+        globalCustomers.sort((a, b) =>
+            String(a.name).localeCompare(String(b.name))
+        );
+
+        console.log(
+            "👤 GLOBAL CUSTOMERS LOADED:",
+            globalCustomers.length
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ GLOBAL CUSTOMERS LOAD ERROR:",
+            error
+        );
+
+        globalCustomers = [];
+    }
+}
+
 /******************************************************
  * PAGE LOAD INITIALIZER
  ******************************************************/
@@ -244,9 +295,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    console.log("✅ DAY READY:", window.currentDayId);
+console.log("✅ DAY READY:", window.currentDayId);
 
-    loadShiftsFromFirebase();
+// 👤 Load global customers
+// Failure does NOT block existing Tables system
+await loadGlobalCustomersForTables();
+
+loadShiftsFromFirebase();
     listenExpensesRealtime();
     listenEasyRealtime();
     listenInventoryRealtime();
