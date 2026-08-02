@@ -751,16 +751,406 @@ function escapeCustomerPopupText(value) {
 
 function openAddCustomerFromTables() {
 
-    alert(
-        "Add New Customer option next step mein connect karenge."
-    );
+    const oldPopup =
+        document.getElementById("addCustomerFromTablesPopup");
+
+    if (oldPopup) oldPopup.remove();
+
+
+    const overlay =
+        document.createElement("div");
+
+    overlay.id =
+        "addCustomerFromTablesPopup";
+
+    overlay.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.88);
+        z-index:1000000;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:15px;
+    `;
+
+
+    overlay.innerHTML = `
+        <div style="
+            width:400px;
+            max-width:95vw;
+            background:#001a14;
+            border:2px solid #00ffd5;
+            border-radius:14px;
+            padding:18px;
+            box-shadow:0 0 25px rgba(0,255,213,.35);
+        ">
+
+            <div style="
+                color:#00ffd5;
+                font-size:19px;
+                font-weight:bold;
+                margin-bottom:15px;
+            ">
+                Add New Customer
+            </div>
+
+
+            <input
+                id="tableNewCustomerName"
+                type="text"
+                placeholder="Customer Name"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:11px;
+                    margin-bottom:10px;
+                    background:#00110d;
+                    border:1px solid #00ffd5;
+                    border-radius:7px;
+                    color:white;
+                    outline:none;
+                "
+            >
+
+
+            <input
+                id="tableNewCustomerPhone"
+                type="text"
+                placeholder="Mobile Number"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:11px;
+                    margin-bottom:10px;
+                    background:#00110d;
+                    border:1px solid #00ffd5;
+                    border-radius:7px;
+                    color:white;
+                    outline:none;
+                "
+            >
+
+
+            <textarea
+                id="tableNewCustomerNotes"
+                placeholder="Notes (Optional)"
+                style="
+                    width:100%;
+                    box-sizing:border-box;
+                    padding:11px;
+                    margin-bottom:15px;
+                    min-height:70px;
+                    resize:vertical;
+                    background:#00110d;
+                    border:1px solid #00ffd5;
+                    border-radius:7px;
+                    color:white;
+                    outline:none;
+                "
+            ></textarea>
+
+
+            <div style="
+                display:flex;
+                gap:10px;
+            ">
+
+                <button
+                    type="button"
+                    onclick="closeAddCustomerFromTables()"
+                    style="
+                        flex:1;
+                        padding:11px;
+                        background:#333;
+                        border:1px solid #777;
+                        border-radius:7px;
+                        color:white;
+                        cursor:pointer;
+                    "
+                >
+                    CANCEL
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="saveCustomerFromTables()"
+                    style="
+                        flex:1;
+                        padding:11px;
+                        background:#006b52;
+                        border:1px solid #00ffd5;
+                        border-radius:7px;
+                        color:#00ffd5;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    SAVE & SELECT
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+
+    setTimeout(() => {
+
+        document
+            .getElementById("tableNewCustomerName")
+            ?.focus();
+
+    }, 50);
 }
+
+
+function closeAddCustomerFromTables() {
+
+    const popup =
+        document.getElementById(
+            "addCustomerFromTablesPopup"
+        );
+
+    if (popup) {
+        popup.remove();
+    }
+}
+
+
+/* =========================================================
+   NORMALIZE CUSTOMER PHONE — TABLES
+   ========================================================= */
+
+function normalizeCustomerPhoneForTables(phone) {
+
+    let value =
+        String(phone || "")
+            .replace(/\D/g, "");
+
+    // 0092XXXXXXXXXX
+    if (value.startsWith("0092")) {
+        value = value.substring(4);
+    }
+
+    // 92XXXXXXXXXX
+    if (value.startsWith("92")) {
+        value = value.substring(2);
+    }
+
+    // 03XXXXXXXXX
+    if (value.startsWith("0")) {
+        value = value.substring(1);
+    }
+
+    return value;
+}
+
+
+/* =========================================================
+   SAVE CUSTOMER FROM TABLES
+   ========================================================= */
+
+async function saveCustomerFromTables() {
+
+    const name =
+        document
+            .getElementById("tableNewCustomerName")
+            ?.value
+            .trim() || "";
+
+    const phone =
+        document
+            .getElementById("tableNewCustomerPhone")
+            ?.value
+            .trim() || "";
+
+    const notes =
+        document
+            .getElementById("tableNewCustomerNotes")
+            ?.value
+            .trim() || "";
+
+
+    if (!name) {
+        alert("Customer name enter karein.");
+        return;
+    }
+
+
+    if (!phone) {
+        alert("Mobile number enter karein.");
+        return;
+    }
+
+
+    const normalizedPhone =
+        normalizeCustomerPhoneForTables(phone);
+
+
+    if (normalizedPhone.length < 10) {
+        alert("Valid mobile number enter karein.");
+        return;
+    }
+
+
+    try {
+
+        // =====================================================
+        // 🔎 GLOBAL DUPLICATE CHECK
+        // Same phone = same customer across all branches
+        // =====================================================
+
+        const duplicateQuery =
+            query(
+                collection(window.db, "customers"),
+
+                where(
+                    "phone_normalized",
+                    "==",
+                    normalizedPhone
+                )
+            );
+
+
+        const duplicateSnapshot =
+            await getDocs(duplicateQuery);
+
+
+        if (!duplicateSnapshot.empty) {
+
+            const existingDoc =
+                duplicateSnapshot.docs[0];
+
+            const existing =
+                existingDoc.data();
+
+
+            console.log(
+                "👤 EXISTING GLOBAL CUSTOMER FOUND:",
+                existing
+            );
+
+
+            // Refresh local customer memory first
+            await loadGlobalCustomersForTables();
+
+
+            closeAddCustomerFromTables();
+
+
+            // Existing customer ko automatically select karo
+            selectCustomerForPlayer(
+                existingDoc.id
+            );
+
+
+            return;
+        }
+
+
+        // =====================================================
+        // 👤 CREATE NEW GLOBAL CUSTOMER
+        // =====================================================
+
+        const now =
+            new Date().toISOString();
+
+
+        const customerId =
+            "CUS-" +
+            Date.now().toString(36).toUpperCase() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 6)
+                .toUpperCase();
+
+
+        const newCustomerRef =
+            await addDoc(
+                collection(window.db, "customers"),
+                {
+                    customer_id:
+                        customerId,
+
+                    name:
+                        name,
+
+                    phone:
+                        phone,
+
+                    phone_normalized:
+                        normalizedPhone,
+
+                    notes:
+                        notes,
+
+                    created_at_branch:
+                        BRANCH,
+
+                    source:
+                        "software",
+
+                    total_visits: 0,
+                    total_purchase: 0,
+                    total_received: 0,
+                    balance: 0,
+
+                    created_at:
+                        now,
+
+                    updated_at:
+                        now
+                }
+            );
+
+
+        console.log(
+            "✅ CUSTOMER CREATED FROM TABLE:",
+            newCustomerRef.id
+        );
+
+
+        // Refresh global list
+        await loadGlobalCustomersForTables();
+
+
+        closeAddCustomerFromTables();
+
+
+        // Naya customer automatically current Player slot mein select
+        selectCustomerForPlayer(
+            newCustomerRef.id
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "❌ CUSTOMER SAVE FROM TABLE ERROR:",
+            error
+        );
+
+        alert(
+            "Customer save nahi hua."
+        );
+    }
+}
+
 
 window.openCustomerPlayerPopup = openCustomerPlayerPopup;
 window.closeCustomerPlayerPopup = closeCustomerPlayerPopup;
 window.renderCustomerPlayerList = renderCustomerPlayerList;
 window.selectCustomerForPlayer = selectCustomerForPlayer;
+
 window.openAddCustomerFromTables = openAddCustomerFromTables;
+window.closeAddCustomerFromTables = closeAddCustomerFromTables;
+window.saveCustomerFromTables = saveCustomerFromTables;
 
 
 
