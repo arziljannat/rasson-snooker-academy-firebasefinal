@@ -5528,7 +5528,8 @@ fromBooking:
 
 // 🔥 PAYMENT WILL BE CALCULATED ON PAID
 remainingPayment: 0
-});
+    });
+}
 
 // =====================================================
 // 👤 RELEASE CUSTOMERS AFTER CHECKOUT
@@ -5547,13 +5548,8 @@ t.checkoutPlayer = "";
 
 console.log("✅ CUSTOMERS RELEASED AFTER CHECKOUT:", t.name);
 
-  
-  }
-
-
-
-    updateButtons(id, "afterCheckout");
-    updateDisplay(id);
+updateButtons(id, "afterCheckout");
+updateDisplay(id);
 }
 /******************************************************
  * TIMER — (1 SEC = 1 MIN CHARGE FIX)
