@@ -2878,6 +2878,17 @@ async function confirmCheckoutPayment() {
     await completeCheckOut(tableId);
 }
 
+
+// =====================================================
+// 🌍 EXPOSE CHECKOUT PAYMENT FUNCTIONS TO HTML
+// =====================================================
+
+window.updateCheckoutPaymentRemaining = updateCheckoutPaymentRemaining;
+window.cancelCheckoutPayment = cancelCheckoutPayment;
+window.confirmCheckoutPayment = confirmCheckoutPayment;
+
+
+
 // PLAYER 1 BUTTON
 document.getElementById(
     "checkoutPlayer1Btn"
