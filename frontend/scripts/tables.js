@@ -2762,6 +2762,7 @@ fromBooking:
 // 🔥 PAYMENT WILL BE CALCULATED ON PAID
 remainingPayment: 0
 });
+}
 
 import {
   collection,
