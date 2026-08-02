@@ -7081,9 +7081,44 @@ if (t.afterCheckout) return;
 t.isRunning = true;
 t.checkinTime = start;
 
-// 👥 REALTIME PLAYER NAMES
-t.player1 = s.player1_name || "";
-t.player2 = s.player2_name || "";
+// =====================================================
+// 👥 RESTORE PLAYER + CUSTOMER DATA FROM RUNNING SESSION
+// =====================================================
+
+// Names
+t.player1 =
+    s.player1_name ||
+    t.player1 ||
+    "";
+
+t.player2 =
+    s.player2_name ||
+    t.player2 ||
+    "";
+
+
+// Customer document IDs
+t.player1CustomerId =
+    s.player1_customer_id ||
+    t.player1CustomerId ||
+    null;
+
+t.player2CustomerId =
+    s.player2_customer_id ||
+    t.player2CustomerId ||
+    null;
+
+
+// Phones
+t.player1Phone =
+    s.player1_phone ||
+    t.player1Phone ||
+    "";
+
+t.player2Phone =
+    s.player2_phone ||
+    t.player2Phone ||
+    "";
 
 runTimer(t.id);
         });
