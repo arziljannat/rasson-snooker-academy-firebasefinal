@@ -453,6 +453,7 @@ function renderCustomerPlayerList(searchText = "") {
             );
         });
 
+
     if (!filteredCustomers.length) {
 
         list.innerHTML = `
@@ -468,6 +469,7 @@ function renderCustomerPlayerList(searchText = "") {
         return;
     }
 
+
     list.innerHTML =
         filteredCustomers.map(customer => {
 
@@ -478,8 +480,35 @@ function renderCustomerPlayerList(searchText = "") {
 
             const safePhone =
                 escapeCustomerPopupText(
-                    customer.phone || customer.phone_normalized || ""
+                    customer.phone ||
+                    customer.phone_normalized ||
+                    ""
                 );
+
+
+            // =================================================
+            // CHECK CUSTOMER BUSY STATUS
+            // =================================================
+
+            const activeUsage =
+                findActiveCustomerUsage(
+                    customer.id,
+                    customerPlayerPopupTableId,
+                    customerPlayerPopupNumber
+                );
+
+            const isBusy = !!activeUsage;
+
+
+            const busyText =
+                isBusy
+                    ? `BUSY — ${
+                        escapeCustomerPopupText(
+                            activeUsage.tableName || "Table"
+                        )
+                    } / Player ${activeUsage.player}`
+                    : "SELECT";
+
 
             return `
                 <div style="
@@ -511,21 +540,56 @@ function renderCustomerPlayerList(searchText = "") {
 
                     </div>
 
+
                     <button
                         type="button"
-                        onclick="selectCustomerForPlayer('${customer.id}')"
+
+                        ${
+                            isBusy
+                                ? "disabled"
+                                : `onclick="selectCustomerForPlayer('${customer.id}')"`
+                        }
+
                         style="
                             flex-shrink:0;
                             padding:7px 13px;
-                            background:#006b52;
-                            border:1px solid #00ffd5;
+
+                            background:${
+                                isBusy
+                                    ? "#451515"
+                                    : "#006b52"
+                            };
+
+                            border:1px solid ${
+                                isBusy
+                                    ? "#ff5555"
+                                    : "#00ffd5"
+                            };
+
                             border-radius:6px;
-                            color:#00ffd5;
+
+                            color:${
+                                isBusy
+                                    ? "#ff7777"
+                                    : "#00ffd5"
+                            };
+
                             font-weight:bold;
-                            cursor:pointer;
+
+                            cursor:${
+                                isBusy
+                                    ? "not-allowed"
+                                    : "pointer"
+                            };
+
+                            opacity:${
+                                isBusy
+                                    ? "0.85"
+                                    : "1"
+                            };
                         "
                     >
-                        SELECT
+                        ${busyText}
                     </button>
 
                 </div>
@@ -534,33 +598,31 @@ function renderCustomerPlayerList(searchText = "") {
         }).join("");
 }
 
-
 /* =========================================================
    👤 FIND ACTIVE CUSTOMER USAGE
    Same customer cannot play on multiple tables
    ========================================================= */
 
-function findActiveCustomerUsage(customerId, currentTableId = null, currentPlayer = null) {
+function findActiveCustomerUsage(
+    customerId,
+    currentTableId = null,
+    currentPlayer = null
+) {
 
     if (!customerId) return null;
 
     for (const table of tables) {
 
-        // Running table OR current table par selected players check karo
-        const shouldCheck =
-            table.isRunning ||
-            String(table.id) === String(currentTableId);
-
-        if (!shouldCheck) continue;
-
-
+        // =====================================================
         // PLAYER 1
+        // =====================================================
+
         if (
             table.player1CustomerId &&
             String(table.player1CustomerId) === String(customerId)
         ) {
 
-            // Apni existing same slot selection ko allow karo
+            // Same table + same player slot ko BUSY mat dikhao
             if (
                 String(table.id) === String(currentTableId) &&
                 Number(currentPlayer) === 1
@@ -570,18 +632,22 @@ function findActiveCustomerUsage(customerId, currentTableId = null, currentPlaye
 
             return {
                 tableId: table.id,
-                tableName: table.name,
+                tableName: table.name || "Table",
                 player: 1
             };
         }
 
 
+        // =====================================================
         // PLAYER 2
+        // =====================================================
+
         if (
             table.player2CustomerId &&
             String(table.player2CustomerId) === String(customerId)
         ) {
 
+            // Same table + same player slot ko BUSY mat dikhao
             if (
                 String(table.id) === String(currentTableId) &&
                 Number(currentPlayer) === 2
@@ -591,7 +657,7 @@ function findActiveCustomerUsage(customerId, currentTableId = null, currentPlaye
 
             return {
                 tableId: table.id,
-                tableName: table.name,
+                tableName: table.name || "Table",
                 player: 2
             };
         }
@@ -599,7 +665,6 @@ function findActiveCustomerUsage(customerId, currentTableId = null, currentPlaye
 
     return null;
 }
-
 
 
 
