@@ -3235,6 +3235,23 @@ balanceCustomerPhone:
         ? (t.checkoutCustomerPhone || "")
         : "",
 
+      // 👤 BILL / GAME OFF PLAYER
+billedPlayerName:
+    t.checkoutPlayer || "",
+
+gameOffPlayer:
+    t.checkoutPlayer || "",
+
+player1Name:
+    t.player1 || "Guest Player 1",
+
+player2Name:
+    t.player2 || "Guest Player 2",
+    
+
+
+      
+
 paid:
     Number(t.checkoutBalanceAmount || 0) <= 0,
 
@@ -4462,6 +4479,52 @@ t.history.sort((a, b) => {
 </td>
 
 <td>${formatTime(h.checkout)}</td>
+
+<!-- 👥 PLAYERS + BILL PLAYER HIGHLIGHT -->
+<td>
+    <div style="
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        white-space:nowrap;
+    ">
+
+        <span style="
+            ${String(h.billedPlayerName || h.gameOffPlayer || "").trim().toLowerCase()
+                === String(h.player1Name || "").trim().toLowerCase()
+                ? "background:#ffd700;color:#000;padding:3px 7px;border-radius:5px;font-weight:bold;"
+                : ""
+            }
+        ">
+            ${h.player1Name || "Guest Player 1"}
+        </span>
+
+        <b style="color:#888;">VS</b>
+
+        <span style="
+            ${String(h.billedPlayerName || h.gameOffPlayer || "").trim().toLowerCase()
+                === String(h.player2Name || "").trim().toLowerCase()
+                ? "background:#ffd700;color:#000;padding:3px 7px;border-radius:5px;font-weight:bold;"
+                : ""
+            }
+        ">
+            ${h.player2Name || "Guest Player 2"}
+        </span>
+
+    </div>
+
+    <div style="
+        margin-top:4px;
+        font-size:10px;
+        color:#ffd700;
+        font-weight:bold;
+        text-align:center;
+    ">
+        BILL: ${h.billedPlayerName || h.gameOffPlayer || "Guest"}
+    </div>
+</td>
+
 <td>${formatSeconds(h.playSeconds)}</td>
 <td>${h.rate}</td>
                     
@@ -8717,6 +8780,20 @@ balanceCustomerName:
 
 balanceCustomerPhone:
     s.balance_customer_phone || "",
+
+
+          // 👤 BILL / GAME OFF PLAYER
+  billedPlayerName:
+      s.billed_player_name || "",
+  
+  gameOffPlayer:
+      s.game_off_player || "",
+  
+  player1Name:
+      s.player1_name || "",
+  
+  player2Name:
+      s.player2_name || "",
 
 
         
