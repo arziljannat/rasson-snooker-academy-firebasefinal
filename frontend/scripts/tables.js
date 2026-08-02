@@ -4526,13 +4526,35 @@ t.history.sort((a, b) => {
 </td>
 
 <td>${formatSeconds(h.playSeconds)}</td>
-<td>${h.rate}</td>
-                    
-                    <td>${h.originalAmount || h.amount || 0}</td>
-                    
-                    <td>${h.discount || 0}</td>
-                    
-                    <td>${h.canteenAmount || 0}</td>
+
+<td>${h.rate || 0}</td>
+
+<!-- SHIFT -->
+<td>
+    <b>Shift ${Number(h.shiftNumber || 1)}</b>
+</td>
+
+<!-- GAME AMOUNT -->
+<td>${h.originalAmount || h.amount || 0}</td>
+
+<!-- DISCOUNT -->
+<td>${h.discount || 0}</td>
+
+<!-- CANTEEN -->
+<td>${h.canteenAmount || 0}</td>
+
+<!-- RECEIVED -->
+<td style="color:#00ff9d; font-weight:bold;">
+    ${Number(h.gameReceivedAmount || 0)}
+</td>
+
+<!-- CUSTOMER BALANCE -->
+<td style="
+    color:${Number(h.gameBalanceAmount || 0) > 0 ? "#ff5252" : "#aaa"};
+    font-weight:bold;
+">
+    ${Number(h.gameBalanceAmount || 0)}
+</td>
                     
 <td>
     ${
