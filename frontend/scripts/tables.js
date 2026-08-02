@@ -3588,6 +3588,25 @@ catch (error) {
 let billTotal =
     gameAmount + canteenTotal;
 
+
+// =====================================================
+// 💰 PARTIAL PAYMENT DISPLAY
+// =====================================================
+
+const receivedNow =
+    Number(t.checkoutReceivedAmount || 0);
+
+const customerBalance =
+    Number(t.checkoutBalanceAmount || 0);
+
+const billedCustomer =
+    t.checkoutPlayer || "Guest";
+
+const hasPartialPayment =
+    customerBalance > 0;
+
+
+// Booking advance alag rahega
 let remainingAmount =
     Math.max(
         0,
@@ -3640,7 +3659,61 @@ let remainingAmount =
     <b>Rs ${billTotal}</b>
 </div>
 
+
+${hasPartialPayment ? `
+<hr>
+
+<div style="
+    background:#fff3cd;
+    border:2px solid #ff9800;
+    padding:10px;
+    border-radius:8px;
+    margin-top:8px;
+">
+
+    <div style="
+        font-weight:bold;
+        color:#d35400;
+        text-align:center;
+        margin-bottom:8px;
+    ">
+        BILL CUSTOMER: ${billedCustomer}
+    </div>
+
+    <div style="display:flex; justify-content:space-between;">
+        <span>Received Now</span>
+        <b>Rs ${receivedNow}</b>
+    </div>
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        margin-top:6px;
+        font-size:17px;
+        color:#d00000;
+    ">
+        <b>Customer Balance</b>
+        <b>Rs ${customerBalance}</b>
+    </div>
+
+    <div style="
+        text-align:center;
+        margin-top:8px;
+        font-weight:bold;
+        color:#d00000;
+    ">
+        PARTIAL PAYMENT
+    </div>
+
+</div>
+` : ""}
+
+
 ${bookingAdvance > 0 ? `
+<div style="display:flex; justify-content:space-between;">
+    <span>Advance Paid</span>
+    <span>Rs ${bookingAdvance}</span>
+</div>
 <div style="display:flex; justify-content:space-between;">
     <span>Advance Paid</span>
     <span>Rs ${bookingAdvance}</span>
@@ -4750,6 +4823,26 @@ const bookingAdvance =
 
 const totalBillAmount = finalTotal;
 
+  // =====================================================
+// 💰 PARTIAL PAYMENT — HISTORY BILL
+// =====================================================
+
+const historyReceivedNow =
+    Number(h.gameReceivedAmount || 0);
+
+const historyCustomerBalance =
+    Number(h.gameBalanceAmount || 0);
+
+const historyBilledCustomer =
+    h.billedPlayerName ||
+    h.gameOffPlayer ||
+    "Guest";
+
+const historyHasPartialPayment =
+    historyCustomerBalance > 0;
+
+  
+
 const remainingPayment =
     isBookingSession
         ? Math.max(0, totalBillAmount - bookingAdvance)
@@ -4812,6 +4905,58 @@ bill.innerHTML = `
     <b>Total Bill</b>
     <b>Rs ${totalBillAmount}</b>
 </div>
+
+
+${historyHasPartialPayment ? `
+    <hr>
+
+    <div style="
+        background:#fff3cd;
+        border:2px solid #ff9800;
+        padding:10px;
+        border-radius:8px;
+        margin-top:8px;
+    ">
+
+        <div style="
+            text-align:center;
+            font-weight:bold;
+            color:#d35400;
+            margin-bottom:8px;
+        ">
+            BILL CUSTOMER: ${historyBilledCustomer}
+        </div>
+
+        <div style="display:flex; justify-content:space-between;">
+            <span>Received Now</span>
+            <b>Rs ${historyReceivedNow}</b>
+        </div>
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            margin-top:6px;
+            font-size:17px;
+            color:#d00000;
+        ">
+            <b>Customer Balance</b>
+            <b>Rs ${historyCustomerBalance}</b>
+        </div>
+
+        <div style="
+            text-align:center;
+            margin-top:8px;
+            font-weight:bold;
+            color:#d00000;
+        ">
+            PARTIAL PAYMENT
+        </div>
+
+    </div>
+` : ""}
+
+
+
 
 ${isBookingSession ? `
     <hr>
@@ -8398,6 +8543,20 @@ balanceCustomerName:
 
 balanceCustomerPhone:
     s.balance_customer_phone || "",
+
+
+          // 👤 BILL / GAME OFF PLAYER
+billedPlayerName:
+    s.billed_player_name || "",
+
+gameOffPlayer:
+    s.game_off_player || "",
+
+player1Name:
+    s.player1_name || "",
+
+player2Name:
+    s.player2_name || "",
           
 
           bookingAdvance:
