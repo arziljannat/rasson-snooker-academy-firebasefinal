@@ -8,6 +8,7 @@ import {
     deleteDoc,
     doc,
     getDocs,
+    setDoc,
     orderBy,
     limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -31,6 +32,188 @@ let bookings = [];
 
 /* Currently editing booking ID */
 let editingBookingId = null;
+
+/* =========================================================
+   GLOBAL CUSTOMER SYSTEM
+   ========================================================= */
+
+function normalizeCustomerPhone(phone) {
+
+    let value = String(phone || "")
+        .replace(/\D/g, "");
+
+    if (value.startsWith("0092")) {
+        value = value.substring(4);
+    }
+
+    if (value.startsWith("92")) {
+        value = value.substring(2);
+    }
+
+    if (value.startsWith("0")) {
+        value = value.substring(1);
+    }
+
+    return value;
+}
+
+
+/*
+   Same customer ko 8 branches mein
+   duplicate create nahi hone dega.
+
+   Primary match = normalized phone.
+*/
+async function findOrCreateGlobalCustomer(
+    customerName,
+    customerPhone,
+    source = "software"
+) {
+
+    const normalizedPhone =
+        normalizeCustomerPhone(
+            customerPhone
+        );
+
+
+    if (!normalizedPhone) {
+        return null;
+    }
+
+
+    /* =========================
+       FIND EXISTING CUSTOMER
+       ========================= */
+
+    const customerQuery =
+        query(
+            collection(
+                window.db,
+                "customers"
+            ),
+
+            where(
+                "phone_normalized",
+                "==",
+                normalizedPhone
+            ),
+
+            limit(1)
+        );
+
+
+    const customerSnapshot =
+        await getDocs(
+            customerQuery
+        );
+
+
+    if (!customerSnapshot.empty) {
+
+        const existingDoc =
+            customerSnapshot.docs[0];
+
+        return {
+            id: existingDoc.id,
+            ...existingDoc.data()
+        };
+    }
+
+
+    /* =========================
+       CREATE NEW GLOBAL CUSTOMER
+       ========================= */
+
+    const now =
+        new Date().toISOString();
+
+
+    /*
+       Phone based document ID use kar rahe hain.
+
+       Iska benefit:
+       agar Rasson1 aur Rasson4 same waqt
+       same new customer create karein,
+       dono same document target karenge.
+    */
+
+    const customerDocumentId =
+        "phone_" + normalizedPhone;
+
+
+    const customerRef =
+        doc(
+            window.db,
+            "customers",
+            customerDocumentId
+        );
+
+
+    const customerData = {
+
+        customer_id:
+            "C-" +
+            normalizedPhone,
+
+        name:
+            customerName,
+
+        phone:
+            customerPhone,
+
+        phone_normalized:
+            normalizedPhone,
+
+        notes:
+            "",
+
+        created_at_branch:
+            BRANCH,
+
+        source:
+            source,
+
+        total_visits:
+            0,
+
+        total_purchase:
+            0,
+
+        total_received:
+            0,
+
+        balance:
+            0,
+
+        created_at:
+            now,
+
+        updated_at:
+            now
+
+    };
+
+
+    await setDoc(
+        customerRef,
+        customerData,
+        {
+            merge: true
+        }
+    );
+
+
+    console.log(
+        "NEW GLOBAL CUSTOMER CREATED:",
+        customerDocumentId
+    );
+
+
+    return {
+        id: customerDocumentId,
+        ...customerData
+    };
+}
 
 /* =========================================================
    PAGE START
@@ -1002,6 +1185,71 @@ function loadBookings() {
 
     const data = documentSnapshot.data();
 
+                /* =====================================================
+   ONLINE BOOKING → GLOBAL CUSTOMER AUTO LINK
+   ===================================================== */
+
+if (
+    data.booking_source === "online_customer" &&
+    !data.customer_id &&
+    data.customer_phone
+) {
+
+    try {
+
+        const linkedCustomer =
+            await findOrCreateGlobalCustomer(
+                data.customer_name || "Customer",
+                data.customer_phone,
+                "online_booking"
+            );
+
+
+        if (linkedCustomer) {
+
+            await updateDoc(
+
+                doc(
+                    window.db,
+                    "bookings",
+                    documentSnapshot.id
+                ),
+
+                {
+                    customer_id:
+                        linkedCustomer.id,
+
+                    customer_code:
+                        linkedCustomer.customer_id || null,
+
+                    customer_phone_normalized:
+                        normalizeCustomerPhone(
+                            data.customer_phone
+                        ),
+
+                    customer_linked_at:
+                        new Date().toISOString()
+                }
+
+            );
+
+
+            console.log(
+                "ONLINE BOOKING CUSTOMER LINKED:",
+                linkedCustomer.id
+            );
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "ONLINE CUSTOMER AUTO LINK ERROR:",
+            error
+        );
+    }
+}
+
     if (
         data.booking_source === "online_customer" &&
         data.notification_unread === true
@@ -1833,6 +2081,27 @@ if (
                 const now =
                     new Date().toISOString();
 
+                /* =========================
+   FIND / CREATE CUSTOMER
+   ========================= */
+
+const linkedCustomer =
+    await findOrCreateGlobalCustomer(
+        customerName,
+        customerPhone,
+        "staff_manual"
+    );
+
+
+if (!linkedCustomer) {
+
+    showBookingError(
+        "Customer could not be linked."
+    );
+
+    return;
+}
+
                 const currentDayId =
     getCurrentBookingDayId();
 
@@ -1858,12 +2127,23 @@ if (!currentDayId) {
                     booking_source:
                         "staff_manual",
 
+                    customer_id:
+                        linkedCustomer.id,
+                    
+                    customer_code:
+                        linkedCustomer.customer_id || null,
+                    
                     customer_name:
                         customerName,
-
+                    
                     customer_phone:
                         customerPhone,
-
+                    
+                    customer_phone_normalized:
+                        normalizeCustomerPhone(
+                            customerPhone
+                        ),
+                    
                     date:
                         bookingDate,
 
