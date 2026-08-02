@@ -281,6 +281,391 @@ async function loadGlobalCustomersForTables() {
     }
 }
 
+/* =========================================================
+   👤 CUSTOMER PLAYER SELECTOR POPUP
+   ========================================================= */
+
+let customerPlayerPopupTableId = null;
+let customerPlayerPopupNumber = null;
+
+function openCustomerPlayerPopup(tableId, playerNumber) {
+
+    customerPlayerPopupTableId = tableId;
+    customerPlayerPopupNumber = playerNumber;
+
+    // Purana popup ho to remove
+    const oldPopup = document.getElementById("customerPlayerPopup");
+    if (oldPopup) oldPopup.remove();
+
+    const table = tables.find(t => String(t.id) === String(tableId));
+
+    const tableName = table
+        ? (table.name || table.table_id || "Table")
+        : "Table";
+
+    const overlay = document.createElement("div");
+
+    overlay.id = "customerPlayerPopup";
+
+    overlay.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.82);
+        z-index:999999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:15px;
+    `;
+
+    overlay.innerHTML = `
+        <div style="
+            width:420px;
+            max-width:95vw;
+            max-height:80vh;
+            overflow:hidden;
+            background:#001a14;
+            border:2px solid #00ffd5;
+            border-radius:14px;
+            box-shadow:0 0 25px rgba(0,255,213,.35);
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                padding:15px;
+                border-bottom:1px solid #00ffd5;
+                color:#00ffd5;
+                font-size:18px;
+                font-weight:bold;
+            ">
+                <span>
+                    ${tableName} — Player ${playerNumber}
+                </span>
+
+                <button
+                    type="button"
+                    onclick="closeCustomerPlayerPopup()"
+                    style="
+                        background:none;
+                        border:none;
+                        color:white;
+                        font-size:22px;
+                        cursor:pointer;
+                    "
+                >
+                    ×
+                </button>
+            </div>
+
+            <div style="padding:15px;">
+
+                <input
+                    id="customerPlayerSearch"
+                    type="text"
+                    placeholder="Search name or mobile number..."
+                    oninput="renderCustomerPlayerList(this.value)"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        margin-bottom:10px;
+                        background:#00110d;
+                        border:1px solid #00ffd5;
+                        border-radius:7px;
+                        color:white;
+                        outline:none;
+                    "
+                >
+
+                <button
+                    type="button"
+                    onclick="openAddCustomerFromTables()"
+                    style="
+                        width:100%;
+                        padding:11px;
+                        margin-bottom:10px;
+                        background:#006b52;
+                        border:1px solid #00ffd5;
+                        border-radius:7px;
+                        color:#00ffd5;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    + ADD NEW CUSTOMER
+                </button>
+
+                <div
+                    id="customerPlayerList"
+                    style="
+                        max-height:430px;
+                        overflow-y:auto;
+                    "
+                ></div>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    renderCustomerPlayerList("");
+}
+
+
+/* =========================================================
+   RENDER CUSTOMER LIST
+   ========================================================= */
+
+function renderCustomerPlayerList(searchText = "") {
+
+    const list =
+        document.getElementById("customerPlayerList");
+
+    if (!list) return;
+
+    const search =
+        String(searchText || "")
+            .trim()
+            .toLowerCase();
+
+    const filteredCustomers =
+        globalCustomers.filter(customer => {
+
+            const name =
+                String(customer.name || "")
+                    .toLowerCase();
+
+            const phone =
+                String(
+                    customer.phone_normalized ||
+                    customer.phone ||
+                    ""
+                ).toLowerCase();
+
+            return (
+                !search ||
+                name.includes(search) ||
+                phone.includes(search)
+            );
+        });
+
+    if (!filteredCustomers.length) {
+
+        list.innerHTML = `
+            <div style="
+                padding:20px;
+                text-align:center;
+                color:#aaa;
+            ">
+                No customer found
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        filteredCustomers.map(customer => {
+
+            const safeName =
+                escapeCustomerPopupText(
+                    customer.name || "Unknown Customer"
+                );
+
+            const safePhone =
+                escapeCustomerPopupText(
+                    customer.phone || customer.phone_normalized || ""
+                );
+
+            return `
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:10px;
+                    padding:10px 3px;
+                    border-bottom:1px solid rgba(0,255,213,.25);
+                ">
+
+                    <div style="min-width:0;">
+
+                        <div style="
+                            color:white;
+                            font-weight:bold;
+                            font-size:15px;
+                        ">
+                            ${safeName}
+                        </div>
+
+                        <div style="
+                            color:#aaa;
+                            font-size:12px;
+                            margin-top:3px;
+                        ">
+                            ${safePhone}
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="selectCustomerForPlayer('${customer.id}')"
+                        style="
+                            flex-shrink:0;
+                            padding:7px 13px;
+                            background:#006b52;
+                            border:1px solid #00ffd5;
+                            border-radius:6px;
+                            color:#00ffd5;
+                            font-weight:bold;
+                            cursor:pointer;
+                        "
+                    >
+                        SELECT
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+
+/* =========================================================
+   SELECT CUSTOMER
+   ========================================================= */
+
+function selectCustomerForPlayer(customerDocId) {
+
+    const customer =
+        globalCustomers.find(c =>
+            String(c.id) === String(customerDocId)
+        );
+
+    if (!customer) {
+        alert("Customer not found.");
+        return;
+    }
+
+    const table =
+        tables.find(t =>
+            String(t.id) ===
+            String(customerPlayerPopupTableId)
+        );
+
+    if (!table) {
+        alert("Table not found.");
+        return;
+    }
+
+    const playerNumber =
+        Number(customerPlayerPopupNumber);
+
+    if (playerNumber === 1) {
+
+        table.player1 = customer.name || "";
+        table.player1CustomerId = customer.id;
+        table.player1CustomerPhone =
+            customer.phone ||
+            customer.phone_normalized ||
+            "";
+
+    } else {
+
+        table.player2 = customer.name || "";
+        table.player2CustomerId = customer.id;
+        table.player2CustomerPhone =
+            customer.phone ||
+            customer.phone_normalized ||
+            "";
+    }
+
+    const playerButton =
+        document.getElementById(
+            `player${playerNumber}-${table.id}`
+        );
+
+    if (playerButton) {
+
+        playerButton.innerHTML = `
+            <span style="display:block;">
+                ${escapeCustomerPopupText(customer.name || "")}
+            </span>
+
+            <small style="
+                display:block;
+                font-size:9px;
+                opacity:.8;
+            ">
+                ${escapeCustomerPopupText(
+                    customer.phone ||
+                    customer.phone_normalized ||
+                    ""
+                )}
+            </small>
+        `;
+    }
+
+    closeCustomerPlayerPopup();
+}
+
+
+/* =========================================================
+   CLOSE POPUP
+   ========================================================= */
+
+function closeCustomerPlayerPopup() {
+
+    const popup =
+        document.getElementById("customerPlayerPopup");
+
+    if (popup) {
+        popup.remove();
+    }
+
+    customerPlayerPopupTableId = null;
+    customerPlayerPopupNumber = null;
+}
+
+
+/* =========================================================
+   SAFE TEXT
+   ========================================================= */
+
+function escapeCustomerPopupText(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   ADD CUSTOMER — TEMPORARY SAFE HANDLER
+   ========================================================= */
+
+function openAddCustomerFromTables() {
+
+    alert(
+        "Add New Customer option next step mein connect karenge."
+    );
+}
+
+window.openCustomerPlayerPopup = openCustomerPlayerPopup;
+window.closeCustomerPlayerPopup = closeCustomerPlayerPopup;
+window.renderCustomerPlayerList = renderCustomerPlayerList;
+window.selectCustomerForPlayer = selectCustomerForPlayer;
+window.openAddCustomerFromTables = openAddCustomerFromTables;
+
+
+
 /******************************************************
  * PAGE LOAD INITIALIZER
  ******************************************************/
@@ -760,25 +1145,29 @@ sortedTables.forEach(t => {
             <div class="table-title">${t.name}</div>
 
 
-<!-- 🔥 PLAYER NAMES -->
+<!-- 👤 CUSTOMER PLAYER SELECTORS -->
 <div class="player-names-box">
-<input
-    type="text"
-    id="player1-${t.id}"
-    class="player-name-input"
-    placeholder="Player 1"
-    value="${t.player1 || ''}"
-    onchange="savePlayerNames('${t.id}')"
->
 
-<input
-    type="text"
-    id="player2-${t.id}"
-    class="player-name-input"
-    placeholder="Player 2"
-    value="${t.player2 || ''}"
-    onchange="savePlayerNames('${t.id}')"
->
+    <button
+        type="button"
+        id="player1-${t.id}"
+        class="player-name-input"
+        onclick="openCustomerPlayerPopup('${t.id}', 1)"
+    >
+        ${t.player1 || 'Select Player 1'}
+    </button>
+
+    <span class="player-vs">VS</span>
+
+    <button
+        type="button"
+        id="player2-${t.id}"
+        class="player-name-input"
+        onclick="openCustomerPlayerPopup('${t.id}', 2)"
+    >
+        ${t.player2 || 'Select Player 2'}
+    </button>
+
 </div>
 
 <div class="rate-selector">
