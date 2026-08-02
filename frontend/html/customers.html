@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customers</title>
+
+    <link rel="stylesheet" href="../styles/navbar.css">
+    <link rel="stylesheet" href="../styles/mobile.css">
+    <link rel="stylesheet" href="../styles/customers.css">
+
+    <script type="module" src="../scripts/firebase-config.js"></script>
+    <script type="module" src="../scripts/load-navbar.js"></script>
+    <script src="../scripts/navbar.js" defer></script>
+    <script type="module" src="../scripts/customers.js"></script>
+</head>
+
+<body>
+
+<div class="customer-page">
+
+    <h1 class="customer-title">Customers</h1>
+
+    <!-- SUMMARY -->
+    <div class="customer-summary">
+
+        <div class="summary-card">
+            <span>Total Customers</span>
+            <strong id="totalCustomers">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Total Receivable</span>
+            <strong id="totalReceivable">0 PKR</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Current Branch Customers</span>
+            <strong id="branchCustomers">0</strong>
+        </div>
+
+    </div>
+
+
+    <!-- ACTION BAR -->
+    <div class="customer-actions">
+
+        <button
+            class="add-customer-btn"
+            onclick="openCustomerPopup()"
+        >
+            + Add Customer
+        </button>
+
+        <input
+            type="text"
+            id="customerSearch"
+            class="customer-search"
+            placeholder="Search name, phone or customer ID..."
+        >
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="customer-table-box">
+
+        <table class="customer-table">
+
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Created At Branch</th>
+                    <th>Total Visits</th>
+                    <th>Total Purchase</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="customersBody"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     ADD CUSTOMER POPUP
+========================= -->
+
+<div id="customerPopup" class="customer-popup hide">
+
+    <div class="customer-popup-card">
+
+        <h2>Add Customer</h2>
+
+        <label>Customer Name</label>
+
+        <input
+            id="customerName"
+            type="text"
+            placeholder="Enter customer name"
+        >
+
+
+        <label>Mobile Number</label>
+
+        <input
+            id="customerPhone"
+            type="text"
+            placeholder="03XXXXXXXXX"
+        >
+
+
+        <label>Notes</label>
+
+        <textarea
+            id="customerNotes"
+            placeholder="Optional notes"
+        ></textarea>
+
+
+        <div class="popup-buttons">
+
+            <button
+                class="save-customer-btn"
+                onclick="saveCustomer()"
+            >
+                Save Customer
+            </button>
+
+            <button
+                class="cancel-customer-btn"
+                onclick="closeCustomerPopup()"
+            >
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     CUSTOMER PROFILE POPUP
+========================= -->
+
+<div id="customerProfilePopup" class="customer-popup hide">
+
+    <div class="customer-popup-card profile-card">
+
+        <button
+            class="profile-close"
+            onclick="closeCustomerProfile()"
+        >
+            ×
+        </button>
+
+        <h2 id="profileName">Customer</h2>
+
+        <div class="profile-info">
+
+            <div>
+                <span>Customer ID</span>
+                <strong id="profileCustomerId">-</strong>
+            </div>
+
+            <div>
+                <span>Phone</span>
+                <strong id="profilePhone">-</strong>
+            </div>
+
+            <div>
+                <span>Total Visits</span>
+                <strong id="profileVisits">0</strong>
+            </div>
+
+            <div>
+                <span>Total Purchase</span>
+                <strong id="profilePurchase">0 PKR</strong>
+            </div>
+
+            <div>
+                <span>Current Balance</span>
+                <strong id="profileBalance">0 PKR</strong>
+            </div>
+
+        </div>
+
+        <h3 class="ledger-title">
+            Customer Ledger
+        </h3>
+
+        <div class="ledger-box">
+
+            <table class="customer-table">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Branch</th>
+                        <th>Description</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+
+                <tbody id="customerLedgerBody">
+
+                    <tr>
+                        <td colspan="6">
+                            No transactions yet
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
