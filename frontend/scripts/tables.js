@@ -790,10 +790,22 @@ selectedRate:
         checkinTime: old?.checkinTime || null,
         checkoutTime: old?.checkoutTime || null,
 
-  // 👥 KEEP PLAYER NAMES DURING TABLE REALTIME REFRESH
-        player1: old?.player1 || "",
-        player2: old?.player2 || "",
+// =====================================================
+// 👤 KEEP PLAYER / CUSTOMER DATA DURING REALTIME REFRESH
+// =====================================================
 
+        player1: old?.player1 || "",
+        player1CustomerId:
+            old?.player1CustomerId || null,
+        player1CustomerPhone:
+            old?.player1CustomerPhone || "",
+        
+        player2: old?.player2 || "",
+        player2CustomerId:
+            old?.player2CustomerId || null,
+        player2CustomerPhone:
+            old?.player2CustomerPhone || "",
+        
         playSeconds: old?.playSeconds || 0,
         liveAmount: old?.liveAmount || 0,
 
@@ -1448,26 +1460,37 @@ async function checkIn(id) {
 
     if (t.isRunning) return;
 
-  // 👥 GET PLAYER NAMES BEFORE CHECK-IN
-const player1Input =
-    document.getElementById(`player1-${id}`);
+// 👤 SELECTED CUSTOMERS BEFORE CHECK-IN
+// Player names + customer IDs were already stored on table object
+// by selectCustomerForPlayer().
 
-const player2Input =
-    document.getElementById(`player2-${id}`);
+t.player1 = String(t.player1 || "").trim();
+t.player2 = String(t.player2 || "").trim();
 
-t.player1 =
-    player1Input?.value.trim() || "";
+t.player1CustomerId =
+    t.player1CustomerId || null;
 
-t.player2 =
-    player2Input?.value.trim() || "";
+t.player2CustomerId =
+    t.player2CustomerId || null;
+
+t.player1CustomerPhone =
+    t.player1CustomerPhone || "";
+
+t.player2CustomerPhone =
+    t.player2CustomerPhone || "";
 
 console.log(
-    "👥 CHECK-IN PLAYERS:",
-    t.player1 || "Guest Player 1",
-    "VS",
-    t.player2 || "Guest Player 2"
-);
+    "👥 CHECK-IN CUSTOMERS:",
+    {
+        player1: t.player1 || "Guest Player 1",
+        player1CustomerId: t.player1CustomerId,
+        player1Phone: t.player1CustomerPhone,
 
+        player2: t.player2 || "Guest Player 2",
+        player2CustomerId: t.player2CustomerId,
+        player2Phone: t.player2CustomerPhone
+    }
+);
 // =====================================================
 // 🔥 BOOKING PROCEED CHECK
 // =====================================================
@@ -1619,10 +1642,32 @@ try {
         is_deleted: false
     };
 
-    // 👥 PLAYER NAMES
-sessionData.player1_name = t.player1 || "";
-sessionData.player2_name = t.player2 || "";
-sessionData.players_updated_at = new Date().toISOString();
+// =====================================================
+// 👤 PLAYER / CUSTOMER DATA
+// =====================================================
+
+sessionData.player1_name =
+    t.player1 || "";
+
+sessionData.player1_customer_id =
+    t.player1CustomerId || null;
+
+sessionData.player1_customer_phone =
+    t.player1CustomerPhone || "";
+
+
+sessionData.player2_name =
+    t.player2 || "";
+
+sessionData.player2_customer_id =
+    t.player2CustomerId || null;
+
+sessionData.player2_customer_phone =
+    t.player2CustomerPhone || "";
+
+
+sessionData.players_updated_at =
+    new Date().toISOString();
   
     // =====================================================
     // 🔥 ATTACH BOOKING DATA TO SESSION
@@ -6451,9 +6496,41 @@ if (t.afterCheckout) return;
 t.isRunning = true;
 t.checkinTime = start;
 
-// 👥 REALTIME PLAYER NAMES
-t.player1 = s.player1_name || "";
-t.player2 = s.player2_name || "";
+// =====================================================
+// 👤 RESTORE PLAYER / CUSTOMER DATA FROM RUNNING SESSION
+// =====================================================
+
+t.player1 =
+    s.player1_name || "";
+
+t.player1CustomerId =
+    s.player1_customer_id || null;
+
+t.player1CustomerPhone =
+    s.player1_customer_phone || "";
+
+
+t.player2 =
+    s.player2_name || "";
+
+t.player2CustomerId =
+    s.player2_customer_id || null;
+
+t.player2CustomerPhone =
+    s.player2_customer_phone || "";
+
+
+console.log(
+    "👤 RUNNING CUSTOMERS RESTORED:",
+    t.name,
+    {
+        player1: t.player1,
+        player1CustomerId: t.player1CustomerId,
+
+        player2: t.player2,
+        player2CustomerId: t.player2CustomerId
+    }
+);
 
 runTimer(t.id);
         });
