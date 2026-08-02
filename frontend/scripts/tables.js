@@ -3056,7 +3056,41 @@ players_match:
 player_checkout_at:
     checkoutNow,
 
-paid: false,
+// =====================================================
+// 💰 PARTIAL PAYMENT / CUSTOMER BALANCE
+// =====================================================
+
+game_received_amount:
+    Number(t.checkoutReceivedAmount || 0),
+
+game_balance_amount:
+    Number(t.checkoutBalanceAmount || 0),
+
+balance_customer_id:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutCustomerId || null)
+        : null,
+
+balance_customer_name:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutPlayer || "")
+        : "",
+
+balance_customer_phone:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutCustomerPhone || "")
+        : "",
+
+
+// Full payment hua hai to paid.
+// Partial payment mein false.
+paid:
+    Number(t.checkoutBalanceAmount || 0) <= 0,
+
+paid_time:
+    Number(t.checkoutBalanceAmount || 0) <= 0
+        ? checkoutNow
+        : null,
 
 day_id:
     window.currentDayId,
@@ -3168,8 +3202,36 @@ amount:
 )
 +
 t.canteenTotal,
-    paid: false,
-    paidTime: null,
+// 💰 PARTIAL PAYMENT
+gameReceivedAmount:
+    Number(t.checkoutReceivedAmount || 0),
+
+gameBalanceAmount:
+    Number(t.checkoutBalanceAmount || 0),
+
+balanceCustomerId:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutCustomerId || null)
+        : null,
+
+balanceCustomerName:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutPlayer || "")
+        : "",
+
+balanceCustomerPhone:
+    Number(t.checkoutBalanceAmount || 0) > 0
+        ? (t.checkoutCustomerPhone || "")
+        : "",
+
+paid:
+    Number(t.checkoutBalanceAmount || 0) <= 0,
+
+paidTime:
+    Number(t.checkoutBalanceAmount || 0) <= 0
+        ? t.checkoutTime
+        : null,
+
 rate: t.selectedRate || 0,
 
 playType: t.selectedPlayType || t.playType,
