@@ -5365,7 +5365,12 @@ liveData.closingCash =
                 Number(s1.gameBalance || 0)
                 +
                 Number(s2.gameBalance || 0),
-
+            
+            customerBalance:
+                Number(s1.customerBalance || 0)
+                +
+                Number(s2.customerBalance || 0),
+            
             canteenBalance:
                 Number(s1.canteenBalance || 0)
                 +
@@ -5419,7 +5424,9 @@ summaryBody.innerHTML = `
     <td>${s1?.canteenCollection || 0}</td>
 
     <td>${s1?.gameBalance || 0}</td>
-
+    
+    <td>${s1?.customerBalance || 0}</td>
+    
     <td>${s1?.canteenBalance || 0}</td>
 
     <td>${s1?.discount || 0}</td>
@@ -5452,7 +5459,9 @@ summaryBody.innerHTML = `
     <td>${s2?.canteenCollection || 0}</td>
 
     <td>${s2?.gameBalance || 0}</td>
-
+    
+    <td>${s2?.customerBalance || 0}</td>
+    
     <td>${s2?.canteenBalance || 0}</td>
 
     <td>${s2?.discount || 0}</td>
@@ -5487,7 +5496,9 @@ ${combined ? `
     <td>${Number(s1?.canteenCollection || 0) + Number(s2?.canteenCollection || 0)}</td>
 
     <td>${Number(s1?.gameBalance || 0) + Number(s2?.gameBalance || 0)}</td>
-
+    
+    <td>${Number(s1?.customerBalance || 0) + Number(s2?.customerBalance || 0)}</td>
+    
     <td>${Number(s1?.canteenBalance || 0) + Number(s2?.canteenBalance || 0)}</td>
 
     <td>${Number(s1?.discount || 0) + Number(s2?.discount || 0)}</td>
@@ -5891,6 +5902,11 @@ async function closeDay() {
         advanceCollection: (s1.advanceCollection || 0) +  (s2.advanceCollection || 0),
 
         gameBalance: (s1.gameBalance || 0) + (s2.gameBalance || 0),
+        
+        customerBalance:
+            Number(s1.customerBalance || 0) +
+            Number(s2.customerBalance || 0),
+        
         canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
 
         expenses: (s1.expenses || 0) + (s2.expenses || 0),
@@ -6328,9 +6344,13 @@ function calculateShiftSnapshot(startTime, endTime) {
     let canteenTotal = 0;
     let gameCollection = 0;
     let canteenCollection = 0;
-    let gameBalance = 0;
-    let canteenBalance = 0;
-    let discount = 0;
+let gameBalance = 0;
+let canteenBalance = 0;
+
+// 👤 Registered customers ka outstanding game balance
+let customerBalance = 0;
+
+let discount = 0;
 
     tables.forEach(t => {
         t.history.forEach(h => {
@@ -6358,13 +6378,62 @@ discount += d;
               canteenTotal += c;
 
                 // ❗ UNPAID → balance
-              // 🔥 ONLY UNPAID BILLS GO TO BALANCE
-              if (!h.paid) {
-              
-                 gameBalance += Number(h.amount || 0);
-              
-                 canteenBalance += Number(h.canteenAmount || 0);
-              }
+// =========================================
+// 🔥 UNPAID / PARTIAL PAYMENT BALANCE
+// =========================================
+if (!h.paid) {
+
+    const gameBill =
+        Number(h.amount || 0);
+
+    const canteenBill =
+        Number(h.canteenAmount || 0);
+
+    const received =
+        Number(h.gameReceivedAmount || 0);
+
+    const totalBill =
+        gameBill + canteenBill;
+
+    const remaining =
+        Math.max(0, totalBill - received);
+
+    // Received amount pehle game se adjust hoga
+    const gameReceived =
+        Math.min(gameBill, received);
+
+    const canteenReceived =
+        Math.max(0, received - gameBill);
+
+    gameCollection += gameReceived;
+
+    canteenCollection +=
+        Math.min(canteenBill, canteenReceived);
+
+const remainingGameBalance =
+    Math.max(0, gameBill - gameReceived);
+
+gameBalance +=
+    remainingGameBalance;
+
+canteenBalance +=
+    Math.max(0, canteenBill - canteenReceived);
+
+
+// =====================================================
+// 👤 CUSTOMER BALANCE BREAKDOWN
+// =====================================================
+// Ye Game Balance ke andar ka hi amount hai.
+// Isko Game Balance ke upar dobara total nahi karna.
+
+if (
+    remainingGameBalance > 0 &&
+    h.balanceCustomerId
+) {
+    customerBalance +=
+        remainingGameBalance;
+}
+}
             }
 
 // =========================
@@ -6472,6 +6541,7 @@ if (h.paid && h.paidTime) {
         canteenCollection,
         gameBalance,
         canteenBalance,
+        customerBalance,
         expenses,
         easypaisa,
         discount,
@@ -6608,6 +6678,10 @@ newShift2.closingCash =
 
             gameBalance:
                 newShift1.gameBalance + newShift2.gameBalance,
+
+            customerBalance:
+                Number(newShift1.customerBalance || 0) +
+                Number(newShift2.customerBalance || 0),
 
             canteenBalance:
                 newShift1.canteenBalance + newShift2.canteenBalance,
@@ -8298,6 +8372,23 @@ s.final_amount ||
                 ? new Date(s.paid_time).getTime()
                 : null,
 
+          // 💰 PARTIAL PAYMENT DATA
+gameReceivedAmount:
+    Number(s.game_received_amount || 0),
+
+gameBalanceAmount:
+    Number(s.game_balance_amount || 0),
+
+balanceCustomerId:
+    s.balance_customer_id || null,
+
+balanceCustomerName:
+    s.balance_customer_name || "",
+
+balanceCustomerPhone:
+    s.balance_customer_phone || "",
+          
+
           bookingAdvance:
     Number(s.booking_advance || 0),
 
@@ -8439,6 +8530,26 @@ total:
             paidTime: s.paid_time
                 ? new Date(s.paid_time).getTime()
                 : null,
+
+
+          // 💰 PARTIAL PAYMENT DATA
+gameReceivedAmount:
+    Number(s.game_received_amount || 0),
+
+gameBalanceAmount:
+    Number(s.game_balance_amount || 0),
+
+balanceCustomerId:
+    s.balance_customer_id || null,
+
+balanceCustomerName:
+    s.balance_customer_name || "",
+
+balanceCustomerPhone:
+    s.balance_customer_phone || "",
+
+
+        
 
           bookingAdvance:
     Number(s.booking_advance || 0),
