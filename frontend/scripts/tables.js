@@ -2023,24 +2023,28 @@ async function checkIn(id) {
 
     if (t.isRunning) return;
 
-  // 👥 GET PLAYER NAMES BEFORE CHECK-IN
-const player1Input =
-    document.getElementById(`player1-${id}`);
+// =====================================================
+// 👥 KEEP SELECTED CUSTOMERS BEFORE CHECK-IN
+// =====================================================
 
-const player2Input =
-    document.getElementById(`player2-${id}`);
+// Customer selector already t.player1 / t.player2
+// aur customer IDs/phones local table state mein save karta hai.
+// Check-in ke waqt unko overwrite NAHI karna.
 
-t.player1 =
-    player1Input?.value.trim() || "";
-
-t.player2 =
-    player2Input?.value.trim() || "";
+t.player1 = t.player1 || "";
+t.player2 = t.player2 || "";
 
 console.log(
     "👥 CHECK-IN PLAYERS:",
     t.player1 || "Guest Player 1",
     "VS",
     t.player2 || "Guest Player 2"
+);
+
+console.log(
+    "👤 CHECK-IN CUSTOMER IDS:",
+    t.player1CustomerId || null,
+    t.player2CustomerId || null
 );
 
 // =====================================================
