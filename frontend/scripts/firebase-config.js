@@ -9,7 +9,8 @@ import {
     orderBy,
     limit,
     updateDoc,
-    doc
+    doc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -33,5 +34,6 @@ window.fs = {
     orderBy,
     limit,
     updateDoc,
-    doc
+    doc,
+    getDoc
 };
