@@ -46,8 +46,6 @@ rasson1: {
 
 async function renderHallCamera() {
 
-async function renderHallCamera() {
-
     const branch = getCameraBranch();
 
     // Camera abhi sirf Rasson1 ke liye
