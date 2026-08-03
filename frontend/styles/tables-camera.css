@@ -214,3 +214,15 @@
     }
 
 }
+
+/******************************************************
+ * CAMERA WIDTH — TABLE 1 TO TABLE 4
+ ******************************************************/
+
+.rasson-camera-card {
+    width: calc(100% - 144px);
+    max-width: none;
+    margin-left: 72px;
+    margin-right: 72px;
+    box-sizing: border-box;
+}
