@@ -4,7 +4,9 @@
  ******************************************************/
 
 .rasson-camera-card {
-    background: #111;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     border: 1px solid rgba(0, 255, 213, 0.45);
     border-radius: 12px;
     overflow: hidden;
@@ -25,7 +27,9 @@
     align-items: center;
     justify-content: space-between;
 
-    background: #151515;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
 
     color: white;
     font-size: 14px;
