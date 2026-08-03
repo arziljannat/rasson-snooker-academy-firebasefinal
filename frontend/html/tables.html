@@ -543,7 +543,10 @@ import {
     where,
     onSnapshot,
     updateDoc,
-    doc
+    doc,
+    getDoc,
+    orderBy,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -562,13 +565,16 @@ const db = getFirestore(app);
 // 🔥 IMPORTANT
 window.db = db;
 
-    window.fs = {
+window.fs = {
     collection,
     query,
     where,
     onSnapshot,
     updateDoc,
-    doc
+    doc,
+    getDoc,
+    orderBy,
+    limit
 };
 
 console.log("Firebase Connected (Tables) ✅");
