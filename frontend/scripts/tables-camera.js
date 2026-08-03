@@ -57,21 +57,37 @@ async function renderHallCamera() {
         const config =
             CAMERA_CONFIG.rasson1.hall;
 
-    let streamUrl = "";
+let streamUrl = "";
 
 try {
 
-    const response = await fetch(
-        "http://192.168.18.98:8085/camera-url.json?t=" + Date.now(),
-        {
-            cache: "no-store"
-        }
-    );
+    if (!window.db || !window.fs) {
+        throw new Error("Firebase not ready");
+    }
 
-    const cameraData = await response.json();
+    const cameraDocRef =
+        window.fs.doc(
+            window.db,
+            "camera_config",
+            "rasson1"
+        );
+
+    const cameraSnapshot =
+        await window.fs.getDoc(cameraDocRef);
+
+    if (!cameraSnapshot.exists()) {
+        throw new Error(
+            "Camera config document not found"
+        );
+    }
+
+    const cameraData =
+        cameraSnapshot.data();
 
     if (!cameraData.url) {
-        throw new Error("Camera URL missing");
+        throw new Error(
+            "Camera URL missing"
+        );
     }
 
     streamUrl =
