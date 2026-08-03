@@ -46,16 +46,36 @@ rasson1: {
 
 async function renderHallCamera() {
 
-        const branch = getCameraBranch();
+async function renderHallCamera() {
 
-        // Camera abhi sirf Rasson1 ke liye
-        if (branch !== "rasson1") {
-            return;
-        }
+    const branch = getCameraBranch();
+
+    // Camera abhi sirf Rasson1 ke liye
+    if (branch !== "rasson1") {
+        return;
+    }
 
 
-        const config =
-            CAMERA_CONFIG.rasson1.hall;
+    /******************************************************
+     * ADMIN ONLY CAMERA
+     ******************************************************/
+
+    const role = String(
+        localStorage.getItem("role") || ""
+    ).toLowerCase().trim();
+
+    // Staff ko camera bilkul show nahi hoga
+    if (
+        role !== "admin" &&
+        role !== "super admin" &&
+        role !== "superadmin"
+    ) {
+        return;
+    }
+
+
+    const config =
+        CAMERA_CONFIG.rasson1.hall;
 
 let streamUrl = "";
 
