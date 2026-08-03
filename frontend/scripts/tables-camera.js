@@ -7,12 +7,11 @@
 
     const CAMERA_CONFIG = {
 
-        rasson1: {
-            hall: {
-                title: "HALL CAMERA",
-                stream: "http://192.168.18.98:8085/hall/stream.m3u8"
-            }
-        }
+rasson1: {
+    hall: {
+        title: "HALL CAMERA"
+    }
+}
 
     };
 
@@ -45,7 +44,7 @@
      * CREATE HALL CAMERA CARD
      ******************************************************/
 
-    function renderHallCamera() {
+async function renderHallCamera() {
 
         const branch = getCameraBranch();
 
@@ -57,6 +56,43 @@
 
         const config =
             CAMERA_CONFIG.rasson1.hall;
+
+    let streamUrl = "";
+
+try {
+
+    const response = await fetch(
+        "http://192.168.18.98:8085/camera-url.json?t=" + Date.now(),
+        {
+            cache: "no-store"
+        }
+    );
+
+    const cameraData = await response.json();
+
+    if (!cameraData.url) {
+        throw new Error("Camera URL missing");
+    }
+
+    streamUrl =
+        cameraData.url +
+        "/hall/stream.m3u8";
+
+    console.log(
+        "📷 Camera Stream:",
+        streamUrl
+    );
+
+}
+catch (error) {
+
+    console.error(
+        "❌ Camera URL load failed:",
+        error
+    );
+
+    return;
+}
 
 
         const tablesGrid =
@@ -134,7 +170,7 @@
         tablesGrid.appendChild(card);
 
 
-        startHallCamera(config.stream);
+        startHallCamera(streamUrl);
         bindHallFullscreen();
     }
 
