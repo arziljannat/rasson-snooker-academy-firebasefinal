@@ -1,5 +1,7 @@
 /******************************************************
  * RASSON CAMERA SYSTEM
+ * Rasson1 + Rasson4
+ * ADMIN / SUPER ADMIN ONLY
  * Separate from Tables / Billing / Timer logic
  ******************************************************/
 
@@ -7,16 +9,55 @@
 
     const CAMERA_CONFIG = {
 
-rasson1: {
-    hall: {
-        title: "HALL CAMERA"
-    }
-}
+        rasson1: [
+            {
+                id: "hall",
+                title: "HALL CAMERA",
+                path: "/hall/stream.m3u8"
+            }
+        ],
+
+        rasson4: [
+            {
+                id: "table1",
+                title: "TABLE 1 CAMERA",
+                path: "/table1/stream.m3u8"
+            },
+            {
+                id: "table345",
+                title: "TABLE 3 / 4 / 5 CAMERA",
+                path: "/table345/stream.m3u8"
+            },
+            {
+                id: "room1",
+                title: "ROOM 1 CAMERA",
+                path: "/room1/stream.m3u8"
+            },
+            {
+                id: "room2",
+                title: "ROOM 2 CAMERA",
+                path: "/room2/stream.m3u8"
+            },
+            {
+                id: "room3",
+                title: "ROOM 3 CAMERA",
+                path: "/room3/stream.m3u8"
+            }
+        ]
 
     };
 
 
-    let hallHls = null;
+    /*
+     * Har camera ka apna HLS instance
+     */
+    const hlsInstances = {};
+
+
+    /*
+     * Multiple render calls ko control karne ke liye
+     */
+    let renderInProgress = false;
 
 
     /******************************************************
@@ -25,134 +66,186 @@ rasson1: {
 
     function getCameraBranch() {
 
-        // Existing software BRANCH variable
         if (
             typeof BRANCH !== "undefined" &&
             BRANCH
         ) {
-            return String(BRANCH).toLowerCase();
+            return String(BRANCH)
+                .toLowerCase()
+                .trim();
         }
 
-        // Fallback
         return String(
             localStorage.getItem("branch") || ""
-        ).toLowerCase();
+        )
+            .toLowerCase()
+            .trim();
     }
 
 
     /******************************************************
-     * CREATE HALL CAMERA CARD
+     * ADMIN CHECK
      ******************************************************/
 
-async function renderHallCamera() {
+    function isCameraAdmin() {
 
-    const branch = getCameraBranch();
+        const role = String(
+            localStorage.getItem("role") || ""
+        )
+            .toLowerCase()
+            .trim();
 
-    // Camera abhi sirf Rasson1 ke liye
-    if (branch !== "rasson1") {
-        return;
+        return (
+            role === "admin" ||
+            role === "super admin" ||
+            role === "superadmin"
+        );
     }
 
 
     /******************************************************
-     * ADMIN ONLY CAMERA
+     * CLEAN OLD HLS
      ******************************************************/
 
-    const role = String(
-        localStorage.getItem("role") || ""
-    ).toLowerCase().trim();
+    function destroyCameraHls(cameraId) {
 
-    // Staff ko camera bilkul show nahi hoga
-    if (
-        role !== "admin" &&
-        role !== "super admin" &&
-        role !== "superadmin"
-    ) {
-        return;
+        if (!hlsInstances[cameraId]) {
+            return;
+        }
+
+        try {
+
+            hlsInstances[cameraId].destroy();
+
+        }
+        catch (error) {
+
+            console.warn(
+                "📷 Camera HLS cleanup:",
+                cameraId,
+                error
+            );
+
+        }
+
+        delete hlsInstances[cameraId];
     }
 
 
-    const config =
-        CAMERA_CONFIG.rasson1.hall;
+    /******************************************************
+     * GET FIREBASE CAMERA BASE URL
+     ******************************************************/
 
-let streamUrl = "";
+    async function getCameraBaseUrl(branch) {
 
-try {
+        if (
+            !window.db ||
+            !window.fs ||
+            !window.fs.doc ||
+            !window.fs.getDoc
+        ) {
+            throw new Error(
+                "Firebase not ready"
+            );
+        }
 
-    if (!window.db || !window.fs) {
-        throw new Error("Firebase not ready");
+
+        const cameraDocRef =
+            window.fs.doc(
+                window.db,
+                "camera_config",
+                branch
+            );
+
+
+        const cameraSnapshot =
+            await window.fs.getDoc(
+                cameraDocRef
+            );
+
+
+        if (!cameraSnapshot.exists()) {
+
+            throw new Error(
+                "Camera config not found: " +
+                branch
+            );
+
+        }
+
+
+        const cameraData =
+            cameraSnapshot.data();
+
+
+        if (!cameraData.url) {
+
+            throw new Error(
+                "Camera URL missing: " +
+                branch
+            );
+
+        }
+
+
+        /*
+         * Last slash remove
+         */
+        return String(cameraData.url)
+            .replace(/\/+$/, "");
     }
 
-    const cameraDocRef =
-        window.fs.doc(
-            window.db,
-            "camera_config",
-            "rasson1"
-        );
 
-    const cameraSnapshot =
-        await window.fs.getDoc(cameraDocRef);
+    /******************************************************
+     * CREATE CAMERA CARD
+     ******************************************************/
 
-    if (!cameraSnapshot.exists()) {
-        throw new Error(
-            "Camera config document not found"
-        );
-    }
-
-    const cameraData =
-        cameraSnapshot.data();
-
-    if (!cameraData.url) {
-        throw new Error(
-            "Camera URL missing"
-        );
-    }
-
-    streamUrl =
-        cameraData.url +
-        "/hall/stream.m3u8";
-
-    console.log(
-        "📷 Camera Stream:",
+    function createCameraCard(
+        camera,
         streamUrl
-    );
-
-}
-catch (error) {
-
-    console.error(
-        "❌ Camera URL load failed:",
-        error
-    );
-
-    return;
-}
-
+    ) {
 
         const tablesGrid =
-            document.getElementById("tablesGrid");
+            document.getElementById(
+                "tablesGrid"
+            );
 
 
-        // tables.js ne grid abhi create nahi ki
         if (!tablesGrid) {
             return;
         }
 
 
-        // Duplicate protection
+        const cardId =
+            "cameraCard_" + camera.id;
+
+
+        /*
+         * Duplicate protection
+         */
         if (
-            document.getElementById("hallCameraCard")
+            document.getElementById(cardId)
         ) {
             return;
         }
+
+
+        const videoId =
+            "cameraVideo_" + camera.id;
+
+
+        const fullscreenId =
+            "cameraFullscreen_" + camera.id;
 
 
         const card =
             document.createElement("div");
 
 
-        card.id = "hallCameraCard";
-        card.className = "rasson-camera-card";
+        card.id = cardId;
+
+        card.className =
+            "rasson-camera-card";
 
 
         card.innerHTML = `
@@ -160,11 +253,16 @@ catch (error) {
             <div class="rasson-camera-title">
 
                 <div>
-                    <span class="camera-live-dot"></span>
-                    ${config.title}
+                    <span
+                        class="camera-live-dot"
+                    ></span>
+
+                    ${camera.title}
                 </div>
 
-                <span class="camera-live-text">
+                <span
+                    class="camera-live-text"
+                >
                     LIVE
                 </span>
 
@@ -173,11 +271,11 @@ catch (error) {
 
             <div
                 class="rasson-camera-video-wrap"
-                id="hallCameraFullscreen"
+                id="${fullscreenId}"
             >
 
                 <video
-                    id="hallCameraVideo"
+                    id="${videoId}"
                     class="rasson-camera-video"
                     muted
                     autoplay
@@ -185,7 +283,9 @@ catch (error) {
                 ></video>
 
 
-                <div class="camera-fullscreen-hint">
+                <div
+                    class="camera-fullscreen-hint"
+                >
                     CLICK FOR FULL SCREEN
                 </div>
 
@@ -194,76 +294,80 @@ catch (error) {
         `;
 
 
-        /*
-         * IMPORTANT:
-         * tablesGrid ke andar append kar rahe hain.
-         *
-         * Is wajah se camera existing Table cards ke
-         * same CSS grid system ko follow karega.
-         */
         tablesGrid.appendChild(card);
 
 
-        startHallCamera(streamUrl);
-        bindHallFullscreen();
+        startCamera(
+            camera.id,
+            videoId,
+            streamUrl
+        );
+
+
+        bindCameraFullscreen(
+            fullscreenId
+        );
     }
 
 
     /******************************************************
-     * START HLS STREAM
+     * START CAMERA HLS
      ******************************************************/
 
-    function startHallCamera(streamUrl) {
+    function startCamera(
+        cameraId,
+        videoId,
+        streamUrl
+    ) {
 
         const video =
             document.getElementById(
-                "hallCameraVideo"
+                videoId
             );
 
 
-        if (!video) return;
-
-
-        // Old HLS instance clean
-        if (hallHls) {
-
-            try {
-                hallHls.destroy();
-            }
-            catch (error) {
-                console.warn(
-                    "Camera HLS cleanup:",
-                    error
-                );
-            }
-
-            hallHls = null;
+        if (!video) {
+            return;
         }
 
 
-        // Chrome / Edge
+        destroyCameraHls(cameraId);
+
+
+        /*
+         * Chrome / Edge
+         */
         if (
             window.Hls &&
             Hls.isSupported()
         ) {
 
-            hallHls = new Hls({
+            const hls =
+                new Hls({
 
-                liveSyncDurationCount: 2,
+                    liveSyncDurationCount: 2,
 
-                liveMaxLatencyDurationCount: 5,
+                    liveMaxLatencyDurationCount: 5,
 
-                enableWorker: true
+                    enableWorker: true
 
-            });
-
-
-            hallHls.loadSource(streamUrl);
-
-            hallHls.attachMedia(video);
+                });
 
 
-            hallHls.on(
+            hlsInstances[cameraId] = hls;
+
+
+            hls.loadSource(
+                streamUrl
+            );
+
+
+            hls.attachMedia(
+                video
+            );
+
+
+            hls.on(
                 Hls.Events.MANIFEST_PARSED,
                 () => {
 
@@ -275,12 +379,13 @@ catch (error) {
             );
 
 
-            hallHls.on(
+            hls.on(
                 Hls.Events.ERROR,
                 (event, data) => {
 
                     console.warn(
-                        "📷 Hall Camera HLS:",
+                        "📷 Camera HLS:",
+                        cameraId,
                         data
                     );
 
@@ -295,10 +400,11 @@ catch (error) {
                         case Hls.ErrorTypes.NETWORK_ERROR:
 
                             console.log(
-                                "📷 Camera network retry..."
+                                "📷 Network retry:",
+                                cameraId
                             );
 
-                            hallHls.startLoad();
+                            hls.startLoad();
 
                             break;
 
@@ -306,10 +412,11 @@ catch (error) {
                         case Hls.ErrorTypes.MEDIA_ERROR:
 
                             console.log(
-                                "📷 Camera media recovery..."
+                                "📷 Media recovery:",
+                                cameraId
                             );
 
-                            hallHls.recoverMediaError();
+                            hls.recoverMediaError();
 
                             break;
 
@@ -317,17 +424,28 @@ catch (error) {
                         default:
 
                             console.log(
-                                "📷 Camera restart required"
+                                "📷 Camera restart:",
+                                cameraId
                             );
 
-                            hallHls.destroy();
-                            hallHls = null;
 
-                            setTimeout(() => {
-                                startHallCamera(
-                                    streamUrl
-                                );
-                            }, 3000);
+                            destroyCameraHls(
+                                cameraId
+                            );
+
+
+                            setTimeout(
+                                () => {
+
+                                    startCamera(
+                                        cameraId,
+                                        videoId,
+                                        streamUrl
+                                    );
+
+                                },
+                                3000
+                            );
 
                             break;
                     }
@@ -338,7 +456,9 @@ catch (error) {
         }
 
 
-        // Safari / native HLS fallback
+        /*
+         * Safari native HLS
+         */
         else if (
             video.canPlayType(
                 "application/vnd.apple.mpegurl"
@@ -353,10 +473,12 @@ catch (error) {
 
         }
 
+
         else {
 
             console.error(
-                "❌ HLS playback not supported."
+                "❌ HLS playback not supported:",
+                cameraId
             );
 
         }
@@ -367,15 +489,19 @@ catch (error) {
      * FULLSCREEN
      ******************************************************/
 
-    function bindHallFullscreen() {
+    function bindCameraFullscreen(
+        fullscreenId
+    ) {
 
         const wrapper =
             document.getElementById(
-                "hallCameraFullscreen"
+                fullscreenId
             );
 
 
-        if (!wrapper) return;
+        if (!wrapper) {
+            return;
+        }
 
 
         wrapper.addEventListener(
@@ -429,13 +555,124 @@ catch (error) {
 
 
     /******************************************************
+     * RENDER CAMERAS
+     ******************************************************/
+
+    async function renderCameras() {
+
+        /*
+         * Prevent overlapping async renders
+         */
+        if (renderInProgress) {
+            return;
+        }
+
+
+        renderInProgress = true;
+
+
+        try {
+
+            const branch =
+                getCameraBranch();
+
+
+            /*
+             * Admin only
+             */
+            if (!isCameraAdmin()) {
+                return;
+            }
+
+
+            /*
+             * Sirf configured branches
+             */
+            const cameras =
+                CAMERA_CONFIG[branch];
+
+
+            if (
+                !cameras ||
+                !cameras.length
+            ) {
+                return;
+            }
+
+
+            const tablesGrid =
+                document.getElementById(
+                    "tablesGrid"
+                );
+
+
+            if (!tablesGrid) {
+                return;
+            }
+
+
+            /*
+             * Firestore se branch ka
+             * current Cloudflare URL
+             */
+            const baseUrl =
+                await getCameraBaseUrl(
+                    branch
+                );
+
+
+            console.log(
+                "📷 Camera Base URL:",
+                branch,
+                baseUrl
+            );
+
+
+            /*
+             * Branch ke saare cameras
+             */
+            cameras.forEach(
+                camera => {
+
+                    const streamUrl =
+                        baseUrl +
+                        camera.path;
+
+
+                    console.log(
+                        "📷 Camera Stream:",
+                        camera.id,
+                        streamUrl
+                    );
+
+
+                    createCameraCard(
+                        camera,
+                        streamUrl
+                    );
+
+                }
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ Camera render failed:",
+                error
+            );
+
+        }
+        finally {
+
+            renderInProgress = false;
+
+        }
+    }
+
+
+    /******************************************************
      * WATCH TABLES.JS RENDER
-     *
-     * renderTables() box.innerHTML="" karta hai,
-     * isliye camera card remove ho sakta hai.
-     *
-     * MutationObserver usko automatically dobara
-     * add karega without changing tables.js.
      ******************************************************/
 
     function watchTablesRender() {
@@ -458,21 +695,27 @@ catch (error) {
 
 
         const observer =
-            new MutationObserver(() => {
+            new MutationObserver(
+                () => {
 
-                clearTimeout(
-                    window._hallCameraRenderTimer
-                );
+                    clearTimeout(
+                        window
+                            ._cameraRenderTimer
+                    );
 
 
-                window._hallCameraRenderTimer =
-                    setTimeout(() => {
+                    window._cameraRenderTimer =
+                        setTimeout(
+                            () => {
 
-                        renderHallCamera();
+                                renderCameras();
 
-                    }, 150);
+                            },
+                            150
+                        );
 
-            });
+                }
+            );
 
 
         observer.observe(
@@ -484,8 +727,10 @@ catch (error) {
         );
 
 
-        // Initial attempt
-        renderHallCamera();
+        /*
+         * Initial render
+         */
+        renderCameras();
     }
 
 
