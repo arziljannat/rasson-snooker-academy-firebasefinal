@@ -20,7 +20,7 @@
         rasson4: [
             {
                 id: "table1",
-                title: "TABLE 1 CAMERA",
+                title: "TABLE 1 & 2 CAMERA",
                 path: "/table1/stream.m3u8"
             },
             {
@@ -200,115 +200,241 @@
      * CREATE CAMERA CARD
      ******************************************************/
 
-    function createCameraCard(
-        camera,
-        streamUrl
-    ) {
+function createCameraCard(
+    camera,
+    streamUrl
+) {
+
+    const branch = getCameraBranch();
+
+    const cardId =
+        "cameraCard_" + camera.id;
+
+    // Duplicate protection
+    if (document.getElementById(cardId)) {
+        return;
+    }
+
+
+    const videoId =
+        "cameraVideo_" + camera.id;
+
+    const fullscreenId =
+        "cameraFullscreen_" + camera.id;
+
+
+    const card =
+        document.createElement("div");
+
+    card.id = cardId;
+
+    card.className =
+        "rasson-camera-card";
+
+
+    card.innerHTML = `
+
+        <div class="rasson-camera-title">
+
+            <div>
+                <span
+                    class="camera-live-dot"
+                ></span>
+
+                ${camera.title}
+            </div>
+
+            <span
+                class="camera-live-text"
+            >
+                LIVE
+            </span>
+
+        </div>
+
+
+        <div
+            class="rasson-camera-video-wrap"
+            id="${fullscreenId}"
+        >
+
+            <video
+                id="${videoId}"
+                class="rasson-camera-video"
+                muted
+                autoplay
+                playsinline
+            ></video>
+
+            <div
+                class="camera-fullscreen-hint"
+            >
+                CLICK FOR FULL SCREEN
+            </div>
+
+        </div>
+    `;
+
+
+    /**************************************************
+     * RASSON 1
+     **************************************************/
+
+    if (branch === "rasson1") {
 
         const tablesGrid =
             document.getElementById(
                 "tablesGrid"
             );
 
-
         if (!tablesGrid) {
             return;
         }
 
+        tablesGrid.appendChild(card);
+    }
 
-        const cardId =
-            "cameraCard_" + camera.id;
+
+    /**************************************************
+     * RASSON 4 CAMERA MAPPING
+     **************************************************/
+
+    else if (branch === "rasson4") {
+
+        const tablesGrid =
+            document.getElementById(
+                "tablesGrid"
+            );
+
+        const roomsGrid =
+            document.getElementById(
+                "roomsGrid"
+            );
 
 
         /*
-         * Duplicate protection
+         * TABLE 1 + TABLE 2
+         * ke neeche
          */
-        if (
-            document.getElementById(cardId)
-        ) {
-            return;
+        if (camera.id === "table1") {
+
+            if (!tablesGrid) return;
+
+            card.classList.add(
+                "camera-table12"
+            );
+
+            const tableCards =
+                tablesGrid.querySelectorAll(
+                    ".table-box"
+                );
+
+            if (tableCards.length >= 2) {
+
+                tableCards[1].after(card);
+
+            } else {
+
+                tablesGrid.appendChild(card);
+
+            }
         }
 
 
-        const videoId =
-            "cameraVideo_" + camera.id;
+        /*
+         * TABLE 3 + TABLE 4 + TABLE 5
+         * ke neeche
+         */
+        else if (
+            camera.id === "table345"
+        ) {
+
+            if (!tablesGrid) return;
+
+            card.classList.add(
+                "camera-table345"
+            );
+
+            const tableCards =
+                tablesGrid.querySelectorAll(
+                    ".table-box"
+                );
+
+            if (tableCards.length >= 5) {
+
+                tableCards[4].after(card);
+
+            } else {
+
+                tablesGrid.appendChild(card);
+
+            }
+        }
 
 
-        const fullscreenId =
-            "cameraFullscreen_" + camera.id;
+        /*
+         * ROOM 1 / ROOM 2 / ROOM 3
+         */
+        else if (
+            camera.id === "room1" ||
+            camera.id === "room2" ||
+            camera.id === "room3"
+        ) {
+
+            if (!roomsGrid) return;
+
+            card.classList.add(
+                "camera-room"
+            );
+
+            const roomNumber =
+                Number(
+                    camera.id.replace(
+                        "room",
+                        ""
+                    )
+                );
+
+            const roomCards =
+                roomsGrid.querySelectorAll(
+                    ".table-box"
+                );
 
 
-        const card =
-            document.createElement("div");
+            const targetRoom =
+                roomCards[
+                    roomNumber - 1
+                ];
 
 
-        card.id = cardId;
+            if (targetRoom) {
 
-        card.className =
-            "rasson-camera-card";
+                targetRoom.after(card);
 
+            } else {
 
-        card.innerHTML = `
+                roomsGrid.appendChild(card);
 
-            <div class="rasson-camera-title">
+            }
+        }
 
-                <div>
-                    <span
-                        class="camera-live-dot"
-                    ></span>
-
-                    ${camera.title}
-                </div>
-
-                <span
-                    class="camera-live-text"
-                >
-                    LIVE
-                </span>
-
-            </div>
-
-
-            <div
-                class="rasson-camera-video-wrap"
-                id="${fullscreenId}"
-            >
-
-                <video
-                    id="${videoId}"
-                    class="rasson-camera-video"
-                    muted
-                    autoplay
-                    playsinline
-                ></video>
-
-
-                <div
-                    class="camera-fullscreen-hint"
-                >
-                    CLICK FOR FULL SCREEN
-                </div>
-
-            </div>
-
-        `;
-
-
-        tablesGrid.appendChild(card);
-
-
-        startCamera(
-            camera.id,
-            videoId,
-            streamUrl
-        );
-
-
-        bindCameraFullscreen(
-            fullscreenId
-        );
     }
 
+
+    /*
+     * Camera start
+     */
+    startCamera(
+        camera.id,
+        videoId,
+        streamUrl
+    );
+
+
+    bindCameraFullscreen(
+        fullscreenId
+    );
+}
 
     /******************************************************
      * START CAMERA HLS
