@@ -282,23 +282,6 @@
 }
 
 
-/* Room camera video */
-#roomsGrid .camera-room
-.rasson-camera-video-wrap {
-    width: 100%;
-    height: 260px;
-}
-
-
-#roomsGrid .camera-room
-.rasson-camera-video {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: auto;
-    object-fit: contain;
-    background: #000;
-}
-
 
 /******************************************************
  * MOBILE
@@ -327,4 +310,92 @@
 #tablesGrid .camera-table12 .rasson-camera-video-wrap,
 #tablesGrid .camera-table345 .rasson-camera-video-wrap {
     height: 300px;
+}
+
+
+/******************************************************
+ * CAMERA CARD SIZE — MATCH TABLE / ROOM CARDS
+ ******************************************************/
+
+/* TABLE 1 + 2 CAMERA
+   2 table cards ki combined width */
+#tablesGrid .camera-table12 {
+    grid-column: span 2 !important;
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+}
+
+
+/* TABLE 3 + 4 + 5 CAMERA
+   3 table cards ki combined width */
+#tablesGrid .camera-table345 {
+    grid-column: span 3 !important;
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+}
+
+
+/* TABLE CAMERA VIDEO */
+#tablesGrid .rasson-camera-video-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+#tablesGrid .rasson-camera-video {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+
+/* ================================================
+   ROOM CAMERA
+   Exactly same width as one Room card
+   ================================================ */
+
+#roomsGrid .camera-room {
+    grid-column: span 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-self: stretch !important;
+}
+
+
+#roomsGrid .camera-room .rasson-camera-video-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+}
+
+
+/*
+ * Full camera image rakho.
+ * Timestamp crop nahi hoga.
+ */
+#roomsGrid .camera-room .rasson-camera-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+
+/* ================================================
+   MOBILE
+   ================================================ */
+
+@media (max-width: 900px) {
+
+    #tablesGrid .camera-table12,
+    #tablesGrid .camera-table345,
+    #roomsGrid .camera-room {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
+
 }
