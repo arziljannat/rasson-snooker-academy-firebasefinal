@@ -636,10 +636,62 @@ cameraWatchdogs[cameraId] =
                     );
 
 
-                    if (!data.fatal) {
-                        return;
-                    }
+/*
+ * NON-FATAL STALL RECOVERY
+ *
+ * Camera low-buffer ki wajah se ruk jaye
+ * to refresh ki zarurat na pade.
+ */
+if (!data.fatal) {
 
+    if (
+        data.details ===
+        Hls.ErrorDetails.BUFFER_STALLED_ERROR
+    ) {
+
+        console.warn(
+            "📷 Camera stalled - jumping to live:",
+            cameraId
+        );
+
+        try {
+
+            if (
+                video.seekable &&
+                video.seekable.length > 0
+            ) {
+
+                const liveEdge =
+                    video.seekable.end(
+                        video.seekable.length - 1
+                    );
+
+                video.currentTime =
+                    Math.max(
+                        0,
+                        liveEdge - 0.5
+                    );
+            }
+
+            video
+                .play()
+                .catch(() => {});
+
+        }
+        catch (error) {
+
+            console.warn(
+                "📷 Stall recovery failed:",
+                cameraId,
+                error
+            );
+
+        }
+
+    }
+
+    return;
+}
 
                     switch (data.type) {
 
