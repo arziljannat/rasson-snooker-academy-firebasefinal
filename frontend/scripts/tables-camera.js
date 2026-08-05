@@ -468,16 +468,30 @@ function createCameraCard(
             Hls.isSupported()
         ) {
 
-            const hls =
-                new Hls({
-
-                    liveSyncDurationCount: 2,
-
-                    liveMaxLatencyDurationCount: 5,
-
-                    enableWorker: true
-
-                });
+        const hls =
+            new Hls({
+        
+                // Live edge ke qareeb rakho
+                liveSyncDurationCount: 1,
+        
+                // Agar stream peeche reh jaye to catch-up kare
+                liveMaxLatencyDurationCount: 3,
+        
+                // Buffer ko unnecessarily bara na hone do
+                maxBufferLength: 5,
+        
+                maxMaxBufferLength: 10,
+        
+                // Live stream peeche ho to playback speed
+                // temporarily increase ho sakti hai
+                maxLiveSyncPlaybackRate: 1.5,
+        
+                // Purane buffer ko zyada der retain na karo
+                backBufferLength: 0,
+        
+                enableWorker: true
+        
+            });
 
 
             hlsInstances[cameraId] = hls;
@@ -493,17 +507,106 @@ function createCameraCard(
             );
 
 
-            hls.on(
-                Hls.Events.MANIFEST_PARSED,
-                () => {
-
-                    video
-                        .play()
-                        .catch(() => {});
-
+        hls.on(
+            Hls.Events.MANIFEST_PARSED,
+            () => {
+        
+                /*
+                 * Start hamesha latest available
+                 * live edge ke qareeb se.
+                 */
+                if (
+                    video.seekable &&
+                    video.seekable.length > 0
+                ) {
+        
+                    const liveEdge =
+                        video.seekable.end(
+                            video.seekable.length - 1
+                        );
+        
+                    if (Number.isFinite(liveEdge)) {
+        
+                        video.currentTime =
+                            Math.max(
+                                0,
+                                liveEdge - 1
+                            );
+                    }
                 }
-            );
+        
+        
+                video
+                    .play()
+                    .catch(() => {});
+        
+            }
+        );
 
+
+
+        /*
+ * LIVE EDGE WATCHDOG
+ *
+ * Agar browser kisi wajah se live stream se
+ * bohat peeche chala jaye to automatically
+ * latest edge par jump kare.
+ */
+const liveWatchdog =
+    setInterval(
+        () => {
+
+            if (
+                !video ||
+                !video.seekable ||
+                video.seekable.length === 0
+            ) {
+                return;
+            }
+
+
+            const liveEdge =
+                video.seekable.end(
+                    video.seekable.length - 1
+                );
+
+
+            const delay =
+                liveEdge -
+                video.currentTime;
+
+
+            /*
+             * 6 seconds se zyada peeche
+             * hone nahi dena.
+             */
+            if (
+                Number.isFinite(delay) &&
+                delay > 6
+            ) {
+
+                console.warn(
+                    "📷 Camera behind live edge:",
+                    cameraId,
+                    delay.toFixed(1),
+                    "seconds"
+                );
+
+
+                video.currentTime =
+                    Math.max(
+                        0,
+                        liveEdge - 1
+                    );
+            }
+
+        },
+        3000
+    );
+            
+
+
+            
 
             hls.on(
                 Hls.Events.ERROR,
