@@ -241,3 +241,72 @@
 
     min-width: 0;
 }
+
+/******************************************************
+ * RASSON 4 CAMERA MAPPING LAYOUT
+ ******************************************************/
+
+/* Table 1 + 2 common camera */
+.camera-table12 {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+
+/* Table 3 + 4 + 5 common camera */
+.camera-table345 {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+
+/* Room cameras apni grid cell mein rahenge */
+#roomsGrid .camera-room {
+    grid-column: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+}
+
+
+/*
+ * Rooms:
+ * Room1 | Room2 | Room3
+ * Camera | Camera | Camera
+ */
+#roomsGrid {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr)) !important;
+}
+
+
+/* Room camera video */
+#roomsGrid .camera-room
+.rasson-camera-video-wrap {
+    width: 100%;
+}
+
+
+#roomsGrid .camera-room
+.rasson-camera-video {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+
+/******************************************************
+ * MOBILE
+ ******************************************************/
+
+@media (max-width: 900px) {
+
+    #roomsGrid {
+        grid-template-columns:
+            1fr !important;
+    }
+
+}
