@@ -954,68 +954,41 @@ if (!data.fatal) {
 function watchTablesRender() {
 
     const container =
-        document.getElementById("tablesContainer");
+        document.getElementById(
+            "tablesContainer"
+        );
 
     if (!container) {
-        setTimeout(watchTablesRender, 500);
+
+        setTimeout(
+            watchTablesRender,
+            500
+        );
+
         return;
-    }
-
-    let lastTableCount = -1;
-    let lastRoomCount = -1;
-
-    function checkAndRender() {
-
-        const tablesGrid =
-            document.getElementById("tablesGrid");
-
-        const roomsGrid =
-            document.getElementById("roomsGrid");
-
-        const tableCount =
-            tablesGrid
-                ? tablesGrid.querySelectorAll(":scope > .table-box").length
-                : 0;
-
-        const roomCount =
-            roomsGrid
-                ? roomsGrid.querySelectorAll(":scope > .table-box").length
-                : 0;
-
-        /*
-         * Sirf actual tables/rooms render change hone
-         * par cameras render karo.
-         *
-         * Camera video/HLS ke DOM changes par
-         * renderCameras dobara nahi chalega.
-         */
-        if (
-            tableCount !== lastTableCount ||
-            roomCount !== lastRoomCount
-        ) {
-
-            lastTableCount = tableCount;
-            lastRoomCount = roomCount;
-
-            clearTimeout(
-                window._cameraRenderTimer
-            );
-
-            window._cameraRenderTimer =
-                setTimeout(
-                    () => {
-                        renderCameras();
-                    },
-                    300
-                );
-        }
     }
 
 
     const observer =
         new MutationObserver(
             () => {
-                checkAndRender();
+
+                clearTimeout(
+                    window
+                        ._cameraRenderTimer
+                );
+
+
+                window._cameraRenderTimer =
+                    setTimeout(
+                        () => {
+
+                            renderCameras();
+
+                        },
+                        150
+                    );
+
             }
         );
 
@@ -1032,7 +1005,7 @@ function watchTablesRender() {
     /*
      * Initial render
      */
-    checkAndRender();
+    renderCameras();
 }
 
 
