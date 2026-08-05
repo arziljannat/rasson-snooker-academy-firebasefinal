@@ -485,31 +485,33 @@ function createCameraCard(
             Hls.isSupported()
         ) {
 
-        const hls =
-            new Hls({
-        
-                // Live edge ke qareeb rakho
-                liveSyncDurationCount: 1,
-        
-                // Agar stream peeche reh jaye to catch-up kare
-                liveMaxLatencyDurationCount: 3,
-        
-                // Buffer ko unnecessarily bara na hone do
-                maxBufferLength: 5,
-        
-                maxMaxBufferLength: 10,
-        
-                // Live stream peeche ho to playback speed
-                // temporarily increase ho sakti hai
-                maxLiveSyncPlaybackRate: 1.5,
-        
-                // Purane buffer ko zyada der retain na karo
-                backBufferLength: 0,
-        
-                enableWorker: true
-        
-            });
+const hls =
+    new Hls({
 
+        // Mobile / external internet ke liye
+        // thora safe live buffer
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 6,
+
+        maxBufferLength: 10,
+        maxMaxBufferLength: 20,
+
+        maxLiveSyncPlaybackRate: 1.2,
+
+        backBufferLength: 5,
+
+        // Slow/mobile network par fragments ko
+        // jaldi fail na karo
+        fragLoadingTimeOut: 20000,
+        manifestLoadingTimeOut: 20000,
+
+        // Network retry
+        fragLoadingMaxRetry: 6,
+        manifestLoadingMaxRetry: 6,
+
+        enableWorker: true
+
+    });
 
             hlsInstances[cameraId] = hls;
 
