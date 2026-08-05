@@ -53,6 +53,11 @@
      */
     const hlsInstances = {};
 
+    /*
+ * Har camera ka live watchdog timer
+ */
+const cameraWatchdogs = {};
+
 
     /*
      * Multiple render calls ko control karne ke liye
@@ -109,6 +114,15 @@
 
     function destroyCameraHls(cameraId) {
 
+        if (cameraWatchdogs[cameraId]) {
+
+    clearInterval(
+        cameraWatchdogs[cameraId]
+    );
+
+    delete cameraWatchdogs[cameraId];
+}
+
         if (!hlsInstances[cameraId]) {
             return;
         }
@@ -130,6 +144,9 @@
 
         delete hlsInstances[cameraId];
     }
+
+
+    
 
 
     /******************************************************
@@ -552,7 +569,7 @@ function createCameraCard(
  * bohat peeche chala jaye to automatically
  * latest edge par jump kare.
  */
-const liveWatchdog =
+cameraWatchdogs[cameraId] =
     setInterval(
         () => {
 
