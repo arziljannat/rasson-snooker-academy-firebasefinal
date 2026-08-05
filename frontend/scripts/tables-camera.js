@@ -490,11 +490,11 @@ const hls =
 
         // Mobile / external internet ke liye
         // thora safe live buffer
-        liveSyncDurationCount: 3,
-        liveMaxLatencyDurationCount: 6,
-
-        maxBufferLength: 10,
-        maxMaxBufferLength: 20,
+        liveSyncDurationCount: 5,
+        liveMaxLatencyDurationCount: 10,
+        
+        maxBufferLength: 20,
+        maxMaxBufferLength: 30,
 
         maxLiveSyncPlaybackRate: 1.2,
 
@@ -947,63 +947,93 @@ if (!data.fatal) {
      * WATCH TABLES.JS RENDER
      ******************************************************/
 
-    function watchTablesRender() {
+/******************************************************
+ * WATCH TABLES.JS RENDER - STABLE FINAL
+ ******************************************************/
 
-        const container =
-            document.getElementById(
-                "tablesContainer"
+function watchTablesRender() {
+
+    const container =
+        document.getElementById("tablesContainer");
+
+    if (!container) {
+        setTimeout(watchTablesRender, 500);
+        return;
+    }
+
+    let lastTableCount = -1;
+    let lastRoomCount = -1;
+
+    function checkAndRender() {
+
+        const tablesGrid =
+            document.getElementById("tablesGrid");
+
+        const roomsGrid =
+            document.getElementById("roomsGrid");
+
+        const tableCount =
+            tablesGrid
+                ? tablesGrid.querySelectorAll(":scope > .table-box").length
+                : 0;
+
+        const roomCount =
+            roomsGrid
+                ? roomsGrid.querySelectorAll(":scope > .table-box").length
+                : 0;
+
+        /*
+         * Sirf actual tables/rooms render change hone
+         * par cameras render karo.
+         *
+         * Camera video/HLS ke DOM changes par
+         * renderCameras dobara nahi chalega.
+         */
+        if (
+            tableCount !== lastTableCount ||
+            roomCount !== lastRoomCount
+        ) {
+
+            lastTableCount = tableCount;
+            lastRoomCount = roomCount;
+
+            clearTimeout(
+                window._cameraRenderTimer
             );
 
-
-        if (!container) {
-
-            setTimeout(
-                watchTablesRender,
-                500
-            );
-
-            return;
+            window._cameraRenderTimer =
+                setTimeout(
+                    () => {
+                        renderCameras();
+                    },
+                    300
+                );
         }
+    }
 
 
-        const observer =
-            new MutationObserver(
-                () => {
-
-                    clearTimeout(
-                        window
-                            ._cameraRenderTimer
-                    );
-
-
-                    window._cameraRenderTimer =
-                        setTimeout(
-                            () => {
-
-                                renderCameras();
-
-                            },
-                            150
-                        );
-
-                }
-            );
-
-
-        observer.observe(
-            container,
-            {
-                childList: true,
-                subtree: true
+    const observer =
+        new MutationObserver(
+            () => {
+                checkAndRender();
             }
         );
 
 
-        /*
-         * Initial render
-         */
-        renderCameras();
-    }
+    observer.observe(
+        container,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    /*
+     * Initial render
+     */
+    checkAndRender();
+}
 
 
     /******************************************************
