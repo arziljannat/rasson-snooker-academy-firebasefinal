@@ -644,49 +644,21 @@ cameraWatchdogs[cameraId] =
  */
 if (!data.fatal) {
 
+    /*
+     * Small buffer stalls ko HLS.js
+     * khud recover karne do.
+     *
+     * Har stall par seek karne se
+     * 1-2 second repeat/jump hota tha.
+     */
     if (
         data.details ===
         Hls.ErrorDetails.BUFFER_STALLED_ERROR
     ) {
 
-        console.warn(
-            "📷 Camera stalled - jumping to live:",
-            cameraId
-        );
-
-        try {
-
-            if (
-                video.seekable &&
-                video.seekable.length > 0
-            ) {
-
-                const liveEdge =
-                    video.seekable.end(
-                        video.seekable.length - 1
-                    );
-
-                video.currentTime =
-                    Math.max(
-                        0,
-                        liveEdge - 0.5
-                    );
-            }
-
-            video
-                .play()
-                .catch(() => {});
-
-        }
-        catch (error) {
-
-            console.warn(
-                "📷 Stall recovery failed:",
-                cameraId,
-                error
-            );
-
-        }
+        video
+            .play()
+            .catch(() => {});
 
     }
 
