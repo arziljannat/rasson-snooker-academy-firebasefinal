@@ -153,7 +153,17 @@ const cameraWatchdogs = {};
      * GET FIREBASE CAMERA BASE URL
      ******************************************************/
 
-    async function getCameraBaseUrl(branch) {
+     async function getCameraBaseUrl(branch) {
+    
+        /*
+         * RASSON 4
+         * Permanent Cloudflare Tunnel
+         * Firestore URL ki zarurat nahi
+         */
+        if (branch === "rasson4") {
+            return "https://rasson4.rassonsnookeracademy.dpdns.org";
+        }
+
 
         if (
             !window.db ||
