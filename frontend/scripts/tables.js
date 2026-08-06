@@ -281,944 +281,6 @@ async function loadGlobalCustomersForTables() {
     }
 }
 
-/* =========================================================
-   👤 CUSTOMER PLAYER SELECTOR POPUP
-   ========================================================= */
-
-let customerPlayerPopupTableId = null;
-let customerPlayerPopupNumber = null;
-
-function openCustomerPlayerPopup(tableId, playerNumber) {
-
-    customerPlayerPopupTableId = tableId;
-    customerPlayerPopupNumber = playerNumber;
-
-    // Purana popup ho to remove
-    const oldPopup = document.getElementById("customerPlayerPopup");
-    if (oldPopup) oldPopup.remove();
-
-    const table = tables.find(t => String(t.id) === String(tableId));
-
-    const tableName = table
-        ? (table.name || table.table_id || "Table")
-        : "Table";
-
-    const overlay = document.createElement("div");
-
-    overlay.id = "customerPlayerPopup";
-
-    overlay.style.cssText = `
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.82);
-        z-index:999999;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:15px;
-    `;
-
-    overlay.innerHTML = `
-        <div style="
-            width:420px;
-            max-width:95vw;
-            max-height:80vh;
-            overflow:hidden;
-            background:#001a14;
-            border:2px solid #00ffd5;
-            border-radius:14px;
-            box-shadow:0 0 25px rgba(0,255,213,.35);
-        ">
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                padding:15px;
-                border-bottom:1px solid #00ffd5;
-                color:#00ffd5;
-                font-size:18px;
-                font-weight:bold;
-            ">
-                <span>
-                    ${tableName} — Player ${playerNumber}
-                </span>
-
-                <button
-                    type="button"
-                    onclick="closeCustomerPlayerPopup()"
-                    style="
-                        background:none;
-                        border:none;
-                        color:white;
-                        font-size:22px;
-                        cursor:pointer;
-                    "
-                >
-                    ×
-                </button>
-            </div>
-
-            <div style="padding:15px;">
-
-                <input
-                    id="customerPlayerSearch"
-                    type="text"
-                    placeholder="Search name or mobile number..."
-                    oninput="renderCustomerPlayerList(this.value)"
-                    style="
-                        width:100%;
-                        box-sizing:border-box;
-                        padding:12px;
-                        margin-bottom:10px;
-                        background:#00110d;
-                        border:1px solid #00ffd5;
-                        border-radius:7px;
-                        color:white;
-                        outline:none;
-                    "
-                >
-
-                <button
-                    type="button"
-                    onclick="openAddCustomerFromTables()"
-                    style="
-                        width:100%;
-                        padding:11px;
-                        margin-bottom:10px;
-                        background:#006b52;
-                        border:1px solid #00ffd5;
-                        border-radius:7px;
-                        color:#00ffd5;
-                        font-weight:bold;
-                        cursor:pointer;
-                    "
-                >
-                    + ADD NEW CUSTOMER
-                </button>
-
-                <div
-                    id="customerPlayerList"
-                    style="
-                        max-height:430px;
-                        overflow-y:auto;
-                    "
-                ></div>
-
-            </div>
-
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    renderCustomerPlayerList("");
-}
-
-
-/* =========================================================
-   RENDER CUSTOMER LIST
-   ========================================================= */
-
-function renderCustomerPlayerList(searchText = "") {
-
-    const list =
-        document.getElementById("customerPlayerList");
-
-    if (!list) return;
-
-    const search =
-        String(searchText || "")
-            .trim()
-            .toLowerCase();
-
-    const filteredCustomers =
-        globalCustomers.filter(customer => {
-
-            const name =
-                String(customer.name || "")
-                    .toLowerCase();
-
-            const phone =
-                String(
-                    customer.phone_normalized ||
-                    customer.phone ||
-                    ""
-                ).toLowerCase();
-
-            return (
-                !search ||
-                name.includes(search) ||
-                phone.includes(search)
-            );
-        });
-
-
-    if (!filteredCustomers.length) {
-
-        list.innerHTML = `
-            <div style="
-                padding:20px;
-                text-align:center;
-                color:#aaa;
-            ">
-                No customer found
-            </div>
-        `;
-
-        return;
-    }
-
-
-    list.innerHTML =
-        filteredCustomers.map(customer => {
-
-            const safeName =
-                escapeCustomerPopupText(
-                    customer.name || "Unknown Customer"
-                );
-
-            const safePhone =
-                escapeCustomerPopupText(
-                    customer.phone ||
-                    customer.phone_normalized ||
-                    ""
-                );
-
-
-            // =================================================
-            // CHECK CUSTOMER BUSY STATUS
-            // =================================================
-
-            const activeUsage =
-                findActiveCustomerUsage(
-                    customer.id,
-                    customerPlayerPopupTableId,
-                    customerPlayerPopupNumber
-                );
-
-            const isBusy = !!activeUsage;
-
-
-            const busyText =
-                isBusy
-                    ? `BUSY — ${
-                        escapeCustomerPopupText(
-                            activeUsage.tableName || "Table"
-                        )
-                    } / Player ${activeUsage.player}`
-                    : "SELECT";
-
-
-            return `
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    gap:10px;
-                    padding:10px 3px;
-                    border-bottom:1px solid rgba(0,255,213,.25);
-                ">
-
-                    <div style="min-width:0;">
-
-                        <div style="
-                            color:white;
-                            font-weight:bold;
-                            font-size:15px;
-                        ">
-                            ${safeName}
-                        </div>
-
-                        <div style="
-                            color:#aaa;
-                            font-size:12px;
-                            margin-top:3px;
-                        ">
-                            ${safePhone}
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-
-                        ${
-                            isBusy
-                                ? "disabled"
-                                : `onclick="selectCustomerForPlayer('${customer.id}')"`
-                        }
-
-                        style="
-                            flex-shrink:0;
-                            padding:7px 13px;
-
-                            background:${
-                                isBusy
-                                    ? "#451515"
-                                    : "#006b52"
-                            };
-
-                            border:1px solid ${
-                                isBusy
-                                    ? "#ff5555"
-                                    : "#00ffd5"
-                            };
-
-                            border-radius:6px;
-
-                            color:${
-                                isBusy
-                                    ? "#ff7777"
-                                    : "#00ffd5"
-                            };
-
-                            font-weight:bold;
-
-                            cursor:${
-                                isBusy
-                                    ? "not-allowed"
-                                    : "pointer"
-                            };
-
-                            opacity:${
-                                isBusy
-                                    ? "0.85"
-                                    : "1"
-                            };
-                        "
-                    >
-                        ${busyText}
-                    </button>
-
-                </div>
-            `;
-
-        }).join("");
-}
-
-/* =========================================================
-   👤 FIND ACTIVE CUSTOMER USAGE
-   Same customer cannot play on multiple tables
-   ========================================================= */
-
-function findActiveCustomerUsage(
-    customerId,
-    currentTableId = null,
-    currentPlayer = null
-) {
-
-    if (!customerId) return null;
-
-    for (const table of tables) {
-
-        // =====================================================
-        // PLAYER 1
-        // =====================================================
-
-        if (
-            table.player1CustomerId &&
-            String(table.player1CustomerId) === String(customerId)
-        ) {
-
-            // Same table + same player slot ko BUSY mat dikhao
-            if (
-                String(table.id) === String(currentTableId) &&
-                Number(currentPlayer) === 1
-            ) {
-                continue;
-            }
-
-            return {
-                tableId: table.id,
-                tableName: table.name || "Table",
-                player: 1
-            };
-        }
-
-
-        // =====================================================
-        // PLAYER 2
-        // =====================================================
-
-        if (
-            table.player2CustomerId &&
-            String(table.player2CustomerId) === String(customerId)
-        ) {
-
-            // Same table + same player slot ko BUSY mat dikhao
-            if (
-                String(table.id) === String(currentTableId) &&
-                Number(currentPlayer) === 2
-            ) {
-                continue;
-            }
-
-            return {
-                tableId: table.id,
-                tableName: table.name || "Table",
-                player: 2
-            };
-        }
-    }
-
-    return null;
-}
-
-
-
-
-
-/* =========================================================
-   SELECT CUSTOMER
-   ========================================================= */
-
-function selectCustomerForPlayer(customerDocId) {
-
-    const customer =
-        globalCustomers.find(c =>
-            String(c.id) === String(customerDocId)
-        );
-
-    if (!customer) {
-        alert("Customer not found.");
-        return;
-    }
-
-    const table =
-        tables.find(t =>
-            String(t.id) ===
-            String(customerPlayerPopupTableId)
-        );
-
-if (!table) {
-    alert("Table not found.");
-    return;
-}
-
-const playerNumber =
-    Number(customerPlayerPopupNumber);
-
-
-// =====================================================
-// 👤 BUSY CUSTOMER CHECK
-// =====================================================
-
-const activeUsage =
-    findActiveCustomerUsage(
-        customer.id,
-        table.id,
-        playerNumber
-    );
-
-if (activeUsage) {
-
-    alert(
-        `${customer.name || "Customer"} already selected/playing on ` +
-        `${activeUsage.tableName || "another table"} ` +
-        `as Player ${activeUsage.player}.`
-    );
-
-    return;
-}
-
-
-// =====================================================
-// 👤 SAVE SELECTED CUSTOMER
-// =====================================================
-
-if (playerNumber === 1) {
-
-        table.player1 = customer.name || "";
-        table.player1CustomerId = customer.id;
-        table.player1CustomerPhone =
-            customer.phone ||
-            customer.phone_normalized ||
-            "";
-
-    } else {
-
-        table.player2 = customer.name || "";
-        table.player2CustomerId = customer.id;
-        table.player2CustomerPhone =
-            customer.phone ||
-            customer.phone_normalized ||
-            "";
-    }
-
-    const playerButton =
-        document.getElementById(
-            `player${playerNumber}-${table.id}`
-        );
-
-    if (playerButton) {
-
-        playerButton.innerHTML = `
-            <span style="display:block;">
-                ${escapeCustomerPopupText(customer.name || "")}
-            </span>
-
-            <small style="
-                display:block;
-                font-size:9px;
-                opacity:.8;
-            ">
-                ${escapeCustomerPopupText(
-                    customer.phone ||
-                    customer.phone_normalized ||
-                    ""
-                )}
-            </small>
-        `;
-    }
-
-    closeCustomerPlayerPopup();
-}
-
-
-/* =========================================================
-   CLOSE POPUP
-   ========================================================= */
-
-function closeCustomerPlayerPopup() {
-
-    const popup =
-        document.getElementById("customerPlayerPopup");
-
-    if (popup) {
-        popup.remove();
-    }
-
-    customerPlayerPopupTableId = null;
-    customerPlayerPopupNumber = null;
-}
-
-
-/* =========================================================
-   SAFE TEXT
-   ========================================================= */
-
-function escapeCustomerPopupText(value) {
-
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-/* =========================================================
-   ADD CUSTOMER — TEMPORARY SAFE HANDLER
-   ========================================================= */
-
-function openAddCustomerFromTables() {
-
-    const oldPopup =
-        document.getElementById("addCustomerFromTablesPopup");
-
-    if (oldPopup) oldPopup.remove();
-
-
-    const overlay =
-        document.createElement("div");
-
-    overlay.id =
-        "addCustomerFromTablesPopup";
-
-    overlay.style.cssText = `
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.88);
-        z-index:1000000;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:15px;
-    `;
-
-
-    overlay.innerHTML = `
-        <div style="
-            width:400px;
-            max-width:95vw;
-            background:#001a14;
-            border:2px solid #00ffd5;
-            border-radius:14px;
-            padding:18px;
-            box-shadow:0 0 25px rgba(0,255,213,.35);
-        ">
-
-            <div style="
-                color:#00ffd5;
-                font-size:19px;
-                font-weight:bold;
-                margin-bottom:15px;
-            ">
-                Add New Customer
-            </div>
-
-
-            <input
-                id="tableNewCustomerName"
-                type="text"
-                placeholder="Customer Name"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:11px;
-                    margin-bottom:10px;
-                    background:#00110d;
-                    border:1px solid #00ffd5;
-                    border-radius:7px;
-                    color:white;
-                    outline:none;
-                "
-            >
-
-
-            <input
-                id="tableNewCustomerPhone"
-                type="text"
-                placeholder="Mobile Number"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:11px;
-                    margin-bottom:10px;
-                    background:#00110d;
-                    border:1px solid #00ffd5;
-                    border-radius:7px;
-                    color:white;
-                    outline:none;
-                "
-            >
-
-
-            <textarea
-                id="tableNewCustomerNotes"
-                placeholder="Notes (Optional)"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:11px;
-                    margin-bottom:15px;
-                    min-height:70px;
-                    resize:vertical;
-                    background:#00110d;
-                    border:1px solid #00ffd5;
-                    border-radius:7px;
-                    color:white;
-                    outline:none;
-                "
-            ></textarea>
-
-
-            <div style="
-                display:flex;
-                gap:10px;
-            ">
-
-                <button
-                    type="button"
-                    onclick="closeAddCustomerFromTables()"
-                    style="
-                        flex:1;
-                        padding:11px;
-                        background:#333;
-                        border:1px solid #777;
-                        border-radius:7px;
-                        color:white;
-                        cursor:pointer;
-                    "
-                >
-                    CANCEL
-                </button>
-
-
-                <button
-                    type="button"
-                    onclick="saveCustomerFromTables()"
-                    style="
-                        flex:1;
-                        padding:11px;
-                        background:#006b52;
-                        border:1px solid #00ffd5;
-                        border-radius:7px;
-                        color:#00ffd5;
-                        font-weight:bold;
-                        cursor:pointer;
-                    "
-                >
-                    SAVE & SELECT
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-
-    setTimeout(() => {
-
-        document
-            .getElementById("tableNewCustomerName")
-            ?.focus();
-
-    }, 50);
-}
-
-
-function closeAddCustomerFromTables() {
-
-    const popup =
-        document.getElementById(
-            "addCustomerFromTablesPopup"
-        );
-
-    if (popup) {
-        popup.remove();
-    }
-}
-
-
-/* =========================================================
-   NORMALIZE CUSTOMER PHONE — TABLES
-   ========================================================= */
-
-function normalizeCustomerPhoneForTables(phone) {
-
-    let value =
-        String(phone || "")
-            .replace(/\D/g, "");
-
-    // 0092XXXXXXXXXX
-    if (value.startsWith("0092")) {
-        value = value.substring(4);
-    }
-
-    // 92XXXXXXXXXX
-    if (value.startsWith("92")) {
-        value = value.substring(2);
-    }
-
-    // 03XXXXXXXXX
-    if (value.startsWith("0")) {
-        value = value.substring(1);
-    }
-
-    return value;
-}
-
-
-/* =========================================================
-   SAVE CUSTOMER FROM TABLES
-   ========================================================= */
-
-async function saveCustomerFromTables() {
-
-    const name =
-        document
-            .getElementById("tableNewCustomerName")
-            ?.value
-            .trim() || "";
-
-    const phone =
-        document
-            .getElementById("tableNewCustomerPhone")
-            ?.value
-            .trim() || "";
-
-    const notes =
-        document
-            .getElementById("tableNewCustomerNotes")
-            ?.value
-            .trim() || "";
-
-
-    if (!name) {
-        alert("Customer name enter karein.");
-        return;
-    }
-
-
-    if (!phone) {
-        alert("Mobile number enter karein.");
-        return;
-    }
-
-
-    const normalizedPhone =
-        normalizeCustomerPhoneForTables(phone);
-
-
-    if (normalizedPhone.length < 10) {
-        alert("Valid mobile number enter karein.");
-        return;
-    }
-
-
-    try {
-
-        // =====================================================
-        // 🔎 GLOBAL DUPLICATE CHECK
-        // Same phone = same customer across all branches
-        // =====================================================
-
-        const duplicateQuery =
-            query(
-                collection(window.db, "customers"),
-
-                where(
-                    "phone_normalized",
-                    "==",
-                    normalizedPhone
-                )
-            );
-
-
-        const duplicateSnapshot =
-            await getDocs(duplicateQuery);
-
-
-        if (!duplicateSnapshot.empty) {
-
-            const existingDoc =
-                duplicateSnapshot.docs[0];
-
-            const existing =
-                existingDoc.data();
-
-
-            console.log(
-                "👤 EXISTING GLOBAL CUSTOMER FOUND:",
-                existing
-            );
-
-
-            // Refresh local customer memory first
-            await loadGlobalCustomersForTables();
-
-
-            closeAddCustomerFromTables();
-
-
-            // Existing customer ko automatically select karo
-            selectCustomerForPlayer(
-                existingDoc.id
-            );
-
-
-            return;
-        }
-
-
-        // =====================================================
-        // 👤 CREATE NEW GLOBAL CUSTOMER
-        // =====================================================
-
-        const now =
-            new Date().toISOString();
-
-
-        const customerId =
-            "CUS-" +
-            Date.now().toString(36).toUpperCase() +
-            "-" +
-            Math.random()
-                .toString(36)
-                .substring(2, 6)
-                .toUpperCase();
-
-
-        const newCustomerRef =
-            await addDoc(
-                collection(window.db, "customers"),
-                {
-                    customer_id:
-                        customerId,
-
-                    name:
-                        name,
-
-                    phone:
-                        phone,
-
-                    phone_normalized:
-                        normalizedPhone,
-
-                    notes:
-                        notes,
-
-                    created_at_branch:
-                        BRANCH,
-
-                    source:
-                        "software",
-
-                    total_visits: 0,
-                    total_purchase: 0,
-                    total_received: 0,
-                    balance: 0,
-
-                    created_at:
-                        now,
-
-                    updated_at:
-                        now
-                }
-            );
-
-
-        console.log(
-            "✅ CUSTOMER CREATED FROM TABLE:",
-            newCustomerRef.id
-        );
-
-
-        // Refresh global list
-        await loadGlobalCustomersForTables();
-
-
-        closeAddCustomerFromTables();
-
-
-        // Naya customer automatically current Player slot mein select
-        selectCustomerForPlayer(
-            newCustomerRef.id
-        );
-
-
-    }
-    catch (error) {
-
-        console.error(
-            "❌ CUSTOMER SAVE FROM TABLE ERROR:",
-            error
-        );
-
-        alert(
-            "Customer save nahi hua."
-        );
-    }
-}
-
-
-window.openCustomerPlayerPopup = openCustomerPlayerPopup;
-window.closeCustomerPlayerPopup = closeCustomerPlayerPopup;
-window.renderCustomerPlayerList = renderCustomerPlayerList;
-window.selectCustomerForPlayer = selectCustomerForPlayer;
-
-window.openAddCustomerFromTables = openAddCustomerFromTables;
-window.closeAddCustomerFromTables = closeAddCustomerFromTables;
-window.saveCustomerFromTables = saveCustomerFromTables;
-
-
-
 /******************************************************
  * PAGE LOAD INITIALIZER
  ******************************************************/
@@ -1343,22 +405,10 @@ selectedRate:
         checkinTime: old?.checkinTime || null,
         checkoutTime: old?.checkoutTime || null,
 
-// =====================================================
-// 👤 KEEP PLAYER / CUSTOMER DATA DURING REALTIME REFRESH
-// =====================================================
-
+  // 👥 KEEP PLAYER NAMES DURING TABLE REALTIME REFRESH
         player1: old?.player1 || "",
-        player1CustomerId:
-            old?.player1CustomerId || null,
-        player1CustomerPhone:
-            old?.player1CustomerPhone || "",
-        
         player2: old?.player2 || "",
-        player2CustomerId:
-            old?.player2CustomerId || null,
-        player2CustomerPhone:
-            old?.player2CustomerPhone || "",
-        
+
         playSeconds: old?.playSeconds || 0,
         liveAmount: old?.liveAmount || 0,
 
@@ -1710,29 +760,25 @@ sortedTables.forEach(t => {
             <div class="table-title">${t.name}</div>
 
 
-<!-- 👤 CUSTOMER PLAYER SELECTORS -->
+<!-- 🔥 PLAYER NAMES -->
 <div class="player-names-box">
+<input
+    type="text"
+    id="player1-${t.id}"
+    class="player-name-input"
+    placeholder="Player 1"
+    value="${t.player1 || ''}"
+    onchange="savePlayerNames('${t.id}')"
+>
 
-    <button
-        type="button"
-        id="player1-${t.id}"
-        class="player-name-input"
-        onclick="openCustomerPlayerPopup('${t.id}', 1)"
-    >
-        ${t.player1 || 'Select Player 1'}
-    </button>
-
-    <span class="player-vs">VS</span>
-
-    <button
-        type="button"
-        id="player2-${t.id}"
-        class="player-name-input"
-        onclick="openCustomerPlayerPopup('${t.id}', 2)"
-    >
-        ${t.player2 || 'Select Player 2'}
-    </button>
-
+<input
+    type="text"
+    id="player2-${t.id}"
+    class="player-name-input"
+    placeholder="Player 2"
+    value="${t.player2 || ''}"
+    onchange="savePlayerNames('${t.id}')"
+>
 </div>
 
 <div class="rate-selector">
@@ -2013,37 +1059,26 @@ async function checkIn(id) {
 
     if (t.isRunning) return;
 
-// 👤 SELECTED CUSTOMERS BEFORE CHECK-IN
-// Player names + customer IDs were already stored on table object
-// by selectCustomerForPlayer().
+  // 👥 GET PLAYER NAMES BEFORE CHECK-IN
+const player1Input =
+    document.getElementById(`player1-${id}`);
 
-t.player1 = String(t.player1 || "").trim();
-t.player2 = String(t.player2 || "").trim();
+const player2Input =
+    document.getElementById(`player2-${id}`);
 
-t.player1CustomerId =
-    t.player1CustomerId || null;
+t.player1 =
+    player1Input?.value.trim() || "";
 
-t.player2CustomerId =
-    t.player2CustomerId || null;
-
-t.player1CustomerPhone =
-    t.player1CustomerPhone || "";
-
-t.player2CustomerPhone =
-    t.player2CustomerPhone || "";
+t.player2 =
+    player2Input?.value.trim() || "";
 
 console.log(
-    "👥 CHECK-IN CUSTOMERS:",
-    {
-        player1: t.player1 || "Guest Player 1",
-        player1CustomerId: t.player1CustomerId,
-        player1Phone: t.player1CustomerPhone,
-
-        player2: t.player2 || "Guest Player 2",
-        player2CustomerId: t.player2CustomerId,
-        player2Phone: t.player2CustomerPhone
-    }
+    "👥 CHECK-IN PLAYERS:",
+    t.player1 || "Guest Player 1",
+    "VS",
+    t.player2 || "Guest Player 2"
 );
+
 // =====================================================
 // 🔥 BOOKING PROCEED CHECK
 // =====================================================
@@ -2195,32 +1230,10 @@ try {
         is_deleted: false
     };
 
-// =====================================================
-// 👤 PLAYER / CUSTOMER DATA
-// =====================================================
-
-sessionData.player1_name =
-    t.player1 || "";
-
-sessionData.player1_customer_id =
-    t.player1CustomerId || null;
-
-sessionData.player1_customer_phone =
-    t.player1CustomerPhone || "";
-
-
-sessionData.player2_name =
-    t.player2 || "";
-
-sessionData.player2_customer_id =
-    t.player2CustomerId || null;
-
-sessionData.player2_customer_phone =
-    t.player2CustomerPhone || "";
-
-
-sessionData.players_updated_at =
-    new Date().toISOString();
+    // 👥 PLAYER NAMES
+sessionData.player1_name = t.player1 || "";
+sessionData.player2_name = t.player2 || "";
+sessionData.players_updated_at = new Date().toISOString();
   
     // =====================================================
     // 🔥 ATTACH BOOKING DATA TO SESSION
@@ -2389,60 +1402,24 @@ async function confirmPlayerCheckout(playerNumber) {
 
     if (!t) return;
 
-// =====================================================
-// 👤 SELECT BILLED PLAYER / CUSTOMER
-// =====================================================
+    // Selected billed player temporarily table par save
+    t.checkoutPlayer = selectedPlayer;
 
-t.checkoutPlayer = selectedPlayer;
-
-t.checkoutPlayerNumber = playerNumber;
-
-
-// Registered customer ID
-t.checkoutCustomerId =
-    playerNumber === 1
-        ? (t.player1CustomerId || null)
-        : (t.player2CustomerId || null);
-
-
-// Registered customer phone
-t.checkoutCustomerPhone =
-    playerNumber === 1
-        ? (
-            t.player1CustomerPhone ||
-            t.player1Phone ||
-            ""
-        )
-        : (
-            t.player2CustomerPhone ||
-            t.player2Phone ||
-            ""
-        );
-
-
-console.log(
-    "👤 GAME OFF PLAYER SELECTED:",
-    {
-        player: t.checkoutPlayer,
-        playerNumber: t.checkoutPlayerNumber,
-        customerId: t.checkoutCustomerId,
-        phone: t.checkoutCustomerPhone
-    }
-);
+    console.log(
+        "👤 GAME OFF PLAYER SELECTED:",
+        selectedPlayer
+    );
 
     // Popup close
     document.getElementById(
         "playerCheckoutPopup"
     )?.classList.add("hidden");
 
-// Pending clear
-pendingPlayerCheckout = null;
+    // Pending clear BEFORE original checkout
+    pendingPlayerCheckout = null;
 
-// =====================================================
-// 💰 OPEN CHECKOUT PAYMENT POPUP
-// =====================================================
-
-openCheckoutPaymentPopup(tableId);
+    // Original checkout continue
+    await completeCheckOut(tableId);
 }
 
 
@@ -2456,437 +1433,6 @@ function cancelPlayerCheckout() {
 
     console.log("❌ PLAYER CHECKOUT CANCELLED");
 }
-
-
-/* =========================================================
-   💰 CHECKOUT PAYMENT POPUP
-   ========================================================= */
-
-let pendingCheckoutPaymentTableId = null;
-
-
-function openCheckoutPaymentPopup(tableId) {
-
-    const t = tables.find(
-        x => String(x.id) === String(tableId)
-    );
-
-    if (!t) return;
-
-
-    pendingCheckoutPaymentTableId = tableId;
-
-
-    // Current game amount
-    const gameAmount =
-        Math.max(
-            0,
-            Number(t.liveAmount || 0) -
-            Number(t.discount || 0)
-        );
-
-
-    // Old popup ho to remove
-    document
-        .getElementById("checkoutPaymentPopup")
-        ?.remove();
-
-
-    const overlay =
-        document.createElement("div");
-
-    overlay.id = "checkoutPaymentPopup";
-
-    overlay.style.cssText = `
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.90);
-        z-index:1000001;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:15px;
-    `;
-
-
-    overlay.innerHTML = `
-        <div style="
-            width:400px;
-            max-width:95vw;
-            background:#001a14;
-            border:2px solid #00ffd5;
-            border-radius:14px;
-            padding:20px;
-            box-shadow:0 0 30px rgba(0,255,213,.30);
-        ">
-
-            <div style="
-                color:#00ffd5;
-                font-size:20px;
-                font-weight:bold;
-                margin-bottom:5px;
-            ">
-                Checkout Payment
-            </div>
-
-
-            <div style="
-                color:white;
-                margin-bottom:15px;
-            ">
-                ${t.checkoutPlayer || "Guest Player"}
-            </div>
-
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                font-size:18px;
-                color:white;
-                margin-bottom:15px;
-            ">
-                <b>Game Bill</b>
-                <b>Rs ${gameAmount}</b>
-            </div>
-
-
-            <label style="
-                color:#aaa;
-                display:block;
-                margin-bottom:5px;
-            ">
-                Received Now
-            </label>
-
-
-            <input
-                id="checkoutReceivedAmount"
-                type="number"
-                min="0"
-                max="${gameAmount}"
-                value="${gameAmount}"
-                oninput="updateCheckoutPaymentRemaining()"
-                style="
-                    width:100%;
-                    box-sizing:border-box;
-                    padding:12px;
-                    background:#00110d;
-                    border:1px solid #00ffd5;
-                    border-radius:7px;
-                    color:white;
-                    font-size:18px;
-                    outline:none;
-                    margin-bottom:15px;
-                "
-            >
-
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                font-size:18px;
-                color:#ffcc00;
-                margin-bottom:18px;
-            ">
-                <b>Remaining Balance</b>
-
-                <b>
-                    Rs
-                    <span id="checkoutRemainingAmount">
-                        0
-                    </span>
-                </b>
-            </div>
-
-
-            <div
-                id="checkoutRegistrationWarning"
-                style="
-                    display:none;
-                    background:#401515;
-                    border:1px solid #ff5555;
-                    color:#ff9999;
-                    padding:10px;
-                    border-radius:7px;
-                    margin-bottom:15px;
-                    font-size:13px;
-                "
-            >
-                Partial payment ke liye registered customer required hai.
-            </div>
-
-
-            <div style="
-                display:flex;
-                gap:10px;
-            ">
-
-                <button
-                    type="button"
-                    onclick="cancelCheckoutPayment()"
-                    style="
-                        flex:1;
-                        padding:11px;
-                        background:#333;
-                        border:1px solid #777;
-                        border-radius:7px;
-                        color:white;
-                        cursor:pointer;
-                    "
-                >
-                    CANCEL
-                </button>
-
-
-                <button
-                    type="button"
-                    onclick="confirmCheckoutPayment()"
-                    style="
-                        flex:1;
-                        padding:11px;
-                        background:#006b52;
-                        border:1px solid #00ffd5;
-                        border-radius:7px;
-                        color:#00ffd5;
-                        font-weight:bold;
-                        cursor:pointer;
-                    "
-                >
-                    CONFIRM
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-
-    document.body.appendChild(overlay);
-
-    updateCheckoutPaymentRemaining();
-
-
-    setTimeout(() => {
-
-        const input =
-            document.getElementById(
-                "checkoutReceivedAmount"
-            );
-
-        if (input) {
-            input.focus();
-            input.select();
-        }
-
-    }, 50);
-}
-
-
-/* =========================================================
-   💰 UPDATE REMAINING
-   ========================================================= */
-
-function updateCheckoutPaymentRemaining() {
-
-    const tableId =
-        pendingCheckoutPaymentTableId;
-
-    const t = tables.find(
-        x => String(x.id) === String(tableId)
-    );
-
-    if (!t) return;
-
-
-    const gameAmount =
-        Math.max(
-            0,
-            Number(t.liveAmount || 0) -
-            Number(t.discount || 0)
-        );
-
-
-    const input =
-        document.getElementById(
-            "checkoutReceivedAmount"
-        );
-
-
-    let received =
-        Number(input?.value || 0);
-
-
-    if (received < 0) {
-        received = 0;
-    }
-
-
-    if (received > gameAmount) {
-        received = gameAmount;
-
-        if (input) {
-            input.value = gameAmount;
-        }
-    }
-
-
-    const remaining =
-        Math.max(
-            0,
-            gameAmount - received
-        );
-
-
-    const remainingBox =
-        document.getElementById(
-            "checkoutRemainingAmount"
-        );
-
-    if (remainingBox) {
-        remainingBox.innerText = remaining;
-    }
-
-
-    // Guest + partial payment warning
-    const warning =
-        document.getElementById(
-            "checkoutRegistrationWarning"
-        );
-
-
-    if (warning) {
-
-        warning.style.display =
-            remaining > 0 &&
-            !t.checkoutCustomerId
-                ? "block"
-                : "none";
-    }
-}
-
-
-/* =========================================================
-   ❌ CANCEL PAYMENT
-   ========================================================= */
-
-function cancelCheckoutPayment() {
-
-    document
-        .getElementById("checkoutPaymentPopup")
-        ?.remove();
-
-    pendingCheckoutPaymentTableId = null;
-}
-
-
-/* =========================================================
-   ✅ CONFIRM PAYMENT — TEMPORARY
-   ========================================================= */
-
-async function confirmCheckoutPayment() {
-
-    const tableId =
-        pendingCheckoutPaymentTableId;
-
-    const t = tables.find(
-        x => String(x.id) === String(tableId)
-    );
-
-    if (!t) return;
-
-
-    const gameAmount =
-        Math.max(
-            0,
-            Number(t.liveAmount || 0) -
-            Number(t.discount || 0)
-        );
-
-
-    let received =
-        Number(
-            document
-                .getElementById(
-                    "checkoutReceivedAmount"
-                )
-                ?.value || 0
-        );
-
-
-    if (received < 0) received = 0;
-
-    if (received > gameAmount) {
-        received = gameAmount;
-    }
-
-
-    const remaining =
-        Math.max(
-            0,
-            gameAmount - received
-        );
-
-
-    // =====================================================
-    // ⛔ GUEST CANNOT KEEP BALANCE
-    // =====================================================
-
-    if (
-        remaining > 0 &&
-        !t.checkoutCustomerId
-    ) {
-
-        alert(
-            "Partial payment ke liye customer register/select karna lazmi hai."
-        );
-
-        return;
-    }
-
-
-    // Temporary local payment values
-    t.checkoutGameAmount =
-        gameAmount;
-
-    t.checkoutReceivedAmount =
-        received;
-
-    t.checkoutBalanceAmount =
-        remaining;
-
-
-    console.log(
-        "💰 CHECKOUT PAYMENT:",
-        {
-            gameAmount,
-            received,
-            remaining,
-            customerId:
-                t.checkoutCustomerId || null
-        }
-    );
-
-
-    document
-        .getElementById("checkoutPaymentPopup")
-        ?.remove();
-
-    pendingCheckoutPaymentTableId = null;
-
-
-    // Existing checkout continue
-    await completeCheckOut(tableId);
-}
-
-
-// =====================================================
-// 🌍 EXPOSE CHECKOUT PAYMENT FUNCTIONS TO HTML
-// =====================================================
-
-window.updateCheckoutPaymentRemaining = updateCheckoutPaymentRemaining;
-window.cancelCheckoutPayment = cancelCheckoutPayment;
-window.confirmCheckoutPayment = confirmCheckoutPayment;
-
 
 
 // PLAYER 1 BUTTON
@@ -3032,28 +1578,12 @@ console.log({
             canteen_items:
                 t.canteenItems,
 
-// =====================================================
-// 👤 PLAYER / CUSTOMER / GAME OFF DATA
-// =====================================================
-
+          // 👥 PLAYER / GAME OFF DATA
 player1_name:
     t.player1 || "",
 
-player1_customer_id:
-    t.player1CustomerId || null,
-
-player1_customer_phone:
-    t.player1CustomerPhone || "",
-
-
 player2_name:
     t.player2 || "",
-
-player2_customer_id:
-    t.player2CustomerId || null,
-
-player2_customer_phone:
-    t.player2CustomerPhone || "",
 
 billed_player_name:
     t.checkoutPlayer || "",
@@ -3067,41 +1597,7 @@ players_match:
 player_checkout_at:
     checkoutNow,
 
-// =====================================================
-// 💰 PARTIAL PAYMENT / CUSTOMER BALANCE
-// =====================================================
-
-game_received_amount:
-    Number(t.checkoutReceivedAmount || 0),
-
-game_balance_amount:
-    Number(t.checkoutBalanceAmount || 0),
-
-balance_customer_id:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutCustomerId || null)
-        : null,
-
-balance_customer_name:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutPlayer || "")
-        : "",
-
-balance_customer_phone:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutCustomerPhone || "")
-        : "",
-
-
-// Full payment hua hai to paid.
-// Partial payment mein false.
-paid:
-    Number(t.checkoutBalanceAmount || 0) <= 0,
-
-paid_time:
-    Number(t.checkoutBalanceAmount || 0) <= 0
-        ? checkoutNow
-        : null,
+paid: false,
 
 day_id:
     window.currentDayId,
@@ -3213,53 +1709,8 @@ amount:
 )
 +
 t.canteenTotal,
-// 💰 PARTIAL PAYMENT
-gameReceivedAmount:
-    Number(t.checkoutReceivedAmount || 0),
-
-gameBalanceAmount:
-    Number(t.checkoutBalanceAmount || 0),
-
-balanceCustomerId:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutCustomerId || null)
-        : null,
-
-balanceCustomerName:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutPlayer || "")
-        : "",
-
-balanceCustomerPhone:
-    Number(t.checkoutBalanceAmount || 0) > 0
-        ? (t.checkoutCustomerPhone || "")
-        : "",
-
-      // 👤 BILL / GAME OFF PLAYER
-billedPlayerName:
-    t.checkoutPlayer || "",
-
-gameOffPlayer:
-    t.checkoutPlayer || "",
-
-player1Name:
-    t.player1 || "Guest Player 1",
-
-player2Name:
-    t.player2 || "Guest Player 2",
-    
-
-
-      
-
-paid:
-    Number(t.checkoutBalanceAmount || 0) <= 0,
-
-paidTime:
-    Number(t.checkoutBalanceAmount || 0) <= 0
-        ? t.checkoutTime
-        : null,
-
+    paid: false,
+    paidTime: null,
 rate: t.selectedRate || 0,
 
 playType: t.selectedPlayType || t.playType,
@@ -3291,30 +1742,8 @@ remainingPayment: 0
 
 
 
-// =====================================================
-// 👤 RELEASE CUSTOMERS AFTER SUCCESSFUL CHECKOUT
-// =====================================================
-
-// Session/history mein player data pehle hi save ho chuka hai.
-// Ab table ko next game ke liye free kar rahe hain.
-
-t.player1 = "";
-t.player1CustomerId = null;
-t.player1CustomerPhone = "";
-
-t.player2 = "";
-t.player2CustomerId = null;
-t.player2CustomerPhone = "";
-
-t.checkoutPlayer = "";
-
-console.log(
-    "✅ CUSTOMERS RELEASED AFTER CHECKOUT:",
-    t.name
-);
-
-updateButtons(id, "afterCheckout");
-updateDisplay(id);
+    updateButtons(id, "afterCheckout");
+    updateDisplay(id);
 }
 /******************************************************
  * TIMER — (1 SEC = 1 MIN CHARGE FIX)
@@ -3605,25 +2034,6 @@ catch (error) {
 let billTotal =
     gameAmount + canteenTotal;
 
-
-// =====================================================
-// 💰 PARTIAL PAYMENT DISPLAY
-// =====================================================
-
-const receivedNow =
-    Number(t.checkoutReceivedAmount || 0);
-
-const customerBalance =
-    Number(t.checkoutBalanceAmount || 0);
-
-const billedCustomer =
-    t.checkoutPlayer || "Guest";
-
-const hasPartialPayment =
-    customerBalance > 0;
-
-
-// Booking advance alag rahega
 let remainingAmount =
     Math.max(
         0,
@@ -3676,61 +2086,7 @@ let remainingAmount =
     <b>Rs ${billTotal}</b>
 </div>
 
-
-${hasPartialPayment ? `
-<hr>
-
-<div style="
-    background:#fff3cd;
-    border:2px solid #ff9800;
-    padding:10px;
-    border-radius:8px;
-    margin-top:8px;
-">
-
-    <div style="
-        font-weight:bold;
-        color:#d35400;
-        text-align:center;
-        margin-bottom:8px;
-    ">
-        BILL CUSTOMER: ${billedCustomer}
-    </div>
-
-    <div style="display:flex; justify-content:space-between;">
-        <span>Received Now</span>
-        <b>Rs ${receivedNow}</b>
-    </div>
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        margin-top:6px;
-        font-size:17px;
-        color:#d00000;
-    ">
-        <b>Customer Balance</b>
-        <b>Rs ${customerBalance}</b>
-    </div>
-
-    <div style="
-        text-align:center;
-        margin-top:8px;
-        font-weight:bold;
-        color:#d00000;
-    ">
-        PARTIAL PAYMENT
-    </div>
-
-</div>
-` : ""}
-
-
 ${bookingAdvance > 0 ? `
-<div style="display:flex; justify-content:space-between;">
-    <span>Advance Paid</span>
-    <span>Rs ${bookingAdvance}</span>
-</div>
 <div style="display:flex; justify-content:space-between;">
     <span>Advance Paid</span>
     <span>Rs ${bookingAdvance}</span>
@@ -3905,31 +2261,10 @@ const bookingAdvance =
     const totalBillAmount =
         gameAfterDiscount + canteenAmount;
 
-// =====================================================
-// 💰 PREVIOUS PARTIAL PAYMENT
-// =====================================================
-
-const alreadyReceived =
-    Number(
-        latestSession.game_received_amount || 0
-    );
-
-const oldCustomerBalance =
-    Number(
-        latestSession.game_balance_amount || 0
-    );
-
-
-// Booking advance + pehle received payment
-// dono minus karne ke baad sirf actual outstanding lena hai.
-const remainingPayment =
-    oldCustomerBalance > 0
-        ? oldCustomerBalance
-        : Math.max(
+    const remainingPayment =
+        Math.max(
             0,
-            totalBillAmount
-            - bookingAdvance
-            - alreadyReceived
+            totalBillAmount - bookingAdvance
         );
 
   // 🔥 SYNC LOCAL HISTORY WITH PAYMENT
@@ -3947,22 +2282,6 @@ last.bookingAdvance = bookingAdvance;
 last.remainingPayment = remainingPayment;
 
 last.totalBillAmount = totalBillAmount;
-
-  // =====================================================
-// 💰 LOCAL HISTORY — PARTIAL BALANCE SETTLED
-// =====================================================
-
-last.gameReceivedAmount =
-    alreadyReceived + remainingPayment;
-
-last.gameBalanceAmount = 0;
-
-last.paid = true;
-
-last.paidTime =
-    new Date(paidNow).getTime();
-
-last.remainingPayment = 0;
 
 last.fromBooking =
     !!latestSession.booking_id;
@@ -3988,26 +2307,6 @@ await updateDoc(
     {
         paid: true,
         paid_time: paidNow,
-
-
-              // =====================================================
-        // 💰 PARTIAL BALANCE SETTLED
-        // =====================================================
-
-        game_received_amount:
-            alreadyReceived + remainingPayment,
-
-        game_balance_amount:
-            0,
-
-        game_collection_amount:
-            alreadyReceived + remainingPayment,
-
-        balance_paid_amount:
-            remainingPayment,
-
-        balance_paid_at:
-            paidNow,
 
         // GAME
         discount:
@@ -4536,82 +2835,14 @@ t.history.sort((a, b) => {
 </td>
 
 <td>${formatTime(h.checkout)}</td>
-
-<!-- 👥 PLAYERS + BILL PLAYER HIGHLIGHT -->
-<td>
-    <div style="
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap:6px;
-        white-space:nowrap;
-    ">
-
-        <span style="
-            ${String(h.billedPlayerName || h.gameOffPlayer || "").trim().toLowerCase()
-                === String(h.player1Name || "").trim().toLowerCase()
-                ? "background:#ffd700;color:#000;padding:3px 7px;border-radius:5px;font-weight:bold;"
-                : ""
-            }
-        ">
-            ${h.player1Name || "Guest Player 1"}
-        </span>
-
-        <b style="color:#888;">VS</b>
-
-        <span style="
-            ${String(h.billedPlayerName || h.gameOffPlayer || "").trim().toLowerCase()
-                === String(h.player2Name || "").trim().toLowerCase()
-                ? "background:#ffd700;color:#000;padding:3px 7px;border-radius:5px;font-weight:bold;"
-                : ""
-            }
-        ">
-            ${h.player2Name || "Guest Player 2"}
-        </span>
-
-    </div>
-
-    <div style="
-        margin-top:4px;
-        font-size:10px;
-        color:#ffd700;
-        font-weight:bold;
-        text-align:center;
-    ">
-        BILL: ${h.billedPlayerName || h.gameOffPlayer || "Guest"}
-    </div>
-</td>
-
 <td>${formatSeconds(h.playSeconds)}</td>
-
-<td>${h.rate || 0}</td>
-
-<!-- SHIFT -->
-<td>
-    <b>Shift ${Number(h.shiftNumber || 1)}</b>
-</td>
-
-<!-- GAME AMOUNT -->
-<td>${h.originalAmount || h.amount || 0}</td>
-
-<!-- DISCOUNT -->
-<td>${h.discount || 0}</td>
-
-<!-- CANTEEN -->
-<td>${h.canteenAmount || 0}</td>
-
-<!-- RECEIVED -->
-<td style="color:#00ff9d; font-weight:bold;">
-    ${Number(h.gameReceivedAmount || 0)}
-</td>
-
-<!-- CUSTOMER BALANCE -->
-<td style="
-    color:${Number(h.gameBalanceAmount || 0) > 0 ? "#ff5252" : "#aaa"};
-    font-weight:bold;
-">
-    ${Number(h.gameBalanceAmount || 0)}
-</td>
+<td>${h.rate}</td>
+                    
+                    <td>${h.originalAmount || h.amount || 0}</td>
+                    
+                    <td>${h.discount || 0}</td>
+                    
+                    <td>${h.canteenAmount || 0}</td>
                     
 <td>
     ${
@@ -4965,26 +3196,6 @@ const bookingAdvance =
 
 const totalBillAmount = finalTotal;
 
-  // =====================================================
-// 💰 PARTIAL PAYMENT — HISTORY BILL
-// =====================================================
-
-const historyReceivedNow =
-    Number(h.gameReceivedAmount || 0);
-
-const historyCustomerBalance =
-    Number(h.gameBalanceAmount || 0);
-
-const historyBilledCustomer =
-    h.billedPlayerName ||
-    h.gameOffPlayer ||
-    "Guest";
-
-const historyHasPartialPayment =
-    historyCustomerBalance > 0;
-
-  
-
 const remainingPayment =
     isBookingSession
         ? Math.max(0, totalBillAmount - bookingAdvance)
@@ -5047,58 +3258,6 @@ bill.innerHTML = `
     <b>Total Bill</b>
     <b>Rs ${totalBillAmount}</b>
 </div>
-
-
-${historyHasPartialPayment ? `
-    <hr>
-
-    <div style="
-        background:#fff3cd;
-        border:2px solid #ff9800;
-        padding:10px;
-        border-radius:8px;
-        margin-top:8px;
-    ">
-
-        <div style="
-            text-align:center;
-            font-weight:bold;
-            color:#d35400;
-            margin-bottom:8px;
-        ">
-            BILL CUSTOMER: ${historyBilledCustomer}
-        </div>
-
-        <div style="display:flex; justify-content:space-between;">
-            <span>Received Now</span>
-            <b>Rs ${historyReceivedNow}</b>
-        </div>
-
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            margin-top:6px;
-            font-size:17px;
-            color:#d00000;
-        ">
-            <b>Customer Balance</b>
-            <b>Rs ${historyCustomerBalance}</b>
-        </div>
-
-        <div style="
-            text-align:center;
-            margin-top:8px;
-            font-weight:bold;
-            color:#d00000;
-        ">
-            PARTIAL PAYMENT
-        </div>
-
-    </div>
-` : ""}
-
-
-
 
 ${isBookingSession ? `
     <hr>
@@ -5208,80 +3367,24 @@ async function shiftPlayerToNewTable() {
 
     if (!oldT || !newT) return;
 
-// =====================================================
-// 🔥 MOVE SESSION (LOCAL)
-// =====================================================
+    // 🔥 MOVE SESSION (LOCAL)
+    newT.isRunning = true;
+    newT.checkinTime = oldT.checkinTime;
+    newT.playSeconds = oldT.playSeconds;
+    newT.liveAmount = oldT.liveAmount;
+    newT.canteenTotal = oldT.canteenTotal;
+    newT.canteenItems = { ...oldT.canteenItems };
 
-newT.isRunning = true;
-newT.checkinTime = oldT.checkinTime;
-newT.playSeconds = oldT.playSeconds;
-newT.liveAmount = oldT.liveAmount;
+    runTimer(newT.id);
 
-newT.canteenTotal = oldT.canteenTotal;
-newT.canteenItems = { ...oldT.canteenItems };
-
-
-// =====================================================
-// 👤 MOVE PLAYERS / CUSTOMERS WITH TABLE
-// =====================================================
-
-newT.player1 =
-    oldT.player1 || "";
-
-newT.player1CustomerId =
-    oldT.player1CustomerId || null;
-
-newT.player1CustomerPhone =
-    oldT.player1CustomerPhone || "";
-
-
-newT.player2 =
-    oldT.player2 || "";
-
-newT.player2CustomerId =
-    oldT.player2CustomerId || null;
-
-newT.player2CustomerPhone =
-    oldT.player2CustomerPhone || "";
-
-
-// 🔥 KEEP SAME GAME RATE
-newT.selectedPlayType =
-    oldT.selectedPlayType;
-
-newT.selectedRate =
-    oldT.selectedRate;
-
-
-runTimer(newT.id);
-
-// =====================================================
-// 🔥 RESET OLD TABLE
-// =====================================================
-
-oldT.isRunning = false;
-oldT.checkinTime = null;
-oldT.checkoutTime = null;
-
-oldT.playSeconds = 0;
-oldT.liveAmount = 0;
-
-oldT.canteenTotal = 0;
-oldT.canteenItems = {};
-
-
-// 👤 REMOVE PLAYERS FROM OLD TABLE ONLY
-// Customer new table par already transfer ho chuka hai.
-
-oldT.player1 = "";
-oldT.player1CustomerId = null;
-oldT.player1CustomerPhone = "";
-
-oldT.player2 = "";
-oldT.player2CustomerId = null;
-oldT.player2CustomerPhone = "";
-
-oldT.checkoutPlayer = "";
+    // 🔥 RESET OLD TABLE
+    oldT.isRunning = false;
+    oldT.checkinTime = null;
+    oldT.checkoutTime = null;
+    oldT.playSeconds = 0;
+    oldT.liveAmount = 0;
+    oldT.canteenTotal = 0;
+    oldT.canteenItems = {};
 
      
     renderTables();
@@ -5299,38 +3402,11 @@ oldT.checkoutPlayer = "";
 
         const snap = await getDocs(q);
 
-snap.forEach(async (d) => {
-
-    await updateDoc(
-        doc(window.db, "sessions", d.id),
-        {
-            table_id:
-                newT.name,
-
-            player1_name:
-                newT.player1 || "",
-
-            player1_customer_id:
-                newT.player1CustomerId || null,
-
-            player1_customer_phone:
-                newT.player1CustomerPhone || "",
-
-            player2_name:
-                newT.player2 || "",
-
-            player2_customer_id:
-                newT.player2CustomerId || null,
-
-            player2_customer_phone:
-                newT.player2CustomerPhone || "",
-
-            players_updated_at:
-                new Date().toISOString()
-        }
-    );
-
-});
+        snap.forEach(async (d) => {
+            await updateDoc(doc(window.db, "sessions", d.id), {
+                table_id: newT.name
+            });
+        });
 
     } catch (err) {
         console.error("Shift Firebase error:", err);
@@ -5663,12 +3739,7 @@ liveData.closingCash =
                 Number(s1.gameBalance || 0)
                 +
                 Number(s2.gameBalance || 0),
-            
-            customerBalance:
-                Number(s1.customerBalance || 0)
-                +
-                Number(s2.customerBalance || 0),
-            
+
             canteenBalance:
                 Number(s1.canteenBalance || 0)
                 +
@@ -5722,9 +3793,7 @@ summaryBody.innerHTML = `
     <td>${s1?.canteenCollection || 0}</td>
 
     <td>${s1?.gameBalance || 0}</td>
-    
-    <td>${s1?.customerBalance || 0}</td>
-    
+
     <td>${s1?.canteenBalance || 0}</td>
 
     <td>${s1?.discount || 0}</td>
@@ -5757,9 +3826,7 @@ summaryBody.innerHTML = `
     <td>${s2?.canteenCollection || 0}</td>
 
     <td>${s2?.gameBalance || 0}</td>
-    
-    <td>${s2?.customerBalance || 0}</td>
-    
+
     <td>${s2?.canteenBalance || 0}</td>
 
     <td>${s2?.discount || 0}</td>
@@ -5794,9 +3861,7 @@ ${combined ? `
     <td>${Number(s1?.canteenCollection || 0) + Number(s2?.canteenCollection || 0)}</td>
 
     <td>${Number(s1?.gameBalance || 0) + Number(s2?.gameBalance || 0)}</td>
-    
-    <td>${Number(s1?.customerBalance || 0) + Number(s2?.customerBalance || 0)}</td>
-    
+
     <td>${Number(s1?.canteenBalance || 0) + Number(s2?.canteenBalance || 0)}</td>
 
     <td>${Number(s1?.discount || 0) + Number(s2?.discount || 0)}</td>
@@ -6200,11 +4265,6 @@ async function closeDay() {
         advanceCollection: (s1.advanceCollection || 0) +  (s2.advanceCollection || 0),
 
         gameBalance: (s1.gameBalance || 0) + (s2.gameBalance || 0),
-        
-        customerBalance:
-            Number(s1.customerBalance || 0) +
-            Number(s2.customerBalance || 0),
-        
         canteenBalance: (s1.canteenBalance || 0) + (s2.canteenBalance || 0),
 
         expenses: (s1.expenses || 0) + (s2.expenses || 0),
@@ -6642,13 +4702,9 @@ function calculateShiftSnapshot(startTime, endTime) {
     let canteenTotal = 0;
     let gameCollection = 0;
     let canteenCollection = 0;
-let gameBalance = 0;
-let canteenBalance = 0;
-
-// 👤 Registered customers ka outstanding game balance
-let customerBalance = 0;
-
-let discount = 0;
+    let gameBalance = 0;
+    let canteenBalance = 0;
+    let discount = 0;
 
     tables.forEach(t => {
         t.history.forEach(h => {
@@ -6676,62 +4732,13 @@ discount += d;
               canteenTotal += c;
 
                 // ❗ UNPAID → balance
-// =========================================
-// 🔥 UNPAID / PARTIAL PAYMENT BALANCE
-// =========================================
-if (!h.paid) {
-
-    const gameBill =
-        Number(h.amount || 0);
-
-    const canteenBill =
-        Number(h.canteenAmount || 0);
-
-    const received =
-        Number(h.gameReceivedAmount || 0);
-
-    const totalBill =
-        gameBill + canteenBill;
-
-    const remaining =
-        Math.max(0, totalBill - received);
-
-    // Received amount pehle game se adjust hoga
-    const gameReceived =
-        Math.min(gameBill, received);
-
-    const canteenReceived =
-        Math.max(0, received - gameBill);
-
-    gameCollection += gameReceived;
-
-    canteenCollection +=
-        Math.min(canteenBill, canteenReceived);
-
-const remainingGameBalance =
-    Math.max(0, gameBill - gameReceived);
-
-gameBalance +=
-    remainingGameBalance;
-
-canteenBalance +=
-    Math.max(0, canteenBill - canteenReceived);
-
-
-// =====================================================
-// 👤 CUSTOMER BALANCE BREAKDOWN
-// =====================================================
-// Ye Game Balance ke andar ka hi amount hai.
-// Isko Game Balance ke upar dobara total nahi karna.
-
-if (
-    remainingGameBalance > 0 &&
-    h.balanceCustomerId
-) {
-    customerBalance +=
-        remainingGameBalance;
-}
-}
+              // 🔥 ONLY UNPAID BILLS GO TO BALANCE
+              if (!h.paid) {
+              
+                 gameBalance += Number(h.amount || 0);
+              
+                 canteenBalance += Number(h.canteenAmount || 0);
+              }
             }
 
 // =========================
@@ -6839,7 +4846,6 @@ if (h.paid && h.paidTime) {
         canteenCollection,
         gameBalance,
         canteenBalance,
-        customerBalance,
         expenses,
         easypaisa,
         discount,
@@ -6976,10 +4982,6 @@ newShift2.closingCash =
 
             gameBalance:
                 newShift1.gameBalance + newShift2.gameBalance,
-
-            customerBalance:
-                Number(newShift1.customerBalance || 0) +
-                Number(newShift2.customerBalance || 0),
 
             canteenBalance:
                 newShift1.canteenBalance + newShift2.canteenBalance,
@@ -7789,66 +5791,6 @@ originalAmount - discount;
 
     let finalTotal = gameAmount + canteenTotal;
 
-
-  // =====================================================
-// 👥 PLAYER / CUSTOMER DATA FOR THERMAL BILL
-// =====================================================
-
-let player1Name = h
-    ? (h.player1Name || "")
-    : (t.player1 || "");
-
-let player2Name = h
-    ? (h.player2Name || "")
-    : (t.player2 || "");
-
-let billedPlayerName = h
-    ? (h.billedPlayerName || h.balanceCustomerName || "")
-    : (t.checkoutPlayer || "");
-
-let gameOffPlayer = h
-    ? (h.gameOffPlayer || billedPlayerName || "")
-    : (t.checkoutPlayer || "");
-
-
-// =====================================================
-// 💰 PARTIAL PAYMENT DATA FOR THERMAL BILL
-// =====================================================
-
-let receivedAmount = h
-    ? Number(h.gameReceivedAmount || 0)
-    : Number(t.checkoutReceivedAmount || 0);
-
-let balanceAmount = h
-    ? Number(h.gameBalanceAmount || 0)
-    : Number(t.checkoutBalanceAmount || 0);
-
-let paymentStatus =
-    balanceAmount > 0
-        ? "PARTIAL"
-        : "PAID";
-
-  // =====================================================
-// 💰 FINAL PAYMENT VALUES FOR THERMAL BILL
-// =====================================================
-
-let totalBillAmount = finalTotal;
-
-let finalReceivedAmount =
-    receivedAmount > 0
-        ? receivedAmount
-        : Math.max(
-            0,
-            totalBillAmount - balanceAmount
-        );
-
-let finalBalanceAmount =
-    Math.max(
-        0,
-        balanceAmount
-    );
-
-
 let win = window.open("", "_blank", "width=300,height=600");
 
 if (!win) {
@@ -7901,28 +5843,6 @@ body {
 
 <div class="line"></div>
 
-<div class="row">
-    <span>Player 1</span>
-    <span>${player1Name || "Guest"}</span>
-</div>
-
-<div class="row">
-    <span>Player 2</span>
-    <span>${player2Name || "Guest"}</span>
-</div>
-
-<div class="row">
-    <span>Bill Customer</span>
-    <span>${billedPlayerName || "Guest"}</span>
-</div>
-
-<div class="row">
-    <span>Game Off</span>
-    <span>${gameOffPlayer || "Guest"}</span>
-</div>
-
-<div class="line"></div>
-
 <div class="row"><span>Table</span><span>${t.name}</span></div>
 <div class="row"><span>In</span><span>${checkin}</span></div>
 <div class="row"><span>Out</span><span>${checkout}</span></div>
@@ -7957,34 +5877,6 @@ ${canteenHTML}
 
 <div class="big">TOTAL</div>
 <div class="big">Rs ${finalTotal}</div>
-
-${receivedAmount > 0 || balanceAmount > 0 ? `
-
-<div class="line"></div>
-
-<div class="big">PAYMENT DETAILS</div>
-
-<div class="row">
-    <span>Bill Customer</span>
-    <span>${billedPlayerName || "Guest"}</span>
-</div>
-
-<div class="row">
-    <span>Received</span>
-    <span>Rs ${finalReceivedAmount}</span>
-</div>
-
-<div class="row">
-    <span>Balance</span>
-    <span>Rs ${finalBalanceAmount}</span>
-</div>
-
-<div class="row">
-    <span>Status</span>
-    <span>${paymentStatus}</span>
-</div>
-
-` : ""}
 
 <div class="line"></div>
 
@@ -8101,29 +5993,9 @@ async function restoreRunningTables() {
 t.isRunning = true;
 t.checkinTime = start;
 
-// =====================================================
-// 👤 RESTORE PLAYER / CUSTOMER DATA FROM SESSION
-// =====================================================
-
-t.player1 =
-    s.player1_name || "";
-
-t.player1CustomerId =
-    s.player1_customer_id || null;
-
-t.player1Phone =
-    s.player1_phone || "";
-
-
-t.player2 =
-    s.player2_name || "";
-
-t.player2CustomerId =
-    s.player2_customer_id || null;
-
-t.player2Phone =
-    s.player2_phone || "";
-
+// 👥 RESTORE PLAYER NAMES FROM SESSION
+t.player1 = s.player1_name || "";
+t.player2 = s.player2_name || "";
 
 // 🔥 IMPORTANT RESET
 t.afterCheckout = false;
@@ -8190,52 +6062,9 @@ if (t.afterCheckout) return;
 t.isRunning = true;
 t.checkinTime = start;
 
-// =====================================================
-// 👤 RESTORE PLAYER / CUSTOMER DATA FROM RUNNING SESSION
-// =====================================================
-
-t.player1 =
-    s.player1_name ||
-    t.player1 ||
-    "";
-
-t.player2 =
-    s.player2_name ||
-    t.player2 ||
-    "";
-
-t.player1CustomerId =
-    s.player1_customer_id ||
-    t.player1CustomerId ||
-    null;
-
-t.player2CustomerId =
-    s.player2_customer_id ||
-    t.player2CustomerId ||
-    null;
-
-t.player1Phone =
-    s.player1_phone ||
-    t.player1Phone ||
-    "";
-
-t.player2Phone =
-    s.player2_phone ||
-    t.player2Phone ||
-    "";
-
-
-console.log(
-    "👤 RUNNING CUSTOMERS RESTORED:",
-    t.name,
-    {
-        player1: t.player1,
-        player1CustomerId: t.player1CustomerId,
-
-        player2: t.player2,
-        player2CustomerId: t.player2CustomerId
-    }
-);
+// 👥 REALTIME PLAYER NAMES
+t.player1 = s.player1_name || "";
+t.player2 = s.player2_name || "";
 
 runTimer(t.id);
         });
@@ -8780,37 +6609,6 @@ s.final_amount ||
                 ? new Date(s.paid_time).getTime()
                 : null,
 
-          // 💰 PARTIAL PAYMENT DATA
-gameReceivedAmount:
-    Number(s.game_received_amount || 0),
-
-gameBalanceAmount:
-    Number(s.game_balance_amount || 0),
-
-balanceCustomerId:
-    s.balance_customer_id || null,
-
-balanceCustomerName:
-    s.balance_customer_name || "",
-
-balanceCustomerPhone:
-    s.balance_customer_phone || "",
-
-
-          // 👤 BILL / GAME OFF PLAYER
-billedPlayerName:
-    s.billed_player_name || "",
-
-gameOffPlayer:
-    s.game_off_player || "",
-
-player1Name:
-    s.player1_name || "",
-
-player2Name:
-    s.player2_name || "",
-          
-
           bookingAdvance:
     Number(s.booking_advance || 0),
 
@@ -8952,40 +6750,6 @@ total:
             paidTime: s.paid_time
                 ? new Date(s.paid_time).getTime()
                 : null,
-
-
-          // 💰 PARTIAL PAYMENT DATA
-gameReceivedAmount:
-    Number(s.game_received_amount || 0),
-
-gameBalanceAmount:
-    Number(s.game_balance_amount || 0),
-
-balanceCustomerId:
-    s.balance_customer_id || null,
-
-balanceCustomerName:
-    s.balance_customer_name || "",
-
-balanceCustomerPhone:
-    s.balance_customer_phone || "",
-
-
-          // 👤 BILL / GAME OFF PLAYER
-  billedPlayerName:
-      s.billed_player_name || "",
-  
-  gameOffPlayer:
-      s.game_off_player || "",
-  
-  player1Name:
-      s.player1_name || "",
-  
-  player2Name:
-      s.player2_name || "",
-
-
-        
 
           bookingAdvance:
     Number(s.booking_advance || 0),
