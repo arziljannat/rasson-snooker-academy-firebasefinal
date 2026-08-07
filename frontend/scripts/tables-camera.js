@@ -527,26 +527,26 @@ const hls =
 
         // Mobile / external internet ke liye
         // thora safe live buffer
-        liveSyncDurationCount: 5,
-        liveMaxLatencyDurationCount: 10,
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 3,
         
-        maxBufferLength: 20,
-        maxMaxBufferLength: 30,
+        maxBufferLength: 3,
+        maxMaxBufferLength: 5,
 
         maxLiveSyncPlaybackRate: 1.2,
 
-        backBufferLength: 5,
+        backBufferLength: 1,
 
         // Slow/mobile network par fragments ko
         // jaldi fail na karo
-        fragLoadingTimeOut: 20000,
-        manifestLoadingTimeOut: 20000,
+        fragLoadingTimeOut: 6000,
+        manifestLoadingTimeOut: 6000,
 
         // Network retry
-        fragLoadingMaxRetry: 6,
-        manifestLoadingMaxRetry: 6,
+        fragLoadingMaxRetry: 3,
+        manifestLoadingMaxRetry: 3,
 
-        enableWorker: true
+        enableWorker: false
 
     });
 
@@ -1023,7 +1023,7 @@ function watchTablesRender() {
                             renderCameras();
 
                         },
-                        150
+                        1000
                     );
 
             }
