@@ -522,33 +522,19 @@ if (branch === "rasson1") {
             Hls.isSupported()
         ) {
 
-const hls =
-    new Hls({
+const hls = new Hls({
 
-        // Mobile / external internet ke liye
-        // thora safe live buffer
-        liveSyncDurationCount: 2,
-        liveMaxLatencyDurationCount: 3,
-        
-        maxBufferLength: 3,
-        maxMaxBufferLength: 5,
+    liveSyncDurationCount: 2,
+    liveMaxLatencyDurationCount: 3,
 
-        maxLiveSyncPlaybackRate: 1.2,
+    maxBufferLength: 2,
+    maxMaxBufferLength: 4,
 
-        backBufferLength: 1,
+    backBufferLength: 0,
 
-        // Slow/mobile network par fragments ko
-        // jaldi fail na karo
-        fragLoadingTimeOut: 6000,
-        manifestLoadingTimeOut: 6000,
+    enableWorker: true
 
-        // Network retry
-        fragLoadingMaxRetry: 3,
-        manifestLoadingMaxRetry: 3,
-
-        enableWorker: true
-
-    });
+});
 
             hlsInstances[cameraId] = hls;
 
@@ -563,14 +549,11 @@ const hls =
             );
 
 
-hls.on(
-    Hls.Events.MANIFEST_PARSED,
-    () => {
+hls.on(Hls.Events.MANIFEST_PARSED, () => {
 
-        video.play().catch(() => {});
+    video.play().catch(() => {});
 
-    }
-);
+});
 
 
 
