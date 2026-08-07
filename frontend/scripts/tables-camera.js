@@ -522,19 +522,33 @@ if (branch === "rasson1") {
             Hls.isSupported()
         ) {
 
-const hls = new Hls({
+const hls =
+    new Hls({
 
-    liveSyncDurationCount: 2,
-    liveMaxLatencyDurationCount: 3,
+        // Mobile / external internet ke liye
+        // thora safe live buffer
+        liveSyncDurationCount: 5,
+        liveMaxLatencyDurationCount: 10,
+        
+        maxBufferLength: 20,
+        maxMaxBufferLength: 30,
 
-    maxBufferLength: 2,
-    maxMaxBufferLength: 4,
+        maxLiveSyncPlaybackRate: 1.2,
 
-    backBufferLength: 0,
+        backBufferLength: 5,
 
-    enableWorker: true
+        // Slow/mobile network par fragments ko
+        // jaldi fail na karo
+        fragLoadingTimeOut: 20000,
+        manifestLoadingTimeOut: 20000,
 
-});
+        // Network retry
+        fragLoadingMaxRetry: 6,
+        manifestLoadingMaxRetry: 6,
+
+        enableWorker: true
+
+    });
 
             hlsInstances[cameraId] = hls;
 
@@ -549,12 +563,103 @@ const hls = new Hls({
             );
 
 
-hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        hls.on(
+            Hls.Events.MANIFEST_PARSED,
+            () => {
+        
+                /*
+                 * Start hamesha latest available
+                 * live edge ke qareeb se.
+                 */
+                if (
+                    video.seekable &&
+                    video.seekable.length > 0
+                ) {
+        
+                    const liveEdge =
+                        video.seekable.end(
+                            video.seekable.length - 1
+                        );
+        
+                    if (Number.isFinite(liveEdge)) {
+        
+                        video.currentTime =
+                            Math.max(
+                                0,
+                                liveEdge - 1
+                            );
+                    }
+                }
+        
+        
+                video
+                    .play()
+                    .catch(() => {});
+        
+            }
+        );
 
-    video.play().catch(() => {});
 
-});
 
+        /*
+ * LIVE EDGE WATCHDOG
+ *
+ * Agar browser kisi wajah se live stream se
+ * bohat peeche chala jaye to automatically
+ * latest edge par jump kare.
+ */
+cameraWatchdogs[cameraId] =
+    setInterval(
+        () => {
+
+            if (
+                !video ||
+                !video.seekable ||
+                video.seekable.length === 0
+            ) {
+                return;
+            }
+
+
+            const liveEdge =
+                video.seekable.end(
+                    video.seekable.length - 1
+                );
+
+
+            const delay =
+                liveEdge -
+                video.currentTime;
+
+
+            /*
+             * 6 seconds se zyada peeche
+             * hone nahi dena.
+             */
+            if (
+                Number.isFinite(delay) &&
+                delay > 6
+            ) {
+
+                console.warn(
+                    "📷 Camera behind live edge:",
+                    cameraId,
+                    delay.toFixed(1),
+                    "seconds"
+                );
+
+
+                video.currentTime =
+                    Math.max(
+                        0,
+                        liveEdge - 1
+                    );
+            }
+
+        },
+        3000
+    );
+            
 
 
             
@@ -590,9 +695,9 @@ if (!data.fatal) {
         Hls.ErrorDetails.BUFFER_STALLED_ERROR
     ) {
 
-hls.resumeBuffering();
-
-video.play().catch(() => {});
+        video
+            .play()
+            .catch(() => {});
 
     }
 
@@ -918,7 +1023,7 @@ function watchTablesRender() {
                             renderCameras();
 
                         },
-                        1000
+                        150
                     );
 
             }
