@@ -14,6 +14,11 @@
                 id: "hall",
                 title: "HALL CAMERA",
                 path: "/hall/stream.m3u8"
+            },
+            {
+                id: "table34",
+                title: "TABLE 3 & 4 CAMERA",
+                path: "/table34/stream.m3u8"
             }
         ],
 
@@ -307,20 +312,31 @@ function createCameraCard(
      * RASSON 1
      **************************************************/
 
-    if (branch === "rasson1") {
+if (branch === "rasson1") {
 
-        const tablesGrid =
-            document.getElementById(
-                "tablesGrid"
-            );
+    const tablesGrid =
+        document.getElementById("tablesGrid");
 
-        if (!tablesGrid) {
-            return;
-        }
+    if (!tablesGrid) return;
 
+    const tableCards =
+        tablesGrid.querySelectorAll(".table-box");
+
+    if (camera.id === "hall") {
+
+        // Hall camera sab tables ke baad
         tablesGrid.appendChild(card);
-    }
 
+    } else if (camera.id === "table34") {
+
+        // Table 4 ke baad (Table 3 & 4 cover karta hai)
+        if (tableCards.length >= 4) {
+            tableCards[3].after(card);
+        } else {
+            tablesGrid.appendChild(card);
+        }
+    }
+}
 
     /**************************************************
      * RASSON 4 CAMERA MAPPING
