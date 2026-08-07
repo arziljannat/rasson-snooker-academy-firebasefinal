@@ -557,67 +557,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, () => {
 
 
 
-        /*
- * LIVE EDGE WATCHDOG
- *
- * Agar browser kisi wajah se live stream se
- * bohat peeche chala jaye to automatically
- * latest edge par jump kare.
- */
-/*cameraWatchdogs[cameraId] =
-    setInterval(
-        () => {
-
-            if (
-                !video ||
-                !video.seekable ||
-                video.seekable.length === 0
-            ) {
-                return;
-            }
-
-
-            const liveEdge =
-                video.seekable.end(
-                    video.seekable.length - 1
-                );
-
-
-            const delay =
-                liveEdge -
-                video.currentTime;
-
-
-            /*
-             * 6 seconds se zyada peeche
-             * hone nahi dena.
-             */
-            if (
-                Number.isFinite(delay) &&
-                delay > 6
-            ) {
-
-                console.warn(
-                    "📷 Camera behind live edge:",
-                    cameraId,
-                    delay.toFixed(1),
-                    "seconds"
-                );
-
-
-                video.currentTime =
-                    Math.max(
-                        0,
-                        liveEdge - 1
-                    );
-            }
-
-        },
-        3000
-    );
-            
-*/
-
             
 
             hls.on(
