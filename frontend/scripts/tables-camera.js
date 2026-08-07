@@ -11,9 +11,9 @@
 
         rasson1: [
             {
-                id: "hall",
-                title: "HALL CAMERA",
-                path: "/hall/stream.m3u8"
+                id: "table12",
+                title: "TABLE 1 & 2 CAMERA",
+                path: "/table12/stream.m3u8"
             },
             {
                 id: "table34",
@@ -322,20 +322,28 @@ if (branch === "rasson1") {
     const tableCards =
         tablesGrid.querySelectorAll(".table-box");
 
-    if (camera.id === "hall") {
+    // TABLE 1 & 2 CAMERA
+    if (camera.id === "table12") {
 
-        // Hall camera sab tables ke baad
-        tablesGrid.appendChild(card);
+        if (tableCards.length >= 2) {
+            tableCards[1].after(card);
+        } else {
+            tablesGrid.appendChild(card);
+        }
 
-    } else if (camera.id === "table34") {
+    }
 
-        // Table 4 ke baad (Table 3 & 4 cover karta hai)
+    // TABLE 3 & 4 CAMERA
+    else if (camera.id === "table34") {
+
         if (tableCards.length >= 4) {
             tableCards[3].after(card);
         } else {
             tablesGrid.appendChild(card);
         }
+
     }
+
 }
 
     /**************************************************
