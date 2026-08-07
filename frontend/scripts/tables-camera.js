@@ -9,18 +9,33 @@
 
     const CAMERA_CONFIG = {
 
-        rasson1: [
-            {
-                id: "table12",
-                title: "TABLE 1 & 2 CAMERA",
-                path: "/table12/stream.m3u8"
-            },
-            {
-                id: "table34",
-                title: "TABLE 3 & 4 CAMERA",
-                path: "/table34/stream.m3u8"
-            }
-        ],
+rasson1: [
+
+    {
+        id: "table12",
+        title: "TABLE 1 & 2 CAMERA",
+        path: "/table12/stream.m3u8"
+    },
+
+    {
+        id: "table34",
+        title: "TABLE 3 & 4 CAMERA",
+        path: "/table34/stream.m3u8"
+    },
+
+    {
+        id: "room1",
+        title: "ROOM 1 CAMERA",
+        path: "/room1/stream.m3u8"
+    },
+
+    {
+        id: "room2",
+        title: "ROOM 2 CAMERA",
+        path: "/room2/stream.m3u8"
+    }
+
+],
 
         rasson4: [
             {
@@ -317,32 +332,63 @@ function createCameraCard(
 
 if (branch === "rasson1") {
 
-    const tablesGrid =
-        document.getElementById("tablesGrid");
+    const tablesGrid = document.getElementById("tablesGrid");
+    const roomsGrid = document.getElementById("roomsGrid");
 
-    if (!tablesGrid) return;
+    // TABLE CAMERAS
+    if (
+        camera.id === "table12" ||
+        camera.id === "table34"
+    ) {
 
-    const tableCards =
-        tablesGrid.querySelectorAll(".table-box");
+        if (!tablesGrid) return;
 
-    // TABLE 1 & 2 CAMERA
-    if (camera.id === "table12") {
+        const tableCards =
+            tablesGrid.querySelectorAll(".table-box");
 
-        if (tableCards.length >= 2) {
-            tableCards[1].after(card);
+        if (camera.id === "table12") {
+
+            if (tableCards.length >= 2) {
+                tableCards[1].after(card);
+            } else {
+                tablesGrid.appendChild(card);
+            }
+
         } else {
-            tablesGrid.appendChild(card);
+
+            if (tableCards.length >= 4) {
+                tableCards[3].after(card);
+            } else {
+                tablesGrid.appendChild(card);
+            }
+
         }
 
     }
 
-    // TABLE 3 & 4 CAMERA
-    else if (camera.id === "table34") {
+    // ROOM CAMERAS
+    else if (
+        camera.id === "room1" ||
+        camera.id === "room2"
+    ) {
 
-        if (tableCards.length >= 4) {
-            tableCards[3].after(card);
+        if (!roomsGrid) return;
+
+        card.classList.add("camera-room");
+
+        const roomCards =
+            roomsGrid.querySelectorAll(".table-box");
+
+        const roomNumber =
+            Number(camera.id.replace("room", ""));
+
+        const targetRoom =
+            roomCards[roomNumber - 1];
+
+        if (targetRoom) {
+            targetRoom.after(card);
         } else {
-            tablesGrid.appendChild(card);
+            roomsGrid.appendChild(card);
         }
 
     }
