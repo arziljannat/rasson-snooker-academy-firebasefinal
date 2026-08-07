@@ -169,6 +169,9 @@ const cameraWatchdogs = {};
             return "https://rasson4.rassonsnookeracademy.dpdns.org";
         }
 
+        if (branch === "rasson1") {
+        return "https://rasson1.rassonsnookeracademy.dpdns.org";
+        }
 
         if (
             !window.db ||
