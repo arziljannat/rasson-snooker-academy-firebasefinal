@@ -546,7 +546,7 @@ const hls =
         fragLoadingMaxRetry: 3,
         manifestLoadingMaxRetry: 3,
 
-        enableWorker: false
+        enableWorker: true
 
     });
 
@@ -563,41 +563,14 @@ const hls =
             );
 
 
-        hls.on(
-            Hls.Events.MANIFEST_PARSED,
-            () => {
-        
-                /*
-                 * Start hamesha latest available
-                 * live edge ke qareeb se.
-                 */
-                if (
-                    video.seekable &&
-                    video.seekable.length > 0
-                ) {
-        
-                    const liveEdge =
-                        video.seekable.end(
-                            video.seekable.length - 1
-                        );
-        
-                    if (Number.isFinite(liveEdge)) {
-        
-                        video.currentTime =
-                            Math.max(
-                                0,
-                                liveEdge - 1
-                            );
-                    }
-                }
-        
-        
-                video
-                    .play()
-                    .catch(() => {});
-        
-            }
-        );
+hls.on(
+    Hls.Events.MANIFEST_PARSED,
+    () => {
+
+        video.play().catch(() => {});
+
+    }
+);
 
 
 
@@ -608,7 +581,7 @@ const hls =
  * bohat peeche chala jaye to automatically
  * latest edge par jump kare.
  */
-cameraWatchdogs[cameraId] =
+/*cameraWatchdogs[cameraId] =
     setInterval(
         () => {
 
@@ -660,7 +633,7 @@ cameraWatchdogs[cameraId] =
         3000
     );
             
-
+*/
 
             
 
@@ -695,9 +668,9 @@ if (!data.fatal) {
         Hls.ErrorDetails.BUFFER_STALLED_ERROR
     ) {
 
-        video
-            .play()
-            .catch(() => {});
+hls.resumeBuffering();
+
+video.play().catch(() => {});
 
     }
 
