@@ -5935,15 +5935,13 @@ Scan & Pay
 <div>Thanks ❤️</div>
 
 <script>
-window.onload = function(){
-
-    window.print();
+window.onload = function () {
 
     setTimeout(() => {
-        window.close();
-    }, 800);
+        window.print();
+    }, 300);
 
-}
+};
 </script>
 
 </body>
