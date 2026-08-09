@@ -6025,16 +6025,16 @@ async function restoreRunningTables() {
         let t = tables.find(x => x.name === s.table_id);
         if (!t) return;
 
-        let start = new Date(s.start_time).getTime();
+let start = new Date(s.start_time).getTime();
 
-        // 🔥 FIX: if time is too old (more than 12 hours), ignore
-        let now = Date.now();
-        let diffHours = (now - start) / (1000 * 60 * 60);
+// 🔥 CARRY FORWARD / LONG RUNNING SESSION
+// Session Firebase mein active hai to restore hogi.
+// 12-hour limit nahi hogi.
 
-        if (diffHours > 12) {
-            console.log("⚠️ OLD SESSION IGNORED:", s);
-            return;
-        }
+if (!start || Number.isNaN(start)) {
+    console.warn("⚠️ INVALID SESSION START:", s);
+    return;
+}
 
 t.isRunning = true;
 t.checkinTime = start;
@@ -6092,15 +6092,15 @@ tables.forEach(t => {
             let t = tables.find(x => x.name === s.table_id);
             if (!t) return;
 
-            let start = new Date(s.start_time).getTime();
+let start = new Date(s.start_time).getTime();
 
-            let now = Date.now();
-            let diffHours = (now - start) / (1000 * 60 * 60);
+// 🔥 LONG RUNNING / CARRY-FORWARD SESSION
+// Firebase mein end_time null hai to session active hai.
 
-            if (diffHours > 12){
-                console.log("⚠️ OLD SESSION IGNORED:", s);
-                return;
-            }
+if (!start || Number.isNaN(start)) {
+    console.warn("⚠️ INVALID RUNNING SESSION:", s);
+    return;
+}
 
             // ❌ AGAR CHECKOUT HO CHUKA HAI TO IGNORE
 if (t.afterCheckout) return;
