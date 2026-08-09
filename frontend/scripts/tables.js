@@ -4102,11 +4102,23 @@ if (!snap.empty) {
 }
 
     // cannot close if any table still running
-    let running = tables.some(t => t.isRunning);
-    if (running) {
-        alert("Close all tables in Shift 2");
-        return;
-    }
+// ======================================================
+// 🔥 SHIFT 2 CLOSE — RUNNING TABLES ALLOWED
+// Active/running games ko checkout nahi karna.
+// Sirf Shift 2 close hogi.
+// Running table ka timer/session continue rahega.
+// ======================================================
+
+const runningTables = tables.filter(t => t.isRunning);
+
+if (runningTables.length > 0) {
+
+    console.log(
+        "🔥 SHIFT 2 CLOSE — RUNNING TABLES WILL CONTINUE:",
+        runningTables.map(t => t.name)
+    );
+
+}
 
     let now = Date.now();
 
@@ -4454,16 +4466,50 @@ snap.forEach(async (d) => {
 
 window.currentDayId = newDayId;
 
-    tables.forEach(t => {
-        t.history = [];
-        t.isRunning = false;
-        t.checkinTime = null;
-        t.checkoutTime = null;
-        t.playSeconds = 0;
-        t.liveAmount = 0;
-        t.canteenTotal = 0;
-        t.canteenItems = {};
-    });
+// ======================================================
+// 🔥 DAY CLOSE — PRESERVE RUNNING TABLES
+// Completed tables reset hongi.
+// Running tables bilkul touch nahi hongi.
+// ======================================================
+
+tables.forEach(t => {
+
+    // ------------------------------------------
+    // 🟢 RUNNING TABLE
+    // ------------------------------------------
+    if (t.isRunning) {
+
+        console.log(
+            "🔥 DAY CLOSE — TABLE STILL RUNNING:",
+            t.name
+        );
+
+        // IMPORTANT:
+        // isRunning
+        // checkinTime
+        // playSeconds
+        // liveAmount
+        // canteenTotal
+        // canteenItems
+        //
+        // kuch bhi reset NAHI karna.
+
+        return;
+    }
+
+    // ------------------------------------------
+    // ⚪ FREE / COMPLETED TABLE
+    // ------------------------------------------
+    t.history = [];
+    t.isRunning = false;
+    t.checkinTime = null;
+    t.checkoutTime = null;
+    t.playSeconds = 0;
+    t.liveAmount = 0;
+    t.canteenTotal = 0;
+    t.canteenItems = {};
+
+});
 
      
     renderTables();
