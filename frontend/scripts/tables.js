@@ -2188,6 +2188,18 @@ async function completePayment(id) {
     last.paid = true;
   last.paidTime = Date.now();
 
+      // 🖨️ OPEN PRINT WINDOW IMMEDIATELY FROM PAID BUTTON CLICK
+    let printWindow = window.open(
+        "",
+        "_blank",
+        "width=300,height=600"
+    );
+
+    if (!printWindow) {
+        alert("Print popup blocked ❌\nBrowser mein popups allow karo.");
+        return;
+    }
+
 // 🔥 FIREBASE UPDATE (MAIN FIX)
 // 🔥 GET ONLY LAST CLOSED SESSION
 const q = query(
@@ -2415,7 +2427,7 @@ await updateDoc(
     // 🔥 UI UPDATE (IMPORTANT)
     updateButtons(id, "afterCheckout");
 
-    printThermalBill(id, last);
+    printThermalBill(id, last, printWindow);
   
 }
 
@@ -5781,7 +5793,7 @@ window.softDeleteSession = softDeleteSession;
 
 
 //thernal bill print 
-function printThermalBill(id, historyData = null) {
+function printThermalBill(id, historyData = null, existingWindow = null) {
 
     let t = tables.find(x => String(x.id) === String(id));
     let h = historyData;
@@ -5837,7 +5849,11 @@ originalAmount - discount;
 
     let finalTotal = gameAmount + canteenTotal;
 
-let win = window.open("", "_blank", "width=300,height=600");
+let win = existingWindow;
+
+if (!win) {
+    win = window.open("", "_blank", "width=300,height=600");
+}
 
 if (!win) {
     alert("Print popup blocked ❌\nBrowser mein popups allow karo.");
