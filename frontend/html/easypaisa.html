@@ -32,12 +32,38 @@
         <button class="btn-green" onclick="openEasyPopup()">+ Add EasyPaisa</button>
     </div>
 
+
     <!-- TOTAL -->
 <div class="total-box easy-total-center">
     <span>Current Month EasyPaisa:</span>
     <b id="todayEasyTotal">0 PKR</b>
 </div>
 
+
+    <div class="filter-row">
+
+    <label>
+        Day Filter:
+    </label>
+
+    <select
+        id="easyDayFilter"
+        onchange="filterEasyByDay()"
+    >
+
+        <option value="all">
+            All Days
+        </option>
+
+        <option value="current">
+            Current Day
+        </option>
+
+    </select>
+
+</div>
+
+    
     <div class="filter-row admin-only">
 
     <label class="filter-label">Month:</label>
