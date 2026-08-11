@@ -105,8 +105,148 @@ buttons[1].onclick = () => {
 
 let operationalDays = {};
 
-async function loadOperationalDays(){
+async function loadOperationalDays() {
 
+    // ==========================================
+    // LOCAL RESULT
+    // ==========================================
+
+    const result = {};
+
+
+    // ==========================================
+    // CURRENT BRANCH
+    // ==========================================
+
+    const branch =
+        String(
+            localStorage.getItem("branch") || ""
+        ).trim();
+
+
+    if (!branch) {
+
+        console.error(
+            "❌ REPORT: branch missing"
+        );
+
+        return result;
+    }
+
+
+    // ==========================================
+    // LOAD OPERATIONAL DAYS
+    // ==========================================
+
+    const snap =
+        await getDocs(
+
+            query(
+                collection(window.db, "days"),
+                where("branch", "==", branch)
+            )
+
+        );
+
+
+    // ==========================================
+    // READ EACH DAY
+    // ==========================================
+
+    snap.forEach(docSnap => {
+
+        const d =
+            docSnap.data();
+
+
+        const dayId =
+            String(
+                d.day_id || ""
+            ).trim();
+
+
+        if (!dayId) return;
+
+
+        // ======================================
+        // OPERATIONAL DATE
+        // SHIFT 1 START PREFERRED
+        // ======================================
+
+        const startMs =
+            Number(
+                d.shift1?.startMs || 0
+            );
+
+
+        let date = null;
+
+
+        if (startMs > 0) {
+
+            date =
+                new Date(startMs);
+
+        } else if (d.date) {
+
+            date =
+                new Date(d.date);
+
+        } else if (d.start_time) {
+
+            date =
+                new Date(d.start_time);
+
+        } else if (d.created_at) {
+
+            date =
+                new Date(d.created_at);
+
+        }
+
+
+        // ======================================
+        // INVALID DATE
+        // ======================================
+
+        if (
+            !date ||
+            isNaN(date.getTime())
+        ) {
+
+            console.warn(
+                "⚠️ REPORT: invalid day date",
+                dayId,
+                d
+            );
+
+            return;
+        }
+
+
+        // ======================================
+        // SAVE DAY
+        // ======================================
+
+        result[dayId] = {
+
+            raw: d,
+
+            startDate: date
+
+        };
+
+    });
+
+
+    console.log(
+        "📊 REPORT OPERATIONAL DAYS:",
+        result
+    );
+
+
+    return result;
+}
 
 
 buttons[2].onclick = () => {
