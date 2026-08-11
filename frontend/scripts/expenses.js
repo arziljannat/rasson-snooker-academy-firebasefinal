@@ -264,6 +264,9 @@ async function loadCurrentDayId() {
         );
 
 
+    let foundCurrentDay = null;
+
+
     snap.forEach(d => {
 
         const data =
@@ -286,21 +289,64 @@ async function loadCurrentDayId() {
             dataBranch === branch
         ) {
 
-            window.currentDayId =
-                data.day_id;
+            foundCurrentDay = {
+                id:
+                    d.id,
 
-            window.currentDayCreatedAt =
-                data.created_at ||
-                null;
+                ...data
+            };
 
         }
 
     });
 
 
+    // ==============================================
+    // CURRENT OPERATIONAL DAY FOUND
+    // ==============================================
+
+    if (foundCurrentDay) {
+
+        window.currentDayId =
+            foundCurrentDay.day_id ||
+            foundCurrentDay.id ||
+            null;
+
+
+        window.currentDayCreatedAt =
+            foundCurrentDay.created_at ||
+            null;
+
+
+        // Keep complete system record available
+        window.currentOperationalDayRecord =
+            foundCurrentDay;
+
+    }
+
+    else {
+
+        window.currentDayId =
+            null;
+
+        window.currentDayCreatedAt =
+            null;
+
+        window.currentOperationalDayRecord =
+            null;
+
+    }
+
+
     console.log(
         "✅ CURRENT OPERATIONAL DAY:",
         window.currentDayId
+    );
+
+
+    console.log(
+        "📌 CURRENT DAY SYSTEM RECORD:",
+        window.currentOperationalDayRecord
     );
 
 }
@@ -731,6 +777,11 @@ function getCurrentOperationalDay() {
         ).trim();
 
 
+    // ==============================================
+    // STEP 1
+    // CURRENT DAY ID DIRECT LOOKUP
+    // ==============================================
+
     if (
         currentId &&
         operationalDays[currentId]
@@ -740,6 +791,48 @@ function getCurrentOperationalDay() {
 
     }
 
+
+    // ==============================================
+    // STEP 2
+    // CURRENT DAY ID MATCH BY day_id
+    //
+    // Extra protection against Firebase
+    // number/string mismatch.
+    // ==============================================
+
+    if (currentId) {
+
+        const matchedDay =
+            Object.values(
+                operationalDays
+            )
+            .find(day => {
+
+                return (
+                    String(
+                        day.dayId || ""
+                    ).trim()
+                    ===
+                    currentId
+                );
+
+            });
+
+
+        if (matchedDay) {
+
+            return matchedDay;
+
+        }
+
+    }
+
+
+    // ==============================================
+    // STEP 3
+    // FALLBACK
+    // FIND LATEST OPEN OPERATIONAL DAY
+    // ==============================================
 
     const openDays =
         Object.values(
@@ -776,6 +869,11 @@ function getCurrentOperationalDay() {
 
     }
 
+
+    // ==============================================
+    // STEP 4
+    // NO OPERATIONAL DAY FOUND
+    // ==============================================
 
     return null;
 
