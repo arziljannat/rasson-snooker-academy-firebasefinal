@@ -96,6 +96,26 @@ function setText(id, value){
     }
 }
 
+
+// ======================================================
+// COMMON DAY ID HELPER
+// ======================================================
+
+function getRecordDayId(record){
+
+    return String(
+        record?.day_id ||
+        record?.dayId ||
+        record?.current_day_id ||
+        record?.currentDayId ||
+        ""
+    ).trim();
+
+}
+
+
+
+
 async function loadOperationalDays(){
 
     operationalDays = {};
@@ -178,148 +198,352 @@ is_closed:
 }
 
 
+// ======================================================
+// MONTHLY ACCOUNTING
+// SAME SOURCE AS REPORTS
+// ======================================================
 
-function loadDashboardRealtime() {
+function getMonthlyOperationalAccounting(){
 
-    const branch = (localStorage.getItem("branch") || "").toLowerCase();
+    const branch =
+        (localStorage.getItem("branch") || "")
+        .toLowerCase()
+        .trim();
+
+    let result = {
+
+        gameCollection: 0,
+        gameBalance: 0,
+        discount: 0,
+        expense: 0,
+        easyPaisa: 0,
+
+        shift1: 0,
+        shift2: 0,
+
+        days: 0
+    };
+
+
+    Object.values(operationalDays || {}).forEach(day => {
+
+        const raw = day.raw || {};
+
+        // ==============================
+        // BRANCH FILTER
+        // ==============================
+
+        if(
+            (raw.branch || "").toLowerCase().trim()
+            !== branch
+        ){
+            return;
+        }
+
+
+        // ==============================
+        // MONTH FILTER
+        // ==============================
+
+        if(
+            day.month !== selectedMonth ||
+            day.year !== selectedYear
+        ){
+            return;
+        }
+
+
+        // ==============================
+        // CLOSED DAYS ONLY
+        // ==============================
+
+        if(raw.is_closed !== true){
+            return;
+        }
+
+
+        const s1 =
+            raw.shift1 || {};
+
+        const s2 =
+            raw.shift2 || {};
+
+        const combined =
+            raw.combined || {};
+
+
+        // ==============================
+        // GAME COLLECTION
+        // ==============================
+
+        const shift1Collection =
+            Number(s1.gameCollection || 0);
+
+        const shift2Collection =
+            Number(s2.gameCollection || 0);
+
+
+        result.shift1 +=
+            shift1Collection;
+
+        result.shift2 +=
+            shift2Collection;
+
+        result.gameCollection +=
+            shift1Collection +
+            shift2Collection;
+
+
+        // ==============================
+        // GAME BALANCE
+        // ==============================
+
+        result.gameBalance +=
+            Number(s1.gameBalance || 0) +
+            Number(s2.gameBalance || 0);
+
+
+        // ==============================
+        // DISCOUNT
+        // ==============================
+
+        result.discount +=
+            Number(s1.discount || 0) +
+            Number(s2.discount || 0);
+
+
+        // ==============================
+        // EXPENSE
+        // ==============================
+
+        result.expense +=
+            Number(s1.expenses || 0) +
+            Number(s2.expenses || 0);
+
+
+        // ==============================
+        // EASYPAISA
+        // ==============================
+
+        result.easyPaisa +=
+            Number(combined.easypaisa || 0);
+
+
+        result.days++;
+
+    });
+
+
+    console.log(
+        "📊 DASHBOARD MONTHLY ACCOUNTING:",
+        result
+    );
+
+
+    return result;
+}
+
+
+
+
+async function loadDashboardRealtime() {
+
+    const branch =
+        (localStorage.getItem("branch") || "")
+        .toLowerCase()
+        .trim();
+
     if (!branch) return;
 
-    const todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
 
-    getDocs(collection(window.db, "tables")).then(snap => {
+    // ==============================
+    // TABLES
+    // ==============================
+
+    const tablesSnap =
+        await getDocs(
+            collection(window.db, "tables")
+        );
 
     tablesData = [];
 
     let uniqueTables = {};
 
-    snap.forEach(d => {
+    tablesSnap.forEach(d => {
 
         let t = d.data();
 
-        // ONLY CURRENT BRANCH
-        if ((t.branch || "").toLowerCase() !== branch) return;
+        if(
+            (t.branch || "").toLowerCase().trim()
+            !== branch
+        ){
+            return;
+        }
 
-        // TABLE NAME
         let tableName =
             (t.table_id || t.name || "")
             .toLowerCase()
             .trim();
 
-        // SKIP DUPLICATES
-        if (uniqueTables[tableName]) return;
+        if(uniqueTables[tableName]) return;
 
         uniqueTables[tableName] = true;
 
         tablesData.push(t);
     });
 
-    updateDashboard();
-});
 
-    getDocs(collection(window.db, "sessions")).then(snap => {
-        sessionsData=[];
-        snap.forEach(d=>{
-            let s=d.data();
-            if((s.branch || "").toLowerCase() === branch) sessionsData.push(s);
-        });
-        updateDashboard();
+    // ==============================
+    // SESSIONS
+    // ==============================
+
+    const sessionsSnap =
+        await getDocs(
+            collection(window.db, "sessions")
+        );
+
+    sessionsData = [];
+
+    sessionsSnap.forEach(d => {
+
+        let s = d.data();
+
+        if(
+            (s.branch || "").toLowerCase().trim()
+            === branch
+        ){
+            sessionsData.push(s);
+        }
+
     });
 
-    getDocs(collection(window.db, "canteen_logs")).then(snap => {
-        canteenData=[];
-        snap.forEach(d=>{
-            let c=d.data();
-            if((c.branch || "").toLowerCase() === branch) canteenData.push(c);
-        });
-        updateDashboard();
+
+    // ==============================
+    // CANTEEN
+    // ==============================
+
+    const canteenSnap =
+        await getDocs(
+            collection(window.db, "canteen_logs")
+        );
+
+    canteenData = [];
+
+    canteenSnap.forEach(d => {
+
+        let c = d.data();
+
+        if(
+            (c.branch || "").toLowerCase().trim()
+            === branch
+        ){
+            canteenData.push(c);
+        }
+
     });
 
-    getDocs(collection(window.db, "expenses")).then(snap => {
-        expenseData=[];
-        snap.forEach(d=>{
-            let e=d.data();
-            if((e.branch || "").toLowerCase() === branch) expenseData.push(e);
-        });
-  updateDashboard();
-          });
 
-    
-// ✅ EASYPAISA
-getDocs(collection(window.db, "easypaisa")).then(snap => {
+    // ==============================
+    // EXPENSES
+    // ==============================
+
+    const expenseSnap =
+        await getDocs(
+            collection(window.db, "expenses")
+        );
+
+    expenseData = [];
+
+    expenseSnap.forEach(d => {
+
+        let e = d.data();
+
+        if(
+            (e.branch || "").toLowerCase().trim()
+            === branch
+        ){
+            expenseData.push(e);
+        }
+
+    });
+
+
+    // ==============================
+    // EASYPAISA
+    // ==============================
+
+    const easySnap =
+        await getDocs(
+            collection(window.db, "easypaisa")
+        );
 
     window.latestEasyDocs = [];
 
     let todayEasy = 0;
-    let monthlyEasy = 0;
 
-    let now = new Date();
-    const currentDayId = window.currentDayId;
+    const currentDayId =
+        window.currentDayId;
 
-    snap.forEach(d => {
+
+    easySnap.forEach(d => {
 
         let e = d.data();
 
-        // 🔥 SKIP DELETED EASYPAISA
-if (e.is_deleted === true) return;
-        
+        if(e.is_deleted === true) return;
+
+        if(
+            (e.branch || "").toLowerCase().trim()
+            !== branch
+        ){
+            return;
+        }
+
         window.latestEasyDocs.push(e);
 
-        if ((e.branch || "").toLowerCase() !== branch) return;
+        let amount =
+            Number(e.amount || 0);
 
-        let amount = Number(e.amount || 0);
+        let recordDayId =
+            getRecordDayId(e);
 
-        let date;
 
-        let rawDate =
-    e.created_at?.seconds
-    ? e.created_at.seconds * 1000
-    : e.created_at;
+        // ==============================
+        // TODAY EASYPAISA
+        // ==============================
 
-if (!rawDate) return;
+        let operational =
+            operationalDays[recordDayId];
 
-date = new Date(rawDate);
 
-if (isNaN(date.getTime())) return;
+        if(
+            recordDayId ===
+            String(currentDayId) &&
 
-        // TODAY
-// TODAY
-let operational =
-    operationalDays[String(e.day_id)];
+            !operational?.raw?.is_closed
+        ){
+            todayEasy += amount;
+        }
 
-if (
-    String(e.day_id) === String(currentDayId) &&
-    !operational?.raw?.is_closed
-) {
-    todayEasy += amount;
-}
-        // MONTHLY
-// MONTHLY
-let operationalMonthly =
-    operationalDays[String(e.day_id)];
-
-// MONTHLY
-
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    operational.raw?.is_closed === true
-){
-
-    monthlyEasy += amount;
-
-}
     });
 
-    setText("todayEasyPaisa", todayEasy);
-    
-    realtimeTodayEasy = todayEasy;
-    realtimeMonthlyEasy = monthlyEasy;
-    updateDashboard();
-    
 
-});
+    realtimeTodayEasy =
+        todayEasy;
+
+
+    setText(
+        "todayEasyPaisa",
+        todayEasy
+    );
+
+
+    // ==============================
+    // EVERYTHING LOADED
+    // ONLY ONE UPDATE
+    // ==============================
+
+    await updateDashboard();
+
 }
         
       
@@ -338,7 +562,37 @@ async function updateDashboard() {
 
     let monthly_income=0;
 
-    let today_easy = realtimeTodayEasy || 0;
+    // ======================================================
+// MONTHLY ACCOUNTING
+// REPORTS KE SAME SOURCE SE
+// ======================================================
+
+const monthlyAccounting =
+    getMonthlyOperationalAccounting();
+
+
+let monthly_income =
+    monthlyAccounting.gameCollection;
+
+
+let monthly_expense =
+    monthlyAccounting.expense;
+
+
+let monthly_easy =
+    monthlyAccounting.easyPaisa;
+
+
+let shift1Monthly =
+    monthlyAccounting.shift1;
+
+
+let shift2Monthly =
+    monthlyAccounting.shift2;
+
+
+let today_easy =
+    realtimeTodayEasy || 0;
     // 🔥 RESET TODAY VALUES FOR OPERATIONAL DAY
             today_sessions = 0;
             completed_sessions = 0;
