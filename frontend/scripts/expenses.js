@@ -32,7 +32,7 @@ let editId = null;
 
 let selectedType = "all";
 
-let selectedDay = "current";
+let selectedDay = "all";
 
 let fromDate = "";
 
@@ -372,10 +372,12 @@ function getRecordDayId(record) {
 function getExpenseOperationalDay(expense) {
 
     const dayId =
-        getRecordDayId(
-            expense
-        );
+        getRecordDayId(expense);
 
+
+    // ==================================================
+    // 1. EXPENSE HAS DAY_ID
+    // ==================================================
 
     if (
         dayId &&
@@ -387,16 +389,57 @@ function getExpenseOperationalDay(expense) {
     }
 
 
+    // ==================================================
+    // 2. OLD EXPENSE
+    // DAY_ID MISSING / DAY NOT FOUND
+    //
+    // CREATED_AT KE ANDAR OPERATIONAL DAY FIND KARO
+    // ==================================================
+
+    const expenseDate =
+        getRecordDate(
+            expense.created_at
+        );
+
+
+    if (!expenseDate) {
+        return null;
+    }
+
+
+    for (
+        const day of
+        Object.values(
+            operationalDays
+        )
+    ) {
+
+        if (
+            expenseDate >= day.startDate &&
+            expenseDate <= day.endDate
+        ) {
+
+            return day;
+
+        }
+
+    }
+
+
     return null;
 
 }
-
 
 // ======================================================
 // GET OPERATIONAL MONTH
 // ======================================================
 
 function getExpenseOperationalMonth(expense) {
+
+    // ==================================================
+    // FIRST PRIORITY:
+    // OPERATIONAL DAY
+    // ==================================================
 
     const day =
         getExpenseOperationalDay(
@@ -411,7 +454,11 @@ function getExpenseOperationalMonth(expense) {
     }
 
 
-    // Existing saved field
+    // ==================================================
+    // SECOND PRIORITY:
+    // SAVED OPERATIONAL MONTH
+    // ==================================================
+
     if (
         expense.operational_month
     ) {
@@ -421,7 +468,11 @@ function getExpenseOperationalMonth(expense) {
     }
 
 
-    // Legacy fallback
+    // ==================================================
+    // THIRD PRIORITY:
+    // LEGACY CALENDAR DATE
+    // ==================================================
+
     const date =
         getRecordDate(
             expense.created_at
@@ -1076,64 +1127,89 @@ function renderTable() {
         }
 
 
-        // ==================================================
-        // OPERATIONAL DAY FILTER
-        // ==================================================
+// ==================================================
+// OPERATIONAL DAY FILTER
+// ==================================================
+
+if (
+    selectedDay === "current"
+) {
+
+    const currentDay =
+        getCurrentOperationalDay();
+
+
+    if (!currentDay) {
+
+        return;
+
+    }
+
+
+    // ==============================================
+    // EXPENSE KA OPERATIONAL DAY FIND KARO
+    // ==============================================
+
+    const expenseDay =
+        getExpenseOperationalDay(e);
+
+
+    if (expenseDay) {
+
+        const expenseDayId =
+            getRecordDayId(e);
+
+
+        const currentDayId =
+            String(
+                window.currentDayId || ""
+            ).trim();
+
+
+        // ==========================================
+        // EXACT DAY_ID MATCH
+        // ==========================================
 
         if (
-            selectedDay === "current"
+            expenseDayId &&
+            String(
+                expenseDayId
+            ) !== currentDayId
         ) {
 
-            const recordDayId =
-                getRecordDayId(e);
-
-
-            if (
-                recordDayId
-            ) {
-
-                if (
-                    String(
-                        recordDayId
-                    ) !== String(
-                        window.currentDayId
-                    )
-                ) {
-
-                    return;
-
-                }
-
-            } else {
-
-                // Legacy record without day_id
-                const currentDay =
-                    getCurrentOperationalDay();
-
-
-                const expenseDate =
-                    getRecordDate(
-                        e.created_at
-                    );
-
-
-                if (
-                    !currentDay ||
-                    !expenseDate ||
-                    expenseDate <
-                    currentDay.startDate ||
-                    expenseDate >
-                    currentDay.endDate
-                ) {
-
-                    return;
-
-                }
-
-            }
+            return;
 
         }
 
+
+        // ==========================================
+        // LEGACY RECORD
+        // DAY_ID MISSING
+        //
+        // OBJECT MATCH SE CHECK KARO
+        // ==========================================
+
+        if (
+            !expenseDayId &&
+            expenseDay.startDate.getTime() !==
+            currentDay.startDate.getTime()
+        ) {
+
+            return;
+
+        }
+
+    } else {
+
+        // ==========================================
+        // OPERATIONAL DAY MILA HI NAHI
+        // ==========================================
+
+        return;
+
+    }
+
+}
 
         // ==================================================
         // DATE RANGE
