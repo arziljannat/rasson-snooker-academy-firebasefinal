@@ -2414,6 +2414,114 @@ window.onload = function () {
 
 
 // ======================================================
+// SET CURRENT OPERATIONAL MONTH
+// ======================================================
+
+function setCurrentMonthFilter() {
+
+    const currentDay =
+        getCurrentOperationalDay();
+
+
+    let operationalMonth =
+        null;
+
+
+    // ==============================================
+    // CURRENT OPERATIONAL DAY
+    // ==============================================
+
+    if (
+        currentDay &&
+        currentDay.startDate
+    ) {
+
+        operationalMonth =
+            currentDay.operationalMonth;
+
+    }
+
+
+    // ==============================================
+    // FALLBACK — CURRENT PAKISTAN MONTH
+    // ==============================================
+
+    if (
+        !operationalMonth
+    ) {
+
+        operationalMonth =
+            getMonthKey(
+                new Date()
+            );
+
+    }
+
+
+    // ==============================================
+    // MONTH START
+    // ==============================================
+
+    fromDate =
+        `${operationalMonth}-01`;
+
+
+    // ==============================================
+    // MONTH END
+    // ==============================================
+
+    const parts =
+        operationalMonth.split(
+            "-"
+        );
+
+
+    const year =
+        Number(
+            parts[0]
+        );
+
+
+    const month =
+        Number(
+            parts[1]
+        );
+
+
+    const lastDay =
+        new Date(
+            year,
+            month,
+            0
+        ).getDate();
+
+
+    toDate =
+        `${operationalMonth}-${String(
+            lastDay
+        ).padStart(
+            2,
+            "0"
+        )}`;
+
+
+    console.log(
+        "📅 CURRENT OPERATIONAL MONTH:",
+        operationalMonth
+    );
+
+
+    console.log(
+        "📅 EXPENSE FILTER:",
+        fromDate,
+        "→",
+        toDate
+    );
+
+}
+
+
+// ======================================================
 // RENDER TABLE
 // ======================================================
 
