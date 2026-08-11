@@ -177,52 +177,73 @@ let date = null;
 
 
 // ======================================
-// PRIORITY:
-// 1. day_id timestamp
-// 2. shift1.startMs
+// OPERATIONAL DATE
+// ======================================
+// Priority:
+// 1. Saved Shift 1 start
+// 2. Saved date
 // 3. start_time
 // 4. created_at
-// 5. d.date
+// 5. day_id timestamp ONLY legacy fallback
 // ======================================
 
-const dayIdNumber =
-    Number(d.day_id);
+const shift1StartMs =
+    Number(
+        d.shift1?.start_ms ||
+        d.shift1?.startMs ||
+        0
+    );
 
 
 if (
-    Number.isFinite(dayIdNumber) &&
-    dayIdNumber > 1000000000000
-) {
-
-    date =
-        new Date(dayIdNumber);
-
-} else if (
-    Number(d.shift1?.startMs || 0) > 0
+    shift1StartMs > 1000000000000
 ) {
 
     date =
         new Date(
-            Number(d.shift1.startMs)
+            shift1StartMs
+        );
+
+} else if (d.date) {
+
+    date =
+        new Date(
+            d.date
         );
 
 } else if (d.start_time) {
 
     date =
-        new Date(d.start_time);
+        new Date(
+            d.start_time
+        );
 
 } else if (d.created_at) {
 
     date =
-        new Date(d.created_at);
+        new Date(
+            d.created_at
+        );
 
-} else if (d.date) {
+} else {
 
-    date =
-        new Date(d.date);
+    const dayIdNumber =
+        Number(d.day_id);
+
+
+    if (
+        Number.isFinite(dayIdNumber) &&
+        dayIdNumber > 1000000000000
+    ) {
+
+        date =
+            new Date(
+                dayIdNumber
+            );
+
+    }
 
 }
-
         // ======================================
         // INVALID DATE
         // ======================================
@@ -341,16 +362,36 @@ async function getShiftTimesForDay(dayId, branch) {
 
     try {
 
-        const q = query(
-            collection(window.db, "shifts"),
-            where("branch", "==", branch),
-            where("day_id", "==", dayId)
-        );
+        // ==========================================
+        // DAY ID KE DONO POSSIBLE TYPES
+        // String + Number
+        // ==========================================
 
-        const snap =
-            await getDocs(q);
+        const dayIdString =
+            String(dayId).trim();
 
-        snap.forEach(docSnap => {
+        const dayIdNumber =
+            Number(dayIdString);
+
+
+        // ==========================================
+        // QUERY 1
+        // STRING DAY ID
+        // ==========================================
+
+        const stringQuery =
+            query(
+                collection(window.db, "shifts"),
+                where("branch", "==", branch),
+                where("day_id", "==", dayIdString)
+            );
+
+
+        const stringSnap =
+            await getDocs(stringQuery);
+
+
+        stringSnap.forEach(docSnap => {
 
             const s =
                 docSnap.data();
@@ -358,19 +399,88 @@ async function getShiftTimesForDay(dayId, branch) {
             const shiftNumber =
                 Number(s.shift_number);
 
+
             if (shiftNumber === 1) {
-
                 result.shift1 = s;
-
             }
 
+
             if (shiftNumber === 2) {
-
                 result.shift2 = s;
-
             }
 
         });
+
+
+        // ==========================================
+        // QUERY 2
+        // NUMBER DAY ID
+        // ==========================================
+
+        if (
+            Number.isFinite(dayIdNumber)
+        ) {
+
+            const numberQuery =
+                query(
+                    collection(window.db, "shifts"),
+                    where("branch", "==", branch),
+                    where("day_id", "==", dayIdNumber)
+                );
+
+
+            const numberSnap =
+                await getDocs(numberQuery);
+
+
+            numberSnap.forEach(docSnap => {
+
+                const s =
+                    docSnap.data();
+
+                const shiftNumber =
+                    Number(s.shift_number);
+
+
+                if (
+                    shiftNumber === 1 &&
+                    !result.shift1
+                ) {
+
+                    result.shift1 = s;
+
+                }
+
+
+                if (
+                    shiftNumber === 2 &&
+                    !result.shift2
+                ) {
+
+                    result.shift2 = s;
+
+                }
+
+            });
+
+        }
+
+
+        // ==========================================
+        // DEBUG
+        // ==========================================
+
+        console.log(
+            "📊 REPORT SHIFT MATCH:",
+            {
+                dayIdString,
+                dayIdNumber,
+                branch,
+                shift1Found: !!result.shift1,
+                shift2Found: !!result.shift2
+            }
+        );
+
 
     } catch (err) {
 
@@ -380,6 +490,7 @@ async function getShiftTimesForDay(dayId, branch) {
         );
 
     }
+
 
     return result;
 }
@@ -587,6 +698,60 @@ const s2 =
     shiftTimes.shift2 ||
     d.shift2 ||
     {};
+
+
+ // ==========================================
+// 🔥 ACTUAL OPERATIONAL DATE
+// SHIFT 1 FIREBASE SNAPSHOT SE
+// ==========================================
+
+let operationalDate = null;
+
+
+const actualShift1StartMs =
+    Number(
+        s1.start_ms ||
+        s1.startMs ||
+        0
+    );
+
+
+const actualShift2StartMs =
+    Number(
+        s2.start_ms ||
+        s2.startMs ||
+        0
+    );
+
+
+if (
+    actualShift1StartMs > 1000000000000
+) {
+
+    operationalDate =
+        new Date(
+            actualShift1StartMs
+        );
+
+} else if (
+    actualShift2StartMs > 1000000000000
+) {
+
+    operationalDate =
+        new Date(
+            actualShift2StartMs
+        );
+
+} else if (
+    day.startDate
+) {
+
+    operationalDate =
+        new Date(
+            day.startDate
+        );
+
+}         
 
 
 // ======================================
