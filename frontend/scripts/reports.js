@@ -118,13 +118,14 @@ async function loadOperationalDays() {
     // CURRENT BRANCH
     // ==========================================
 
-    const branch =
+    const currentBranch =
         String(
             localStorage.getItem("branch") || ""
-        ).trim();
+        )
+        .trim();
 
 
-    if (!branch) {
+    if (!currentBranch) {
 
         console.error(
             "❌ REPORT: branch missing"
@@ -135,16 +136,68 @@ async function loadOperationalDays() {
 
 
     // ==========================================
-    // LOAD ALL CLOSED OPERATIONAL DAYS
+    // NORMALIZE BRANCH
+    //
+    // Rasson4
+    // rasson4
+    // RASSON4
+    //
+    // sab same maana jayega
+    // ==========================================
+
+    const normalizeBranch = value =>
+        String(value || "")
+            .trim()
+            .toLowerCase();
+
+
+    const targetBranch =
+        normalizeBranch(currentBranch);
+
+
+    console.log(
+        "📊 REPORT CURRENT BRANCH:",
+        currentBranch
+    );
+
+    console.log(
+        "📊 REPORT NORMALIZED BRANCH:",
+        targetBranch
+    );
+
+
+    // ==========================================
+    // 🔥 LOAD DAYS COLLECTION
+    //
+    // IMPORTANT:
+    // Branch ko Firebase query mein exact
+    // match nahi karenge.
+    //
+    // Pehle days collection load karenge,
+    // phir JS mein normalized branch match
+    // karenge.
+    //
+    // Is se:
+    //
+    // Rasson4
+    // rasson4
+    //
+    // dono mil jayenge.
     // ==========================================
 
     const snap =
         await getDocs(
-            query(
-                collection(window.db, "days"),
-                where("branch", "==", branch)
+            collection(
+                window.db,
+                "days"
             )
         );
+
+
+    console.log(
+        "📅 REPORT TOTAL FIREBASE DAYS:",
+        snap.size
+    );
 
 
     // ==========================================
@@ -158,13 +211,27 @@ async function loadOperationalDays() {
 
 
         // ==========================================
-        // 🔥 DAY KEY
-        //
-        // New data:
-        //     d.day_id
-        //
-        // Old/legacy data:
-        //     Firestore document ID
+        // BRANCH MATCH
+        // ==========================================
+
+        const documentBranch =
+            normalizeBranch(
+                d.branch
+            );
+
+
+        if (
+            documentBranch !==
+            targetBranch
+        ) {
+
+            return;
+
+        }
+
+
+        // ==========================================
+        // DAY ID
         // ==========================================
 
         const dayId =
@@ -172,203 +239,206 @@ async function loadOperationalDays() {
                 d.day_id ||
                 docSnap.id ||
                 ""
-            ).trim();
+            )
+            .trim();
 
 
         if (!dayId) {
+
             return;
+
         }
 
 
-// ==========================================
-// 🔥 ACTUAL OPERATIONAL DATE
-//
-// IMPORTANT:
-// Firebase ke old records mein d.date
-// incorrect/old date ho sakti hai.
-//
-// Isliye SHIFT START ko first priority
-// rakhenge.
-// ==========================================
+        // ==========================================
+        // 🔥 OPERATIONAL DATE
+        //
+        // SAME SOURCE AS DAY HISTORY
+        //
+        // Priority:
+        //
+        // 1. shift1.start_ms
+        // 2. shift1.startMs
+        // 3. shift2.start_ms
+        // 4. shift2.startMs
+        // 5. d.date
+        // 6. d.start_time
+        // 7. d.created_at
+        // 8. day_id timestamp
+        // ==========================================
 
-let date = null;
-
-
-// ==========================================
-// 1. SHIFT 1 START
-// ==========================================
-
-const shift1StartMs =
-    Number(
-        d.shift1?.start_ms ||
-        d.shift1?.startMs ||
-        0
-    );
-
-if (
-    shift1StartMs >
-    1000000000000
-) {
-
-    date =
-        new Date(
-            shift1StartMs
-        );
-
-}
+        let date = null;
 
 
-// ==========================================
-// 2. SHIFT 2 START
-// ==========================================
+        // ==========================================
+        // 1. SHIFT 1
+        // ==========================================
 
-if (
-    !date
-) {
-
-    const shift2StartMs =
-        Number(
-            d.shift2?.start_ms ||
-            d.shift2?.startMs ||
-            0
-        );
-
-
-    if (
-        shift2StartMs >
-        1000000000000
-    ) {
-
-        date =
-            new Date(
-                shift2StartMs
+        const shift1StartMs =
+            Number(
+                d.shift1?.start_ms ||
+                d.shift1?.startMs ||
+                0
             );
 
-    }
 
-}
+        if (
+            shift1StartMs >
+            1000000000000
+        ) {
 
+            date =
+                new Date(
+                    shift1StartMs
+                );
 
-// ==========================================
-// 3. START_TIME
-// ==========================================
-
-if (
-    !date &&
-    d.start_time
-) {
-
-    const testDate =
-        new Date(
-            d.start_time
-        );
+        }
 
 
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
+        // ==========================================
+        // 2. SHIFT 2
+        // ==========================================
 
-        date =
-            testDate;
+        if (!date) {
 
-    }
+            const shift2StartMs =
+                Number(
+                    d.shift2?.start_ms ||
+                    d.shift2?.startMs ||
+                    0
+                );
 
-}
+
+            if (
+                shift2StartMs >
+                1000000000000
+            ) {
+
+                date =
+                    new Date(
+                        shift2StartMs
+                    );
+
+            }
+
+        }
 
 
-// ==========================================
-// 4. SAVED DATE
-//
-// IMPORTANT:
-// d.date ab fallback hai.
-// ==========================================
+        // ==========================================
+        // 3. SAVED DATE
+        // ==========================================
 
-if (
-    !date &&
-    d.date
-) {
-
-    const testDate =
-        new Date(
+        if (
+            !date &&
             d.date
-        );
+        ) {
+
+            const testDate =
+                new Date(
+                    d.date
+                );
 
 
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
 
-        date =
-            testDate;
+                date =
+                    testDate;
 
-    }
+            }
 
-}
+        }
 
 
-// ==========================================
-// 5. CREATED_AT
-// ==========================================
+        // ==========================================
+        // 4. START TIME
+        // ==========================================
 
-if (
-    !date &&
-    d.created_at
-) {
+        if (
+            !date &&
+            d.start_time
+        ) {
 
-    const testDate =
-        new Date(
+            const testDate =
+                new Date(
+                    d.start_time
+                );
+
+
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
+
+                date =
+                    testDate;
+
+            }
+
+        }
+
+
+        // ==========================================
+        // 5. CREATED AT
+        // ==========================================
+
+        if (
+            !date &&
             d.created_at
-        );
+        ) {
+
+            const testDate =
+                new Date(
+                    d.created_at
+                );
 
 
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
 
-        date =
-            testDate;
+                date =
+                    testDate;
 
-    }
+            }
 
-}
-
-
-// ==========================================
-// 6. DAY ID TIMESTAMP
-// ==========================================
-
-if (
-    !date
-) {
-
-    const dayIdNumber =
-        Number(
-            dayId
-        );
+        }
 
 
-    if (
-        Number.isFinite(
-            dayIdNumber
-        ) &&
-        dayIdNumber >
-        1000000000000
-    ) {
+        // ==========================================
+        // 6. DAY ID TIMESTAMP
+        // ==========================================
 
-        date =
-            new Date(
-                dayIdNumber
-            );
+        if (!date) {
 
-    }
+            const dayIdNumber =
+                Number(
+                    dayId
+                );
 
-}
+
+            if (
+                Number.isFinite(
+                    dayIdNumber
+                ) &&
+                dayIdNumber >
+                1000000000000
+            ) {
+
+                date =
+                    new Date(
+                        dayIdNumber
+                    );
+
+            }
+
+        }
 
 
         // ==========================================
@@ -383,7 +453,7 @@ if (
         ) {
 
             console.warn(
-                "⚠️ REPORT: INVALID OPERATIONAL DAY",
+                "⚠️ REPORT: INVALID DAY",
                 {
                     firestoreDocId:
                         docSnap.id,
@@ -391,15 +461,16 @@ if (
                     dayId:
                         d.day_id,
 
-                    date:
-                        d.date,
-
                     branch:
-                        d.branch
+                        d.branch,
+
+                    date:
+                        d.date
                 }
             );
 
             return;
+
         }
 
 
@@ -409,7 +480,8 @@ if (
 
         result[dayId] = {
 
-            raw: d,
+            raw:
+                d,
 
             firestoreDocId:
                 docSnap.id,
@@ -423,14 +495,14 @@ if (
 
 
     console.log(
-        "📊 REPORT OPERATIONAL DAYS:",
-        result
+        "📊 REPORT MATCHED BRANCH DAYS:",
+        Object.keys(result).length
     );
 
 
     console.log(
-        "📊 REPORT OPERATIONAL DAY COUNT:",
-        Object.keys(result).length
+        "📊 REPORT OPERATIONAL DAYS:",
+        result
     );
 
 
@@ -1027,37 +1099,6 @@ calculatedDate:
         
 const combined =
     d.combined || {};
-
-
-// ==========================================
-// 🔥 LOAD ACTUAL SHIFT SNAPSHOTS
-// SHIFTS COLLECTION SE
-// ==========================================
-
-const shiftTimes =
-    await getShiftTimesForDay(
-        day,
-        branch
-    );
-
-// ==========================================
-// SHIFT 1
-// ==========================================
-
-const s1 =
-    shiftTimes.shift1 ||
-    d.shift1 ||
-    {};
-
-
-// ==========================================
-// SHIFT 2
-// ==========================================
-
-const s2 =
-    shiftTimes.shift2 ||
-    d.shift2 ||
-    {};
 
 
 
