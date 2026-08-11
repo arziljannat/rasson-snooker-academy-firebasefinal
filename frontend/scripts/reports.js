@@ -1097,8 +1097,24 @@ calculatedDate:
     }
 );
         
+// ==========================================
+// 🔥 SHIFT DATA
+//
+// DIRECTLY DAYS COLLECTION SE
+// DAY HISTORY KI TARAH
+// ==========================================
+
+const s1 =
+    d.shift1 ||
+    {};
+
+const s2 =
+    d.shift2 ||
+    {};
+
 const combined =
-    d.combined || {};
+    d.combined ||
+    {};
 
 
 
