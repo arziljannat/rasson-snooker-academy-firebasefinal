@@ -168,36 +168,29 @@ async function loadOperationalDays() {
         if (!dayId) return;
 
 
-const startMs =
-    Number(
-        d.shift1?.startMs || 0
-    );
-
+// ======================================
+// 🔥 OPERATIONAL DATE
+// CLOSED DAY KI SAVED DATE FIRST
+// ======================================
 
 let date = null;
 
 
 // ======================================
-// OPERATIONAL DATE
 // PRIORITY:
-// 1. Shift 1 start
+// 1. d.date
 // 2. day_id timestamp
-// 3. date
-// 4. start_time
-// 5. created_at
+// 3. start_time
+// 4. created_at
+// 5. shift1.startMs
 // ======================================
 
-if (startMs > 0) {
+if (d.date) {
 
     date =
-        new Date(startMs);
+        new Date(d.date);
 
 } else {
-
-    // ----------------------------------
-    // OLD / LEGACY DAYS
-    // day_id khud timestamp hota hai
-    // ----------------------------------
 
     const dayIdNumber =
         Number(d.day_id);
@@ -210,11 +203,6 @@ if (startMs > 0) {
         date =
             new Date(dayIdNumber);
 
-    } else if (d.date) {
-
-        date =
-            new Date(d.date);
-
     } else if (d.start_time) {
 
         date =
@@ -225,10 +213,18 @@ if (startMs > 0) {
         date =
             new Date(d.created_at);
 
+    } else if (
+        Number(d.shift1?.startMs || 0) > 0
+    ) {
+
+        date =
+            new Date(
+                Number(d.shift1.startMs)
+            );
+
     }
 
 }
-
 
         // ======================================
         // INVALID DATE
@@ -501,33 +497,32 @@ console.log(
             // OPERATIONAL DATE
             // ======================================
 
+// ======================================
+// 🔥 OPERATIONAL DATE
+// SAME DATE AS CLOSED DAY
+// ======================================
+
 let operationalDate;
 
 
 // ======================================
-// OPERATIONAL DATE
 // PRIORITY:
-// 1. Shift 1 startMs
+// 1. d.date
 // 2. day_id timestamp
-// 3. date
+// 3. start_time
+// 4. created_at
+// 5. shift1.startMs
 // ======================================
 
-if (s1.startMs) {
+if (d.date) {
 
     operationalDate =
-        new Date(
-            Number(s1.startMs)
-        );
+        new Date(d.date);
 
 } else {
 
     const dayIdNumber =
         Number(d.day_id);
-
-
-    // ----------------------------------
-    // OLD / LEGACY DAY RECORD
-    // ----------------------------------
 
     if (
         Number.isFinite(dayIdNumber) &&
@@ -537,10 +532,22 @@ if (s1.startMs) {
         operationalDate =
             new Date(dayIdNumber);
 
-    } else if (d.date) {
+    } else if (d.start_time) {
 
         operationalDate =
-            new Date(d.date);
+            new Date(d.start_time);
+
+    } else if (d.created_at) {
+
+        operationalDate =
+            new Date(d.created_at);
+
+    } else if (s1.startMs) {
+
+        operationalDate =
+            new Date(
+                Number(s1.startMs)
+            );
 
     } else {
 
