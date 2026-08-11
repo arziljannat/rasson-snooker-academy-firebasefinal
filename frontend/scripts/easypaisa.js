@@ -1686,45 +1686,45 @@ function () {
 
 // ======================================================
 // CURRENT MONTH FILTER
+//
+// DEFAULT MONTH = CURRENT CALENDAR MONTH
+//
+// Example:
+// August 2026 → 2026-08
+// September 2026 → 2026-09
+//
+// Current operational day ka month yahan use nahi hoga.
 // ======================================================
 
 function setCurrentMonthFilter() {
 
-    const currentDay =
-        getCurrentOperationalDay();
+    // ==============================================
+    // CURRENT CALENDAR MONTH
+    // ==============================================
+
+    const currentDate =
+        new Date();
 
 
-    let operationalMonth =
-        null;
+    const operationalMonth =
+        getMonthKey(
+            currentDate
+        );
 
 
     // ==============================================
-    // CURRENT OPERATIONAL DAY
-    // ==============================================
-
-    if (
-        currentDay &&
-        currentDay.startDate
-    ) {
-
-        operationalMonth =
-            currentDay.operationalMonth;
-
-    }
-
-
-    // ==============================================
-    // FALLBACK
+    // SAFETY CHECK
     // ==============================================
 
     if (
         !operationalMonth
     ) {
 
-        operationalMonth =
-            getMonthKey(
-                new Date()
-            );
+        console.error(
+            "❌ CURRENT MONTH COULD NOT BE DETECTED"
+        );
+
+        return;
 
     }
 
@@ -1786,7 +1786,9 @@ function setCurrentMonthFilter() {
         );
 
 
-    if (monthInput) {
+    if (
+        monthInput
+    ) {
 
         monthInput.value =
             operationalMonth;
@@ -1794,8 +1796,12 @@ function setCurrentMonthFilter() {
     }
 
 
+    // ==============================================
+    // DEBUG
+    // ==============================================
+
     console.log(
-        "📅 EASYPAISA CURRENT OPERATIONAL MONTH:",
+        "📅 EASYPAISA CURRENT CALENDAR MONTH:",
         operationalMonth
     );
 
