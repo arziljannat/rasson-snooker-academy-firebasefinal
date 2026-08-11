@@ -156,17 +156,147 @@ async function loadReport() {
     try {
 
         // ==========================================
-        // 🔥 REPORT DATA AB DAYS SNAPSHOT SE AYEGA
+        // FORMAT MONEY
+        // ==========================================
+
+        const money = (value) => {
+
+            return Number(value || 0)
+                .toLocaleString("en-PK");
+        };
+
+
+        // ==========================================
+        // FORMAT DATE
+        // Example:
+        // 01 August 2026
+        // ==========================================
+
+        const formatDate = (date) => {
+
+            return date.toLocaleDateString(
+                "en-PK",
+                {
+                    timeZone: "Asia/Karachi",
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+        };
+
+
+        // ==========================================
+        // FORMAT TIME
+        // ==========================================
+
+        const formatTime = (ms) => {
+
+            if (!ms) return "-";
+
+            return new Date(ms).toLocaleTimeString(
+                "en-PK",
+                {
+                    timeZone: "Asia/Karachi",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true
+                }
+            );
+        };
+
+
+        // ==========================================
+        // MONTH NAME
+        // ==========================================
+
+        const formatMonthRange = (from, to) => {
+
+            const fromMonth =
+                from.toLocaleDateString(
+                    "en-PK",
+                    {
+                        month: "long",
+                        year: "numeric",
+                        timeZone: "Asia/Karachi"
+                    }
+                );
+
+            const toMonth =
+                to.toLocaleDateString(
+                    "en-PK",
+                    {
+                        month: "long",
+                        year: "numeric",
+                        timeZone: "Asia/Karachi"
+                    }
+                );
+
+            if (fromMonth === toMonth) {
+
+                return fromMonth;
+
+            }
+
+            return `${fromMonth} → ${toMonth}`;
+        };
+
+
+        // ==========================================
+        // GET SELECTED CLOSED DAYS
         // ==========================================
 
         let rows = [];
 
+
         Object.values(operationalDays).forEach(day => {
 
-            const d = day.raw;
+            const d =
+                day.raw || {};
 
-            const operationalDate =
-                day.startDate;
+
+            const s1 =
+                d.shift1 || {};
+
+            const s2 =
+                d.shift2 || {};
+
+            const combined =
+                d.combined || {};
+
+
+            // ======================================
+            // OPERATIONAL DATE
+            // ======================================
+
+            let operationalDate;
+
+            if (s1.startMs) {
+
+                operationalDate =
+                    new Date(
+                        Number(s1.startMs)
+                    );
+
+            } else if (d.date) {
+
+                operationalDate =
+                    new Date(d.date);
+
+            } else {
+
+                return;
+            }
+
+
+            if (
+                isNaN(
+                    operationalDate.getTime()
+                )
+            ) {
+                return;
+            }
+
 
             // ======================================
             // DATE FILTER
@@ -179,136 +309,60 @@ async function loadReport() {
                 return;
             }
 
-            const s1 =
-                d.shift1 || {};
-
-            const s2 =
-                d.shift2 || {};
-
-            const combined =
-                d.combined || {};
 
             // ======================================
-            // SHIFT 1 BALANCE
+            // BALANCE
+            // SAME AS SHIFT SNAPSHOT
             // ======================================
 
             const shift1Balance =
                 Number(s1.gameBalance || 0) +
                 Number(s1.canteenBalance || 0);
 
-            // ======================================
-            // SHIFT 2 BALANCE
-            // ======================================
 
             const shift2Balance =
                 Number(s2.gameBalance || 0) +
                 Number(s2.canteenBalance || 0);
 
-            // ======================================
-            // DATE
-            // ======================================
-
-            const dateLabel =
-                operationalDate.toLocaleDateString(
-                    "en-PK",
-                    {
-                        timeZone: "Asia/Karachi",
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit"
-                    }
-                );
 
             // ======================================
-            // SHIFT 1 TIMING
+            // COMBINED TIMING
+            // EXACT SHIFT SNAPSHOT STYLE
+            //
+            // Shift 1 START
+            //        ↓
+            // Shift 2 CLOSE
             // ======================================
 
-            let shift1Timing = "-";
+            let combinedTiming = "-";
 
             if (
                 s1.startMs &&
-                s1.endMs
-            ) {
-
-                const start =
-                    new Date(s1.startMs)
-                    .toLocaleTimeString(
-                        "en-PK",
-                        {
-                            timeZone: "Asia/Karachi",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    );
-
-                const close =
-                    new Date(s1.endMs)
-                    .toLocaleTimeString(
-                        "en-PK",
-                        {
-                            timeZone: "Asia/Karachi",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    );
-
-                shift1Timing =
-                    `${start} → ${close}`;
-            }
-
-            // ======================================
-            // SHIFT 2 TIMING
-            // ======================================
-
-            let shift2Timing = "-";
-
-            if (
-                s2.startMs &&
                 s2.endMs
             ) {
 
-                const start =
-                    new Date(s2.startMs)
-                    .toLocaleTimeString(
-                        "en-PK",
-                        {
-                            timeZone: "Asia/Karachi",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    );
+                combinedTiming =
+                    `${formatTime(s1.startMs)} → ${formatTime(s2.endMs)}`;
 
-                const close =
-                    new Date(s2.endMs)
-                    .toLocaleTimeString(
-                        "en-PK",
-                        {
-                            timeZone: "Asia/Karachi",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    );
-
-                shift2Timing =
-                    `${start} → ${close}`;
             }
 
+
             // ======================================
-            // SAVE ROW
+            // PUSH ROW
             // ======================================
 
             rows.push({
 
                 date:
-                    dateLabel,
+                    formatDate(
+                        operationalDate
+                    ),
 
                 dateMs:
                     operationalDate.getTime(),
 
+
+                // SHIFT 1
                 shift1Closing:
                     Number(
                         s1.closingCash || 0
@@ -322,9 +376,8 @@ async function loadReport() {
                         s1.discount || 0
                     ),
 
-                shift1Timing:
-                    shift1Timing,
 
+                // SHIFT 2
                 shift2Closing:
                     Number(
                         s2.closingCash || 0
@@ -338,9 +391,8 @@ async function loadReport() {
                         s2.discount || 0
                     ),
 
-                shift2Timing:
-                    shift2Timing,
 
+                // OTHER
                 expenses:
                     Number(
                         combined.expenses || 0
@@ -351,22 +403,42 @@ async function loadReport() {
                         combined.easypaisa || 0
                     ),
 
+
+                // COMBINED
                 combinedClosing:
                     Number(
                         combined.closingCash || 0
+                    ),
+
+                combinedTiming:
+                    combinedTiming,
+
+
+                // RAW TIMING
+                startMs:
+                    Number(
+                        s1.startMs || 0
+                    ),
+
+                endMs:
+                    Number(
+                        s2.endMs || 0
                     )
+
             });
 
         });
 
+
         // ==========================================
-        // SORT DATE WISE
+        // SORT DATE ASCENDING
         // ==========================================
 
         rows.sort(
             (a, b) =>
                 a.dateMs - b.dateMs
         );
+
 
         // ==========================================
         // NO DATA
@@ -375,23 +447,133 @@ async function loadReport() {
         if (rows.length === 0) {
 
             box.innerHTML = `
-                <div class="report-card">
-                    <h3>No report data found</h3>
+
+                <div
+                    class="report-card"
+                    style="
+                        text-align:center;
+                        padding:30px;
+                    "
+                >
+
+                    <h3
+                        style="
+                            color:#00ffcc;
+                        "
+                    >
+                        No Report Data Found
+                    </h3>
+
                     <p>
                         Selected date range mein
                         koi closed operational day nahi mila.
                     </p>
+
                 </div>
+
             `;
 
             return;
         }
 
+
         // ==========================================
-        // BUILD TABLE
+        // TOTALS
+        // ==========================================
+
+        let totalShift1Closing = 0;
+        let totalShift1Balance = 0;
+        let totalShift1Discount = 0;
+
+        let totalShift2Closing = 0;
+        let totalShift2Balance = 0;
+        let totalShift2Discount = 0;
+
+        let totalExpenses = 0;
+        let totalEasyPaisa = 0;
+
+        let totalCombinedClosing = 0;
+
+
+        rows.forEach(row => {
+
+            totalShift1Closing +=
+                row.shift1Closing;
+
+            totalShift1Balance +=
+                row.shift1Balance;
+
+            totalShift1Discount +=
+                row.shift1Discount;
+
+
+            totalShift2Closing +=
+                row.shift2Closing;
+
+            totalShift2Balance +=
+                row.shift2Balance;
+
+            totalShift2Discount +=
+                row.shift2Discount;
+
+
+            totalExpenses +=
+                row.expenses;
+
+            totalEasyPaisa +=
+                row.easypaisa;
+
+
+            totalCombinedClosing +=
+                row.combinedClosing;
+
+        });
+
+
+        // ==========================================
+        // TOTAL COMBINED TIMING
+        //
+        // FIRST SELECTED DAY SHIFT 1 START
+        // LAST SELECTED DAY SHIFT 2 CLOSE
+        // ==========================================
+
+        let totalTiming = "-";
+
+        const firstRow =
+            rows[0];
+
+        const lastRow =
+            rows[rows.length - 1];
+
+
+        if (
+            firstRow.startMs &&
+            lastRow.endMs
+        ) {
+
+            totalTiming =
+                `${formatTime(firstRow.startMs)} → ${formatTime(lastRow.endMs)}`;
+
+        }
+
+
+        // ==========================================
+        // MONTH TITLE
+        // ==========================================
+
+        const monthTitle =
+            formatMonthRange(
+                dates.from,
+                dates.to
+            );
+
+
+        // ==========================================
+        // BUILD TABLE ROWS
         // ==========================================
 
         let rowsHtml = "";
+
 
         rows.forEach(row => {
 
@@ -399,96 +581,412 @@ async function loadReport() {
 
                 <tr>
 
-                    <td>
-                        <b>${row.date}</b>
+                    <td class="report-center date-cell">
+                        <strong>
+                            ${row.date}
+                        </strong>
                     </td>
+
 
                     <!-- SHIFT 1 CLOSING -->
-                    <td>
-                        Rs ${row.shift1Closing}
+                    <td class="report-center">
+                        Rs ${money(row.shift1Closing)}
                     </td>
+
 
                     <!-- SHIFT 1 BALANCE -->
-                    <td>
-                        Rs ${row.shift1Balance}
+                    <td class="report-center">
+                        Rs ${money(row.shift1Balance)}
                     </td>
+
 
                     <!-- SHIFT 1 DISCOUNT -->
-                    <td>
-                        Rs ${row.shift1Discount}
+                    <td class="report-center">
+                        Rs ${money(row.shift1Discount)}
                     </td>
 
-                    <!-- SHIFT 1 TIMING -->
-                    <td>
-                        ${row.shift1Timing}
-                    </td>
 
                     <!-- SHIFT 2 CLOSING -->
-                    <td>
-                        Rs ${row.shift2Closing}
+                    <td class="report-center">
+                        Rs ${money(row.shift2Closing)}
                     </td>
+
 
                     <!-- SHIFT 2 BALANCE -->
-                    <td>
-                        Rs ${row.shift2Balance}
+                    <td class="report-center">
+                        Rs ${money(row.shift2Balance)}
                     </td>
+
 
                     <!-- SHIFT 2 DISCOUNT -->
-                    <td>
-                        Rs ${row.shift2Discount}
+                    <td class="report-center">
+                        Rs ${money(row.shift2Discount)}
                     </td>
 
-                    <!-- SHIFT 2 TIMING -->
-                    <td>
-                        ${row.shift2Timing}
-                    </td>
 
                     <!-- EXPENSE -->
-                    <td>
-                        Rs ${row.expenses}
+                    <td class="report-center">
+                        Rs ${money(row.expenses)}
                     </td>
+
 
                     <!-- EASYPAISA -->
-                    <td>
-                        Rs ${row.easypaisa}
+                    <td class="report-center">
+                        Rs ${money(row.easypaisa)}
                     </td>
 
+
                     <!-- COMBINED CLOSING -->
-                    <td>
-                        <b>
-                            Rs ${row.combinedClosing}
-                        </b>
+                    <td
+                        class="
+                            report-center
+                            combined-cash
+                        "
+                    >
+                        <strong>
+                            Rs ${money(row.combinedClosing)}
+                        </strong>
+                    </td>
+
+
+                    <!-- COMBINED TIMING -->
+                    <td
+                        class="
+                            report-center
+                            combined-timing
+                        "
+                    >
+                        ${row.combinedTiming}
                     </td>
 
                 </tr>
 
             `;
+
         });
 
+
         // ==========================================
-        // FINAL REPORT
+        // FINAL REPORT HTML
         // ==========================================
 
         box.innerHTML = `
 
-            <h2>
-                Game Report
-            </h2>
+            <style>
 
-            <div
-                style="
+                /* =====================================
+                   REPORT MAIN TABLE
+                ===================================== */
+
+                .game-report-wrapper {
+
                     width:100%;
+
                     overflow-x:auto;
+
                     margin-top:15px;
+
+                    border-radius:12px;
+
+                    background:
+                        rgba(0,0,0,0.45);
+
+                }
+
+
+                .game-report-table {
+
+                    width:100%;
+
+                    min-width:1350px;
+
+                    border-collapse:separate;
+
+                    border-spacing:0;
+
+                    table-layout:fixed;
+
+                    color:#fff;
+
+                }
+
+
+                .game-report-table th {
+
+                    padding:14px 10px;
+
+                    text-align:center;
+
+                    vertical-align:middle;
+
+                    color:#00ffcc;
+
+                    font-size:14px;
+
+                    font-weight:700;
+
+                    line-height:1.25;
+
+                    border-right:
+                        1px solid
+                        rgba(0,255,204,0.25);
+
+                    border-bottom:
+                        1px solid
+                        rgba(0,255,204,0.35);
+
+                    background:
+                        rgba(0,0,0,0.72);
+
+                }
+
+
+                .game-report-table td {
+
+                    padding:13px 9px;
+
+                    text-align:center;
+
+                    vertical-align:middle;
+
+                    font-size:14px;
+
+                    font-weight:500;
+
+                    border-right:
+                        1px solid
+                        rgba(0,255,204,0.18);
+
+                    border-bottom:
+                        1px solid
+                        rgba(0,255,204,0.18);
+
+                    background:
+                        rgba(0,0,0,0.30);
+
+                }
+
+
+                .game-report-table tr:hover td {
+
+                    background:
+                        rgba(0,255,204,0.08);
+
+                }
+
+
+                .report-center {
+
+                    text-align:center !important;
+
+                    vertical-align:middle !important;
+
+                }
+
+
+                .date-cell {
+
+                    color:#ffffff;
+
+                }
+
+
+                .combined-cash {
+
+                    color:#fff;
+
+                    font-weight:800 !important;
+
+                }
+
+
+                .combined-timing {
+
+                    color:#00ffcc;
+
+                    font-weight:700 !important;
+
+                    line-height:1.4;
+
+                }
+
+
+                /* =====================================
+                   TOTAL SUMMARY
+                ===================================== */
+
+                .report-total-title {
+
+                    margin-top:24px;
+
+                    padding:14px 18px;
+
+                    border:
+                        1px solid
+                        rgba(0,255,204,0.35);
+
+                    border-bottom:none;
+
+                    border-radius:
+                        12px 12px 0 0;
+
+                    background:
+                        rgba(0,0,0,0.65);
+
+                    color:#00ffcc;
+
+                    font-size:18px;
+
+                    font-weight:800;
+
+                    text-align:left;
+
+                }
+
+
+                .report-total-wrapper {
+
+                    width:100%;
+
+                    overflow-x:auto;
+
+                    border-radius:
+                        0 0 12px 12px;
+
+                }
+
+
+                .report-total-table {
+
+                    width:100%;
+
+                    min-width:1150px;
+
+                    border-collapse:collapse;
+
+                    table-layout:fixed;
+
+                    color:#fff;
+
+                }
+
+
+                .report-total-table th {
+
+                    padding:12px 8px;
+
+                    text-align:center;
+
+                    color:#00ffcc;
+
+                    font-size:13px;
+
+                    background:
+                        rgba(0,0,0,0.70);
+
+                    border:
+                        1px solid
+                        rgba(0,255,204,0.25);
+
+                }
+
+
+                .report-total-table td {
+
+                    padding:15px 8px;
+
+                    text-align:center;
+
+                    font-size:15px;
+
+                    font-weight:800;
+
+                    background:
+                        rgba(0,255,204,0.06);
+
+                    border:
+                        1px solid
+                        rgba(0,255,204,0.25);
+
+                }
+
+
+                .total-main {
+
+                    color:#ffffff;
+
+                }
+
+
+                .total-combined {
+
+                    color:#00ffcc;
+
+                    font-size:17px !important;
+
+                }
+
+
+                .total-timing-box {
+
+                    margin-top:12px;
+
+                    padding:14px;
+
+                    text-align:center;
+
+                    border:
+                        1px solid
+                        rgba(0,255,204,0.30);
+
+                    border-radius:10px;
+
+                    background:
+                        rgba(0,0,0,0.50);
+
+                    color:#00ffcc;
+
+                    font-weight:800;
+
+                }
+
+
+                .report-note {
+
+                    margin-top:12px;
+
+                    padding:10px;
+
+                    text-align:center;
+
+                    color:#aaa;
+
+                    font-size:12px;
+
+                }
+
+            </style>
+
+
+            <h2
+                style="
+                    color:#00ffcc;
+                    text-align:left;
+                    margin-bottom:12px;
                 "
             >
+                🎟️ Game Report
+            </h2>
+
+
+            <!-- ==================================
+                 DAILY REPORT TABLE
+            =================================== -->
+
+            <div class="game-report-wrapper">
 
                 <table
-                    class="report-table"
-                    style="
-                        min-width:1500px;
-                        white-space:nowrap;
-                    "
+                    class="game-report-table"
                 >
 
                     <thead>
@@ -499,6 +997,104 @@ async function loadReport() {
                                 Date
                             </th>
 
+
+                            <th>
+                                Shift 1<br>
+                                Closing Cash
+                            </th>
+
+
+                            <th>
+                                Shift 1<br>
+                                Balance
+                            </th>
+
+
+                            <th>
+                                Shift 1<br>
+                                Discount
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Closing Cash
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Balance
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Discount
+                            </th>
+
+
+                            <th>
+                                Expenses
+                            </th>
+
+
+                            <th>
+                                EasyPaisa
+                            </th>
+
+
+                            <th>
+                                Combined<br>
+                                Closing Cash
+                            </th>
+
+
+                            <th>
+                                Combined<br>
+                                Timing
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        ${rowsHtml}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ==================================
+                 TOTAL SUMMARY
+            =================================== -->
+
+            <div
+                class="report-total-title"
+            >
+                📊 Total Summary
+                (${monthTitle})
+            </div>
+
+
+            <div
+                class="report-total-wrapper"
+            >
+
+                <table
+                    class="report-total-table"
+                >
+
+                    <thead>
+
+                        <tr>
+
                             <th>
                                 Shift 1<br>
                                 Closing Cash
@@ -515,11 +1111,6 @@ async function loadReport() {
                             </th>
 
                             <th>
-                                Shift 1<br>
-                                Timing
-                            </th>
-
-                            <th>
                                 Shift 2<br>
                                 Closing Cash
                             </th>
@@ -532,11 +1123,6 @@ async function loadReport() {
                             <th>
                                 Shift 2<br>
                                 Discount
-                            </th>
-
-                            <th>
-                                Shift 2<br>
-                                Timing
                             </th>
 
                             <th>
@@ -556,9 +1142,56 @@ async function loadReport() {
 
                     </thead>
 
+
                     <tbody>
 
-                        ${rowsHtml}
+                        <tr>
+
+                            <td class="total-main">
+                                Rs ${money(totalShift1Closing)}
+                            </td>
+
+                            <td class="total-main">
+                                Rs ${money(totalShift1Balance)}
+                            </td>
+
+                            <td class="total-main">
+                                Rs ${money(totalShift1Discount)}
+                            </td>
+
+
+                            <td class="total-main">
+                                Rs ${money(totalShift2Closing)}
+                            </td>
+
+                            <td class="total-main">
+                                Rs ${money(totalShift2Balance)}
+                            </td>
+
+                            <td class="total-main">
+                                Rs ${money(totalShift2Discount)}
+                            </td>
+
+
+                            <td class="total-main">
+                                Rs ${money(totalExpenses)}
+                            </td>
+
+
+                            <td class="total-main">
+                                Rs ${money(totalEasyPaisa)}
+                            </td>
+
+
+                            <td
+                                class="
+                                    total-combined
+                                "
+                            >
+                                Rs ${money(totalCombinedClosing)}
+                            </td>
+
+                        </tr>
 
                     </tbody>
 
@@ -566,7 +1199,40 @@ async function loadReport() {
 
             </div>
 
+
+            <!-- ==================================
+                 TOTAL COMBINED TIMING
+            =================================== -->
+
+            <div
+                class="total-timing-box"
+            >
+
+                🕐 Total Operational Timing
+
+                <br>
+
+                <span
+                    style="
+                        font-size:17px;
+                        color:#fff;
+                    "
+                >
+                    ${totalTiming}
+                </span>
+
+            </div>
+
+
+            <div
+                class="report-note"
+            >
+                ℹ️ Report is based on closed operational days
+                (Shift 1 and Shift 2).
+            </div>
+
         `;
+
 
     } catch (err) {
 
@@ -575,9 +1241,25 @@ async function loadReport() {
             err
         );
 
-        box.innerHTML =
-            "Error loading report";
+        box.innerHTML = `
+
+            <div
+                class="report-card"
+                style="
+                    text-align:center;
+                    padding:25px;
+                    color:#ff6b6b;
+                "
+            >
+
+                Error loading report ❌
+
+            </div>
+
+        `;
+
     }
+
 }
 
 /// PRINTING FUNCTION report thermal printer
