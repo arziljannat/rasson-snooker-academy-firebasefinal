@@ -1458,32 +1458,122 @@ if (
         }
 
 
-        // ==========================================
-        // SORT DATE
-        // ==========================================
+// ==========================================
+// REMOVE DUPLICATE OPERATIONAL DAYS
+//
+// IMPORTANT:
+// Ek operational date = ek report row.
+//
+// Agar Firebase days collection mein
+// same operational date ka duplicate
+// day record hai to report mein sirf
+// ek row show hogi.
+// ==========================================
 
-              console.log(
-            "📊 REPORT FILTER RESULT:",
+const rowsBeforeDuplicateRemoval =
+    rows.length;
+
+
+const uniqueRows =
+    new Map();
+
+
+rows.forEach(row => {
+
+    const dateKey =
+        new Intl.DateTimeFormat(
+            "en-CA",
             {
-                from:
-                    dates.fromKey,
-        
-                to:
-                    dates.toKey,
-        
-                availableDays:
-                    Object.keys(days || {}).length,
-        
-                matchedRows:
-                    rows.length
+                timeZone:
+                    "Asia/Karachi",
+
+                year:
+                    "numeric",
+
+                month:
+                    "2-digit",
+
+                day:
+                    "2-digit"
             }
+        ).format(
+            new Date(
+                row.dateMs
+            )
         );
 
-        rows.sort(
-            (a, b) =>
-                a.dateMs - b.dateMs
+
+    if (
+        !uniqueRows.has(
+            dateKey
+        )
+    ) {
+
+        uniqueRows.set(
+            dateKey,
+            row
         );
 
+    }
+
+    else {
+
+        console.warn(
+            "⚠️ DUPLICATE OPERATIONAL DAY REMOVED:",
+            dateKey
+        );
+
+    }
+
+});
+
+
+// ==========================================
+// UNIQUE ROWS
+// ==========================================
+
+rows =
+    Array.from(
+        uniqueRows.values()
+    );
+
+
+// ==========================================
+// SORT DATE
+// ==========================================
+
+rows.sort(
+    (a, b) =>
+        a.dateMs - b.dateMs
+);
+
+
+// ==========================================
+// REPORT DEBUG
+// ==========================================
+
+console.log(
+    "📊 REPORT FILTER RESULT:",
+    {
+
+        from:
+            dates.fromKey,
+
+        to:
+            dates.toKey,
+
+        availableDays:
+            Object.keys(
+                days || {}
+            ).length,
+
+        rowsBeforeDuplicateRemoval,
+
+        uniqueOperationalDays:
+            rows.length
+
+    }
+);
 
         // ==========================================
         // NO DATA
