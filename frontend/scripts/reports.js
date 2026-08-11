@@ -552,7 +552,7 @@ calculatedDate:
           )
     }
 );
-        }
+        
 const combined =
     d.combined || {};
 
@@ -727,7 +727,7 @@ if (
                 operationalKey > dates.toKey
             ) {
             
-                return;
+                continue;
             
             }
 
@@ -919,17 +919,21 @@ if (
 
                 startMs:
                     Number(
-                        s1.startMs || 0
+                        s1.start_ms ||
+                        s1.startMs ||
+                        0
                     ),
-
+                
                 endMs:
                     Number(
-                        s2.endMs || 0
+                        s2.end_ms ||
+                        s2.endMs ||
+                        0
                     )
 
             });
 
-        });
+        }
 
 
         // ==========================================
