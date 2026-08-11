@@ -215,3 +215,42 @@ body::before {
     margin-top:10px;
     font-size:16px;
 }
+
+/* =========================
+   EASYPAISA TODAY TOTAL
+   CENTER
+========================= */
+
+.easy-total-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    margin: 25px auto;
+
+    width: 100%;
+}
+
+.easy-total-center span {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.easy-total-center b {
+    display: block;
+
+    margin-top: 8px;
+
+    font-size: 30px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    text-shadow:
+        0 0 10px var(--neon),
+        0 0 20px var(--neon);
+}
