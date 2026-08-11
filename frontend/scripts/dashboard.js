@@ -55,6 +55,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadOperationalDays();
 
+    // Resolve the real OPEN operational day for this branch.
+    // This prevents Today from becoming 0 when the system
+    // current_day id is stale/missing.
+    resolveCurrentOperationalDay();
+
+    console.log(
+        "🔥 DASHBOARD TODAY OPERATIONAL DAY:",
+        getCurrentOperationalDayDebug()
+    );
+
 
     // ==================================================
     // LOAD ALL DASHBOARD DATA
@@ -257,6 +267,204 @@ function getRecordDate(value){
     return isNaN(date.getTime())
         ? null
         : date;
+
+}
+
+
+// ======================================================
+// CURRENT OPERATIONAL DAY RESOLVER
+// ======================================================
+// Today on the dashboard means the CURRENT OPEN
+// OPERATIONAL DAY, not simply the calendar date.
+// This also handles old records where day_id is missing.
+// ======================================================
+
+function resolveCurrentOperationalDay(){
+
+    const branch =
+        (localStorage.getItem("branch") || "")
+        .toLowerCase()
+        .trim();
+
+    const configuredId =
+        String(window.currentDayId || "").trim();
+
+    // 1) Prefer the configured current_day record
+    if(
+        configuredId &&
+        operationalDays[configuredId] &&
+        (operationalDays[configuredId].raw?.branch || "")
+            .toLowerCase()
+            .trim() === branch &&
+        operationalDays[configuredId].raw?.is_closed !== true
+    ){
+
+        return operationalDays[configuredId];
+
+    }
+
+    // 2) Fallback: latest OPEN operational day for this branch
+    const openDays =
+        Object.values(operationalDays || {})
+        .filter(day => {
+
+            return (
+                (day.raw?.branch || "")
+                    .toLowerCase()
+                    .trim() === branch
+                &&
+                day.raw?.is_closed !== true
+                &&
+                day.startDate
+            );
+
+        })
+        .sort(
+            (a,b) =>
+                b.startDate.getTime() -
+                a.startDate.getTime()
+        );
+
+    if(openDays.length){
+
+        const fallbackId =
+            String(
+                openDays[0].raw?.day_id || ""
+            ).trim();
+
+        if(fallbackId){
+
+            window.currentDayId =
+                fallbackId;
+
+        }
+
+        return openDays[0];
+
+    }
+
+    return null;
+
+}
+
+
+// ======================================================
+// CURRENT OPERATIONAL DAY RECORD CHECK
+// ======================================================
+// First use day_id when it exists.
+// If old data has no day_id, use the current operational
+// day's start_time -> now range.
+// ======================================================
+
+function isRecordInCurrentOperationalDay(record){
+
+    const currentDay =
+        resolveCurrentOperationalDay();
+
+    if(!currentDay) return false;
+
+    const currentId =
+        String(
+            window.currentDayId || ""
+        ).trim();
+
+    const recordDayId =
+        getRecordDayId(record);
+
+    // Exact day_id match = safest match
+    if(
+        recordDayId &&
+        currentId &&
+        recordDayId === currentId
+    ){
+
+        return true;
+
+    }
+
+    // If a record has another explicit day_id,
+    // do not move it into Today.
+    if(recordDayId){
+
+        return false;
+
+    }
+
+    // Legacy records without day_id:
+    // use the operational day's actual start time.
+    const date =
+        getRecordDate(
+            record?.start_time ||
+            record?.startTime ||
+            record?.created_at ||
+            record?.time ||
+            record?.date
+        );
+
+    if(!date || !currentDay.startDate){
+
+        return false;
+
+    }
+
+    const now =
+        new Date();
+
+    return (
+        date >= currentDay.startDate &&
+        date <= now
+    );
+
+}
+
+
+// ======================================================
+// TODAY OPERATIONAL DAY DEBUG
+// ======================================================
+
+function getCurrentOperationalDayDebug(){
+
+    const day =
+        resolveCurrentOperationalDay();
+
+    if(!day){
+
+        return {
+
+            dayId:
+                window.currentDayId,
+
+            startDate:
+                null,
+
+            branch:
+                localStorage.getItem("branch"),
+
+            found:
+                false
+
+        };
+
+    }
+
+    return {
+
+        dayId:
+            window.currentDayId,
+
+        startDate:
+            day.startDate,
+
+        branch:
+            day.raw?.branch,
+
+        closed:
+            day.raw?.is_closed,
+
+        found:
+            true
+
+    };
 
 }
 
@@ -934,8 +1142,7 @@ async function loadDashboardRealtime(){
 
         if(
 
-            recordDayId ===
-            String(currentDayId)
+            isRecordInCurrentOperationalDay(e)
 
             &&
 
@@ -970,7 +1177,6 @@ async function loadDashboardRealtime(){
 
 }
 
-
 // ======================================================
 // UPDATE DASHBOARD
 // ======================================================
@@ -978,19 +1184,29 @@ async function loadDashboardRealtime(){
 async function updateDashboard(){
 
     const currentDayId =
-        window.currentDayId;
+        String(window.currentDayId || "").trim();
+
+
+    const currentOperationalDay =
+        resolveCurrentOperationalDay();
 
 
     let todayStart =
-        new Date();
+        currentOperationalDay?.startDate
+            ? new Date(currentOperationalDay.startDate)
+            : new Date();
 
 
-    todayStart.setHours(
-        0,
-        0,
-        0,
-        0
-    );
+    if(!currentOperationalDay){
+
+        todayStart.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+    }
 
 
     // ==================================================
@@ -1013,45 +1229,51 @@ async function updateDashboard(){
 
 
     // ==================================================
-    // MONTHLY VARIABLES
-    // FROM OPERATIONAL DAYS
+    // MONTHLY DATA
+    // REPORTS KE SAME OPERATIONAL DAYS SOURCE SE
     // ==================================================
 
     const monthlyAccounting =
-
         getMonthlyOperationalAccounting();
 
 
     let monthly_income =
-
-        monthlyAccounting.gameCollection;
+        Number(
+            monthlyAccounting.gameCollection || 0
+        );
 
 
     let monthly_expense =
-
-        monthlyAccounting.expense;
+        Number(
+            monthlyAccounting.expense || 0
+        );
 
 
     let monthly_easy =
-
-        monthlyAccounting.easyPaisa;
+        Number(
+            monthlyAccounting.easyPaisa || 0
+        );
 
 
     let shift1Monthly =
-
-        monthlyAccounting.shift1;
+        Number(
+            monthlyAccounting.shift1 || 0
+        );
 
 
     let shift2Monthly =
-
-        monthlyAccounting.shift2;
+        Number(
+            monthlyAccounting.shift2 || 0
+        );
 
 
     let monthly_canteen = 0;
 
 
     let today_easy =
-        realtimeTodayEasy || 0;
+        Number(
+            realtimeTodayEasy || 0
+        );
 
 
     // ==================================================
@@ -1061,9 +1283,9 @@ async function updateDashboard(){
     sessionsData.forEach(s => {
 
 
-        // ==============================================
-        // DELETED
-        // ==============================================
+        // ----------------------------------------------
+        // DELETED SESSION
+        // ----------------------------------------------
 
         if(
             s.is_deleted === true
@@ -1074,7 +1296,11 @@ async function updateDashboard(){
         }
 
 
-        let date =
+        // ----------------------------------------------
+        // DATE
+        // ----------------------------------------------
+
+        const date =
             getRecordDate(
 
                 s.start_time ||
@@ -1086,73 +1312,79 @@ async function updateDashboard(){
             );
 
 
-        if(!date) return;
+        if(!date){
+
+            return;
+
+        }
 
 
-        let amount =
+        // ----------------------------------------------
+        // AMOUNT
+        // ----------------------------------------------
+
+        const amount =
 
             Number(
 
-                s.final_amount ||
+                s.final_game_amount ??
 
-                s.total_amount ||
+                s.final_amount ??
 
-                s.amount ||
+                s.total_amount ??
+
+                s.amount ??
 
                 0
 
             );
 
 
-        let sessionDayId =
+        // ----------------------------------------------
+        // SESSION DAY ID
+        // ----------------------------------------------
+
+        const sessionDayId =
             getRecordDayId(s);
 
 
-        let operational =
-            operationalDays[
-                sessionDayId
-            ];
+        const operational =
+            sessionDayId
+                ? operationalDays[sessionDayId]
+                : null;
 
 
-        // ==============================================
-        // CURRENT OPERATIONAL DAY
-        // ==============================================
+        // ==================================================
+        // TODAY
+        // ==================================================
+        // Exact day_id first.
+        // If day_id missing, isRecordInCurrentOperationalDay()
+        // uses current operational day timing.
+        // ==================================================
 
-        if(
+        const isToday =
+            isRecordInCurrentOperationalDay(s);
 
-            sessionDayId ===
-            String(currentDayId)
 
-        ){
-
-            // ==========================================
-            // IGNORE CLOSED CURRENT DAY
-            // ==========================================
-
-            if(
-
-                operational &&
-                operational.raw?.is_closed === true
-
-            ){
-
-                return;
-
-            }
-
+        if(isToday){
 
             today_sessions++;
-
 
             today_game_total +=
                 amount;
 
 
-            // ==========================================
+            // ------------------------------------------
             // PAID / UNPAID
-            // ==========================================
+            // ------------------------------------------
 
-            if(s.paid){
+            if(
+                s.paid === true ||
+
+                s.payment_status === "paid" ||
+
+                s.status === "paid"
+            ){
 
                 today_paid++;
 
@@ -1165,15 +1397,20 @@ async function updateDashboard(){
             }
 
 
-            // ==========================================
+            // ------------------------------------------
             // COMPLETED
-            // ==========================================
+            // ------------------------------------------
 
             if(
+
                 s.end_time ||
+
                 s.endTime ||
+
                 s.checkout_time ||
+
                 s.checkoutTime
+
             ){
 
                 completed_sessions++;
@@ -1182,86 +1419,108 @@ async function updateDashboard(){
 
         }
 
+
+        // ==================================================
+        // MONTHLY
+        // ==================================================
+        // IMPORTANT:
+        // Monthly dashboard uses SAME operational day
+        // source as Revenue Report.
+        // ==================================================
+
+        if(
+
+            operational &&
+
+            operational.month ===
+            selectedMonth &&
+
+            operational.year ===
+            selectedYear &&
+
+            operational.raw?.is_closed === true
+
+        ){
+
+            // Game collection is taken from closed
+            // operational days, not calendar date.
+
+            // Do NOT add here because monthly_income
+            // already comes from getMonthlyOperationalAccounting().
+
+        }
+
     });
 
 
-    // ==================================================
+    // ======================================================
     // CANTEEN LOGS
-    // ==================================================
+    // ======================================================
 
     canteenData.forEach(c => {
 
 
-        let date =
+        const date =
             getRecordDate(
 
                 c.time ||
+
                 c.created_at ||
+
                 c.date
 
             );
 
 
-        if(!date) return;
+        if(!date){
+
+            return;
+
+        }
 
 
-        let amount =
+        const amount =
 
             Number(
 
                 c.total ||
+
                 c.amount ||
+
                 0
 
             );
 
 
-        let recordDayId =
+        const recordDayId =
             getRecordDayId(c);
 
 
-        let todayOperational =
-            operationalDays[
-                recordDayId
-            ];
+        const operational =
+            recordDayId
+                ? operationalDays[recordDayId]
+                : null;
 
 
-        // ==============================================
+        // ==================================================
         // TODAY
-        // ==============================================
+        // ==================================================
 
-        if(
+        const isToday =
+            isRecordInCurrentOperationalDay(c);
 
-            recordDayId ===
-            String(currentDayId)
 
-            &&
+        if(isToday){
 
-            !todayOperational?.raw?.is_closed
-
-        ){
-
-            if(
-                date >= todayStart
-            ){
-
-                today_canteen_total +=
-                    amount;
-
-            }
+            today_canteen_total +=
+                amount;
 
         }
 
 
-        // ==============================================
+        // ==================================================
         // MONTHLY
-        // ==============================================
-
-        let operational =
-            operationalDays[
-                recordDayId
-            ];
-
+        // ==================================================
 
         if(
 
@@ -1285,9 +1544,14 @@ async function updateDashboard(){
     });
 
 
-    // ==================================================
+    // ======================================================
     // CANTEEN FROM SESSIONS
-    // ==================================================
+    // ======================================================
+    // Only add session canteen for TODAY.
+    //
+    // Monthly canteen already comes from canteen_logs.
+    // This prevents double counting.
+    // ======================================================
 
     sessionsData.forEach(s => {
 
@@ -1301,7 +1565,7 @@ async function updateDashboard(){
         }
 
 
-        let date =
+        const date =
             getRecordDate(
 
                 s.start_time ||
@@ -1313,79 +1577,35 @@ async function updateDashboard(){
             );
 
 
-        if(!date) return;
+        if(!date){
+
+            return;
+
+        }
 
 
-        let canteen =
+        const canteen =
             Number(
                 s.canteen_total || 0
             );
 
 
-        let sessionDayId =
-            getRecordDayId(s);
+        if(canteen <= 0){
 
-
-        let operational =
-            operationalDays[
-                sessionDayId
-            ];
-
-
-        // ==============================================
-        // TODAY
-        // ==============================================
-
-        if(
-
-            sessionDayId ===
-            String(currentDayId)
-
-        ){
-
-            if(
-
-                operational &&
-                operational.raw?.is_closed === true
-
-            ){
-
-                return;
-
-            }
-
-
-            if(
-                date >= todayStart
-            ){
-
-                today_canteen_total +=
-                    canteen;
-
-            }
+            return;
 
         }
 
 
-        // ==============================================
-        // MONTHLY
-        // ==============================================
+        // ==================================================
+        // TODAY ONLY
+        // ==================================================
 
         if(
-
-            operational &&
-
-            operational.month ===
-            selectedMonth &&
-
-            operational.year ===
-            selectedYear &&
-
-            operational.raw?.is_closed === true
-
+            isRecordInCurrentOperationalDay(s)
         ){
 
-            monthly_canteen +=
+            today_canteen_total +=
                 canteen;
 
         }
@@ -1393,16 +1613,12 @@ async function updateDashboard(){
     });
 
 
-    // ==================================================
+    // ======================================================
     // EXPENSES
-    // ==================================================
+    // ======================================================
 
     expenseData.forEach(e => {
 
-
-        // ==============================================
-        // DELETED
-        // ==============================================
 
         if(
             e.is_deleted === true
@@ -1413,44 +1629,31 @@ async function updateDashboard(){
         }
 
 
-        let date =
+        const date =
             getRecordDate(
                 e.created_at
             );
 
 
-        if(!date) return;
+        if(!date){
+
+            return;
+
+        }
 
 
-        let amount =
+        const amount =
             Number(
                 e.amount || 0
             );
 
 
-        let recordDayId =
-            getRecordDayId(e);
-
-
-        let todayOperational =
-            operationalDays[
-                recordDayId
-            ];
-
-
-        // ==============================================
+        // ==================================================
         // TODAY
-        // ==============================================
+        // ==================================================
 
         if(
-
-            recordDayId ===
-            String(currentDayId)
-
-            &&
-
-            !todayOperational?.raw?.is_closed
-
+            isRecordInCurrentOperationalDay(e)
         ){
 
             today_expense +=
@@ -1459,23 +1662,20 @@ async function updateDashboard(){
         }
 
 
-        // ==============================================
+        // ==================================================
         // MONTHLY
-        // ==============================================
-
-        // IMPORTANT:
+        // ==================================================
         // monthly_expense already comes from
-        // operationalDays / Reports source.
-        //
-        // Therefore we DO NOT add it again here.
-        //
+        // getMonthlyOperationalAccounting()
+        // using the SAME days collection as reports.
+        // So do NOT add it again here.
 
     });
 
 
-    // ==================================================
-    // UI - TABLES
-    // ==================================================
+    // ======================================================
+    // TABLE COUNT
+    // ======================================================
 
     setText(
         "totalTables",
@@ -1483,9 +1683,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // ACTIVE TABLES
-    // ==================================================
+    // ======================================================
 
     const activeTablesCount =
 
@@ -1501,20 +1701,16 @@ async function updateDashboard(){
             }
 
 
-            const sameDay =
-
-                getRecordDayId(s)
-
-                ===
-
-                String(
-                    currentDayId
-                );
+            const isToday =
+                isRecordInCurrentOperationalDay(s);
 
 
-            // ==========================================
-            // RUNNING SESSION
-            // ==========================================
+            if(!isToday){
+
+                return false;
+
+            }
+
 
             const running =
 
@@ -1531,36 +1727,7 @@ async function updateDashboard(){
                 !s.close_time;
 
 
-            const operational =
-
-                operationalDays[
-                    getRecordDayId(s)
-                ];
-
-
-            // ==========================================
-            // IGNORE OLD CLOSED DAYS
-            // ==========================================
-
-            if(
-
-                operational &&
-
-                operational.raw?.is_closed === true &&
-
-                !operational.isCurrent
-
-            ){
-
-                return false;
-
-            }
-
-
-            return (
-                sameDay &&
-                running
-            );
+            return running;
 
         }).length;
 
@@ -1581,9 +1748,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // TODAY UI
-    // ==================================================
+    // ======================================================
 
     setText(
         "todaySessions",
@@ -1615,9 +1782,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
-    // TODAY NET
-    // ==================================================
+    // ======================================================
+    // TODAY NET INCOME
+    // ======================================================
 
     const finalTodayNet =
 
@@ -1650,9 +1817,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // PAID / UNPAID
-    // ==================================================
+    // ======================================================
 
     setText(
         "paidBills",
@@ -1666,9 +1833,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // MONTHLY UI
-    // ==================================================
+    // ======================================================
 
     setText(
         "monthlyIncome",
@@ -1694,9 +1861,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // MONTHLY PROFIT
-    // ==================================================
+    // ======================================================
 
     const finalMonthlyProfit =
 
@@ -1729,9 +1896,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // SHIFT MONTHLY
-    // ==================================================
+    // ======================================================
 
     setText(
         "shift1Monthly",
@@ -1745,9 +1912,9 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // MONTHLY AVERAGE
-    // ==================================================
+    // ======================================================
 
     let operationalMonthDays =
 
@@ -1783,7 +1950,7 @@ async function updateDashboard(){
     }
 
 
-    let monthlyAvg =
+    const monthlyAvg =
 
         Number(
             monthly_income || 0
@@ -1802,16 +1969,16 @@ async function updateDashboard(){
     );
 
 
-    // ==================================================
+    // ======================================================
     // TABLE SALES BOXES
-    // ==================================================
+    // ======================================================
 
     renderTableSalesBoxes();
 
 
-    // ==================================================
+    // ======================================================
     // ROLE CONTROL
-    // ==================================================
+    // ======================================================
 
     if(
         role === "staff"
@@ -1831,9 +1998,9 @@ async function updateDashboard(){
     }
 
 
-    // ==================================================
-    // DEBUG
-    // ==================================================
+    // ======================================================
+    // FINAL DEBUG
+    // ======================================================
 
     console.log(
         "📊 DASHBOARD FINAL VALUES:",
@@ -1846,10 +2013,28 @@ async function updateDashboard(){
 
             currentDayId,
 
+            currentOperationalDay:
+                currentOperationalDay
+                    ? {
+                        dayId:
+                            currentOperationalDay.raw?.day_id,
+
+                        start:
+                            currentOperationalDay.startDate,
+
+                        closed:
+                            currentOperationalDay.raw?.is_closed
+                    }
+                    : null,
+
             selectedMonth:
                 selectedMonth + 1,
 
             selectedYear,
+
+            today_sessions,
+
+            completed_sessions,
 
             today_game_total,
 
@@ -1858,6 +2043,10 @@ async function updateDashboard(){
             today_expense,
 
             today_easy,
+
+            today_paid,
+
+            today_unpaid,
 
             monthly_income,
 
@@ -1891,7 +2080,6 @@ function renderTableSalesBoxes(){
     // ==================================================
 
     const staffContainer =
-
         document.getElementById(
             "staffTableSalesContainer"
         );
@@ -1902,7 +2090,6 @@ function renderTableSalesBoxes(){
     // ==================================================
 
     const adminContainer =
-
         document.getElementById(
             "tableSalesContainer"
         );
@@ -1936,7 +2123,7 @@ function renderTableSalesBoxes(){
     tablesData.forEach(t => {
 
 
-        let tableName =
+        const tableName =
 
             t.table_id ||
 
@@ -1985,7 +2172,7 @@ function renderTableSalesBoxes(){
         }
 
 
-        let tableName =
+        const tableName =
 
             s.table_id ||
 
@@ -2030,22 +2217,24 @@ function renderTableSalesBoxes(){
         }
 
 
-        let amount =
+        const amount =
 
             Number(
 
-                s.final_amount ||
+                s.final_game_amount ??
 
-                s.total_amount ||
+                s.final_amount ??
 
-                s.amount ||
+                s.total_amount ??
+
+                s.amount ??
 
                 0
 
             );
 
 
-        let sessionDate =
+        const sessionDate =
 
             getRecordDate(
 
@@ -2058,14 +2247,18 @@ function renderTableSalesBoxes(){
             );
 
 
-        if(!sessionDate) return;
+        if(!sessionDate){
+
+            return;
+
+        }
 
 
-        let hour =
+        const hour =
             sessionDate.getHours();
 
 
-        let shiftKey =
+        const shiftKey =
 
             (
                 hour >= 9 &&
@@ -2081,54 +2274,38 @@ function renderTableSalesBoxes(){
             "shift2";
 
 
-        let dayId =
+        const dayId =
             getRecordDayId(s);
 
 
-        let operational =
-
-            operationalDays[
-                dayId
-            ];
+        const operational =
+            dayId
+                ? operationalDays[dayId]
+                : null;
 
 
         // ==================================================
         // STAFF
-        // CURRENT RUNNING DAY
+        // CURRENT OPEN OPERATIONAL DAY
         // ==================================================
 
         if(
-
-            dayId ===
-            String(
-                window.currentDayId
-            )
-
+            isRecordInCurrentOperationalDay(s)
         ){
 
-            if(
-                !operational?.raw?.is_closed
-            ){
+            staffStats[tableName][shiftKey]
+                += amount;
 
-                staffStats[
-                    tableName
-                ][
-                    shiftKey
-                ] += amount;
-
-
-                staffStats[
-                    tableName
-                ].total += amount;
-
-            }
+            staffStats[tableName].total
+                += amount;
 
         }
 
 
         // ==================================================
         // ADMIN
-        // SELECTED OPERATIONAL MONTH
+        // SELECTED MONTH
+        // CLOSED OPERATIONAL DAYS
         // ==================================================
 
         if(
@@ -2145,16 +2322,11 @@ function renderTableSalesBoxes(){
 
         ){
 
-            adminStats[
-                tableName
-            ][
-                shiftKey
-            ] += amount;
+            adminStats[tableName][shiftKey]
+                += amount;
 
-
-            adminStats[
-                tableName
-            ].total += amount;
+            adminStats[tableName].total
+                += amount;
 
         }
 
@@ -2167,20 +2339,26 @@ function renderTableSalesBoxes(){
 
     function sortTables(obj){
 
-        return Object.keys(obj)
-            .sort((a,b) => {
+        return Object.keys(obj).sort(
+            (a,b) => {
+
+                const aLower =
+                    a.toLowerCase();
+
+                const bLower =
+                    b.toLowerCase();
 
 
                 const aIsRoom =
-
-                    a.toLowerCase()
-                    .includes("room");
+                    aLower.includes(
+                        "room"
+                    );
 
 
                 const bIsRoom =
-
-                    b.toLowerCase()
-                    .includes("room");
+                    bLower.includes(
+                        "room"
+                    );
 
 
                 if(
@@ -2203,31 +2381,22 @@ function renderTableSalesBoxes(){
                 }
 
 
-                let aNum =
-
+                const aNum =
                     parseInt(
-
-                        a.match(
-                            /\d+/
-                        )?.[0] || 0
-
+                        a.match(/\d+/)?.[0] || 0
                     );
 
 
-                let bNum =
-
+                const bNum =
                     parseInt(
-
-                        b.match(
-                            /\d+/
-                        )?.[0] || 0
-
+                        b.match(/\d+/)?.[0] || 0
                     );
 
 
                 return aNum - bNum;
 
-            });
+            }
+        );
 
     }
 
@@ -2240,11 +2409,10 @@ function renderTableSalesBoxes(){
 
         sortTables(
             staffStats
-        )
-        .forEach(table => {
+        ).forEach(table => {
 
 
-            let t =
+            const t =
                 staffStats[table];
 
 
@@ -2283,11 +2451,10 @@ function renderTableSalesBoxes(){
 
         sortTables(
             adminStats
-        )
-        .forEach(table => {
+        ).forEach(table => {
 
 
-            let t =
+            const t =
                 adminStats[table];
 
 
