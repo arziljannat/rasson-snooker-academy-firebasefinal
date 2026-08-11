@@ -156,20 +156,19 @@ async function loadReport() {
     try {
 
         // ==========================================
-        // FORMAT MONEY
+        // MONEY FORMAT
         // ==========================================
 
         const money = (value) => {
 
             return Number(value || 0)
                 .toLocaleString("en-PK");
+
         };
 
 
         // ==========================================
-        // FORMAT DATE
-        // Example:
-        // 01 August 2026
+        // DATE FORMAT
         // ==========================================
 
         const formatDate = (date) => {
@@ -183,11 +182,12 @@ async function loadReport() {
                     year: "numeric"
                 }
             );
+
         };
 
 
         // ==========================================
-        // FORMAT TIME
+        // TIME FORMAT
         // ==========================================
 
         const formatTime = (ms) => {
@@ -203,11 +203,12 @@ async function loadReport() {
                     hour12: true
                 }
             );
+
         };
 
 
         // ==========================================
-        // MONTH NAME
+        // MONTH TITLE
         // ==========================================
 
         const formatMonthRange = (from, to) => {
@@ -239,11 +240,12 @@ async function loadReport() {
             }
 
             return `${fromMonth} → ${toMonth}`;
+
         };
 
 
         // ==========================================
-        // GET SELECTED CLOSED DAYS
+        // REPORT ROWS
         // ==========================================
 
         let rows = [];
@@ -253,7 +255,6 @@ async function loadReport() {
 
             const d =
                 day.raw || {};
-
 
             const s1 =
                 d.shift1 || {};
@@ -286,6 +287,7 @@ async function loadReport() {
             } else {
 
                 return;
+
             }
 
 
@@ -294,7 +296,9 @@ async function loadReport() {
                     operationalDate.getTime()
                 )
             ) {
+
                 return;
+
             }
 
 
@@ -306,32 +310,122 @@ async function loadReport() {
                 operationalDate < dates.from ||
                 operationalDate > dates.to
             ) {
+
                 return;
+
             }
 
 
             // ======================================
-            // BALANCE
-            // SAME AS SHIFT SNAPSHOT
+            // SHIFT 1
+            // GAME VALUES ONLY
+            // CANTEEN SEPARATE REPORT MEIN HAI
             // ======================================
 
-            const shift1Balance =
-                Number(s1.gameBalance || 0) +
-                Number(s1.canteenBalance || 0);
+            const shift1Collection =
+                Number(
+                    s1.gameCollection || 0
+                );
 
+            const shift1Balance =
+                Number(
+                    s1.gameBalance || 0
+                );
+
+            const shift1Discount =
+                Number(
+                    s1.discount || 0
+                );
+
+            const shift1Expense =
+                Number(
+                    s1.expenses || 0
+                );
+
+
+            // ======================================
+            // SHIFT 2
+            // GAME VALUES ONLY
+            // ======================================
+
+            const shift2Collection =
+                Number(
+                    s2.gameCollection || 0
+                );
 
             const shift2Balance =
-                Number(s2.gameBalance || 0) +
-                Number(s2.canteenBalance || 0);
+                Number(
+                    s2.gameBalance || 0
+                );
+
+            const shift2Discount =
+                Number(
+                    s2.discount || 0
+                );
+
+            const shift2Expense =
+                Number(
+                    s2.expenses || 0
+                );
+
+
+            // ======================================
+            // TOTALS OF BOTH SHIFTS
+            // ======================================
+
+            const totalCollection =
+                shift1Collection +
+                shift2Collection;
+
+
+            const totalBalance =
+                shift1Balance +
+                shift2Balance;
+
+
+            const totalDiscount =
+                shift1Discount +
+                shift2Discount;
+
+
+            const totalExpense =
+                shift1Expense +
+                shift2Expense;
+
+
+            // ======================================
+            // EASYPAISA
+            // COMBINED VALUE
+            // ======================================
+
+            const easypaisa =
+                Number(
+                    combined.easypaisa || 0
+                );
+
+
+            // ======================================
+            // FINAL CLOSING CASH
+            //
+            // DIRECT COMBINED SNAPSHOT
+            //
+            // Combined mein already:
+            // Shift 1 Closing + Shift 2 Closing
+            // save hota hai.
+            // ======================================
+
+            const finalClosingCash =
+                Number(
+                    combined.closingCash || 0
+                );
 
 
             // ======================================
             // COMBINED TIMING
-            // EXACT SHIFT SNAPSHOT STYLE
             //
-            // Shift 1 START
-            //        ↓
-            // Shift 2 CLOSE
+            // SHIFT 1 START
+            //       ↓
+            // SHIFT 2 CLOSE
             // ======================================
 
             let combinedTiming = "-";
@@ -348,7 +442,7 @@ async function loadReport() {
 
 
             // ======================================
-            // PUSH ROW
+            // SAVE ROW
             // ======================================
 
             rows.push({
@@ -363,58 +457,34 @@ async function loadReport() {
 
 
                 // SHIFT 1
-                shift1Closing:
-                    Number(
-                        s1.closingCash || 0
-                    ),
-
-                shift1Balance:
-                    shift1Balance,
-
-                shift1Discount:
-                    Number(
-                        s1.discount || 0
-                    ),
+                shift1Collection,
+                shift1Balance,
+                shift1Discount,
+                shift1Expense,
 
 
                 // SHIFT 2
-                shift2Closing:
-                    Number(
-                        s2.closingCash || 0
-                    ),
+                shift2Collection,
+                shift2Balance,
+                shift2Discount,
+                shift2Expense,
 
-                shift2Balance:
-                    shift2Balance,
 
-                shift2Discount:
-                    Number(
-                        s2.discount || 0
-                    ),
+                // BOTH SHIFTS TOTAL
+                totalCollection,
+                totalBalance,
+                totalDiscount,
+                totalExpense,
 
 
                 // OTHER
-                expenses:
-                    Number(
-                        combined.expenses || 0
-                    ),
-
-                easypaisa:
-                    Number(
-                        combined.easypaisa || 0
-                    ),
+                easypaisa,
+                finalClosingCash,
 
 
-                // COMBINED
-                combinedClosing:
-                    Number(
-                        combined.closingCash || 0
-                    ),
+                // TIMING
+                combinedTiming,
 
-                combinedTiming:
-                    combinedTiming,
-
-
-                // RAW TIMING
                 startMs:
                     Number(
                         s1.startMs || 0
@@ -431,7 +501,7 @@ async function loadReport() {
 
 
         // ==========================================
-        // SORT DATE ASCENDING
+        // SORT DATE
         // ==========================================
 
         rows.sort(
@@ -449,18 +519,14 @@ async function loadReport() {
             box.innerHTML = `
 
                 <div
-                    class="report-card"
                     style="
                         text-align:center;
-                        padding:30px;
+                        padding:35px;
+                        color:#00ffcc;
                     "
                 >
 
-                    <h3
-                        style="
-                            color:#00ffcc;
-                        "
-                    >
+                    <h3>
                         No Report Data Found
                     </h3>
 
@@ -474,67 +540,89 @@ async function loadReport() {
             `;
 
             return;
+
         }
 
 
         // ==========================================
-        // TOTALS
+        // GRAND TOTALS
+        // SELECTED DATES KA TOTAL
         // ==========================================
 
-        let totalShift1Closing = 0;
-        let totalShift1Balance = 0;
-        let totalShift1Discount = 0;
+        let grandShift1Collection = 0;
+        let grandShift2Collection = 0;
+        let grandTotalCollection = 0;
 
-        let totalShift2Closing = 0;
-        let totalShift2Balance = 0;
-        let totalShift2Discount = 0;
+        let grandShift1Balance = 0;
+        let grandShift2Balance = 0;
+        let grandTotalBalance = 0;
 
-        let totalExpenses = 0;
-        let totalEasyPaisa = 0;
+        let grandShift1Discount = 0;
+        let grandShift2Discount = 0;
+        let grandTotalDiscount = 0;
 
-        let totalCombinedClosing = 0;
+        let grandShift1Expense = 0;
+        let grandShift2Expense = 0;
+        let grandTotalExpense = 0;
+
+        let grandEasyPaisa = 0;
+        let grandClosingCash = 0;
 
 
         rows.forEach(row => {
 
-            totalShift1Closing +=
-                row.shift1Closing;
+            grandShift1Collection +=
+                row.shift1Collection;
 
-            totalShift1Balance +=
+            grandShift2Collection +=
+                row.shift2Collection;
+
+            grandTotalCollection +=
+                row.totalCollection;
+
+
+            grandShift1Balance +=
                 row.shift1Balance;
 
-            totalShift1Discount +=
-                row.shift1Discount;
-
-
-            totalShift2Closing +=
-                row.shift2Closing;
-
-            totalShift2Balance +=
+            grandShift2Balance +=
                 row.shift2Balance;
 
-            totalShift2Discount +=
+            grandTotalBalance +=
+                row.totalBalance;
+
+
+            grandShift1Discount +=
+                row.shift1Discount;
+
+            grandShift2Discount +=
                 row.shift2Discount;
 
+            grandTotalDiscount +=
+                row.totalDiscount;
 
-            totalExpenses +=
-                row.expenses;
 
-            totalEasyPaisa +=
+            grandShift1Expense +=
+                row.shift1Expense;
+
+            grandShift2Expense +=
+                row.shift2Expense;
+
+            grandTotalExpense +=
+                row.totalExpense;
+
+
+            grandEasyPaisa +=
                 row.easypaisa;
 
 
-            totalCombinedClosing +=
-                row.combinedClosing;
+            grandClosingCash +=
+                row.finalClosingCash;
 
         });
 
 
         // ==========================================
-        // TOTAL COMBINED TIMING
-        //
-        // FIRST SELECTED DAY SHIFT 1 START
-        // LAST SELECTED DAY SHIFT 2 CLOSE
+        // TOTAL SELECTED RANGE TIMING
         // ==========================================
 
         let totalTiming = "-";
@@ -569,7 +657,7 @@ async function loadReport() {
 
 
         // ==========================================
-        // BUILD TABLE ROWS
+        // BUILD DAILY ROWS
         // ==========================================
 
         let rowsHtml = "";
@@ -581,82 +669,219 @@ async function loadReport() {
 
                 <tr>
 
+                    <!-- DATE -->
+
                     <td class="report-center date-cell">
+
                         <strong>
                             ${row.date}
                         </strong>
+
                     </td>
 
 
-                    <!-- SHIFT 1 CLOSING -->
+                    <!-- SHIFT 1 COLLECTION -->
+
                     <td class="report-center">
-                        Rs ${money(row.shift1Closing)}
+
+                        Rs ${money(
+                            row.shift1Collection
+                        )}
+
+                    </td>
+
+
+                    <!-- SHIFT 2 COLLECTION -->
+
+                    <td class="report-center">
+
+                        Rs ${money(
+                            row.shift2Collection
+                        )}
+
+                    </td>
+
+
+                    <!-- TOTAL COLLECTION -->
+
+                    <td
+                        class="
+                            report-center
+                            total-column
+                        "
+                    >
+
+                        <strong>
+                            Rs ${money(
+                                row.totalCollection
+                            )}
+                        </strong>
+
                     </td>
 
 
                     <!-- SHIFT 1 BALANCE -->
+
                     <td class="report-center">
-                        Rs ${money(row.shift1Balance)}
-                    </td>
 
+                        Rs ${money(
+                            row.shift1Balance
+                        )}
 
-                    <!-- SHIFT 1 DISCOUNT -->
-                    <td class="report-center">
-                        Rs ${money(row.shift1Discount)}
-                    </td>
-
-
-                    <!-- SHIFT 2 CLOSING -->
-                    <td class="report-center">
-                        Rs ${money(row.shift2Closing)}
                     </td>
 
 
                     <!-- SHIFT 2 BALANCE -->
+
                     <td class="report-center">
-                        Rs ${money(row.shift2Balance)}
+
+                        Rs ${money(
+                            row.shift2Balance
+                        )}
+
+                    </td>
+
+
+                    <!-- TOTAL BALANCE -->
+
+                    <td
+                        class="
+                            report-center
+                            total-column
+                        "
+                    >
+
+                        <strong>
+                            Rs ${money(
+                                row.totalBalance
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <!-- SHIFT 1 DISCOUNT -->
+
+                    <td class="report-center">
+
+                        Rs ${money(
+                            row.shift1Discount
+                        )}
+
                     </td>
 
 
                     <!-- SHIFT 2 DISCOUNT -->
+
                     <td class="report-center">
-                        Rs ${money(row.shift2Discount)}
+
+                        Rs ${money(
+                            row.shift2Discount
+                        )}
+
                     </td>
 
 
-                    <!-- EXPENSE -->
+                    <!-- TOTAL DISCOUNT -->
+
+                    <td
+                        class="
+                            report-center
+                            total-column
+                        "
+                    >
+
+                        <strong>
+                            Rs ${money(
+                                row.totalDiscount
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <!-- SHIFT 1 EXPENSE -->
+
                     <td class="report-center">
-                        Rs ${money(row.expenses)}
+
+                        Rs ${money(
+                            row.shift1Expense
+                        )}
+
+                    </td>
+
+
+                    <!-- SHIFT 2 EXPENSE -->
+
+                    <td class="report-center">
+
+                        Rs ${money(
+                            row.shift2Expense
+                        )}
+
+                    </td>
+
+
+                    <!-- TOTAL EXPENSE -->
+
+                    <td
+                        class="
+                            report-center
+                            total-column
+                        "
+                    >
+
+                        <strong>
+                            Rs ${money(
+                                row.totalExpense
+                            )}
+                        </strong>
+
                     </td>
 
 
                     <!-- EASYPAISA -->
+
                     <td class="report-center">
-                        Rs ${money(row.easypaisa)}
+
+                        Rs ${money(
+                            row.easypaisa
+                        )}
+
                     </td>
 
 
-                    <!-- COMBINED CLOSING -->
+                    <!-- FINAL CLOSING CASH -->
+
                     <td
                         class="
                             report-center
-                            combined-cash
+                            closing-cash-column
                         "
                     >
+
                         <strong>
-                            Rs ${money(row.combinedClosing)}
+
+                            Rs ${money(
+                                row.finalClosingCash
+                            )}
+
                         </strong>
+
                     </td>
 
 
                     <!-- COMBINED TIMING -->
+
                     <td
                         class="
                             report-center
                             combined-timing
                         "
                     >
+
                         ${row.combinedTiming}
+
                     </td>
 
                 </tr>
@@ -675,7 +900,7 @@ async function loadReport() {
             <style>
 
                 /* =====================================
-                   REPORT MAIN TABLE
+                   MAIN WRAPPER
                 ===================================== */
 
                 .game-report-wrapper {
@@ -686,19 +911,27 @@ async function loadReport() {
 
                     margin-top:15px;
 
-                    border-radius:12px;
+                    border-radius:14px;
 
                     background:
                         rgba(0,0,0,0.45);
 
+                    border:
+                        1px solid
+                        rgba(0,255,204,0.25);
+
                 }
 
+
+                /* =====================================
+                   MAIN TABLE
+                ===================================== */
 
                 .game-report-table {
 
                     width:100%;
 
-                    min-width:1350px;
+                    min-width:2100px;
 
                     border-collapse:separate;
 
@@ -713,7 +946,7 @@ async function loadReport() {
 
                 .game-report-table th {
 
-                    padding:14px 10px;
+                    padding:14px 8px;
 
                     text-align:center;
 
@@ -721,48 +954,48 @@ async function loadReport() {
 
                     color:#00ffcc;
 
-                    font-size:14px;
+                    font-size:13px;
 
-                    font-weight:700;
+                    font-weight:800;
 
                     line-height:1.25;
 
+                    background:
+                        rgba(0,0,0,0.82);
+
                     border-right:
                         1px solid
-                        rgba(0,255,204,0.25);
+                        rgba(0,255,204,0.22);
 
                     border-bottom:
                         1px solid
-                        rgba(0,255,204,0.35);
-
-                    background:
-                        rgba(0,0,0,0.72);
+                        rgba(0,255,204,0.40);
 
                 }
 
 
                 .game-report-table td {
 
-                    padding:13px 9px;
+                    padding:13px 7px;
 
                     text-align:center;
 
                     vertical-align:middle;
 
-                    font-size:14px;
+                    font-size:13px;
 
-                    font-weight:500;
+                    font-weight:600;
+
+                    background:
+                        rgba(0,0,0,0.32);
 
                     border-right:
                         1px solid
-                        rgba(0,255,204,0.18);
+                        rgba(0,255,204,0.15);
 
                     border-bottom:
                         1px solid
-                        rgba(0,255,204,0.18);
-
-                    background:
-                        rgba(0,0,0,0.30);
+                        rgba(0,255,204,0.15);
 
                 }
 
@@ -775,6 +1008,10 @@ async function loadReport() {
                 }
 
 
+                /* =====================================
+                   CENTER
+                ===================================== */
+
                 .report-center {
 
                     text-align:center !important;
@@ -786,25 +1023,56 @@ async function loadReport() {
 
                 .date-cell {
 
-                    color:#ffffff;
+                    color:#fff;
+
+                    font-weight:800;
 
                 }
 
 
-                .combined-cash {
+                /* =====================================
+                   TOTAL COLUMNS
+                ===================================== */
+
+                .total-column {
+
+                    color:#00ffcc;
+
+                    font-weight:900 !important;
+
+                    background:
+                        rgba(0,255,204,0.06) !important;
+
+                }
+
+
+                /* =====================================
+                   FINAL CASH
+                ===================================== */
+
+                .closing-cash-column {
 
                     color:#fff;
 
-                    font-weight:800 !important;
+                    font-size:15px !important;
+
+                    font-weight:900 !important;
+
+                    background:
+                        rgba(255,215,0,0.08) !important;
 
                 }
 
+
+                /* =====================================
+                   COMBINED TIMING
+                ===================================== */
 
                 .combined-timing {
 
                     color:#00ffcc;
 
-                    font-weight:700 !important;
+                    font-weight:800 !important;
 
                     line-height:1.4;
 
@@ -812,14 +1080,14 @@ async function loadReport() {
 
 
                 /* =====================================
-                   TOTAL SUMMARY
+                   TOTAL SUMMARY TITLE
                 ===================================== */
 
                 .report-total-title {
 
-                    margin-top:24px;
+                    margin-top:25px;
 
-                    padding:14px 18px;
+                    padding:15px 18px;
 
                     border:
                         1px solid
@@ -831,18 +1099,22 @@ async function loadReport() {
                         12px 12px 0 0;
 
                     background:
-                        rgba(0,0,0,0.65);
+                        rgba(0,0,0,0.72);
 
                     color:#00ffcc;
 
                     font-size:18px;
 
-                    font-weight:800;
+                    font-weight:900;
 
                     text-align:left;
 
                 }
 
+
+                /* =====================================
+                   TOTAL SUMMARY TABLE
+                ===================================== */
 
                 .report-total-wrapper {
 
@@ -860,7 +1132,7 @@ async function loadReport() {
 
                     width:100%;
 
-                    min-width:1150px;
+                    min-width:2100px;
 
                     border-collapse:collapse;
 
@@ -873,16 +1145,20 @@ async function loadReport() {
 
                 .report-total-table th {
 
-                    padding:12px 8px;
+                    padding:12px 7px;
 
                     text-align:center;
 
+                    vertical-align:middle;
+
                     color:#00ffcc;
 
-                    font-size:13px;
+                    font-size:12px;
+
+                    line-height:1.25;
 
                     background:
-                        rgba(0,0,0,0.70);
+                        rgba(0,0,0,0.80);
 
                     border:
                         1px solid
@@ -893,16 +1169,18 @@ async function loadReport() {
 
                 .report-total-table td {
 
-                    padding:15px 8px;
+                    padding:16px 7px;
 
                     text-align:center;
 
-                    font-size:15px;
+                    vertical-align:middle;
 
-                    font-weight:800;
+                    font-size:14px;
+
+                    font-weight:900;
 
                     background:
-                        rgba(0,255,204,0.06);
+                        rgba(0,255,204,0.05);
 
                     border:
                         1px solid
@@ -911,21 +1189,30 @@ async function loadReport() {
                 }
 
 
-                .total-main {
-
-                    color:#ffffff;
-
-                }
-
-
-                .total-combined {
+                .summary-total {
 
                     color:#00ffcc;
 
-                    font-size:17px !important;
+                    font-weight:900;
 
                 }
 
+
+                .summary-final {
+
+                    color:#fff;
+
+                    font-size:17px !important;
+
+                    background:
+                        rgba(255,215,0,0.08) !important;
+
+                }
+
+
+                /* =====================================
+                   TOTAL TIMING
+                ===================================== */
 
                 .total-timing-box {
 
@@ -942,7 +1229,7 @@ async function loadReport() {
                     border-radius:10px;
 
                     background:
-                        rgba(0,0,0,0.50);
+                        rgba(0,0,0,0.55);
 
                     color:#00ffcc;
 
@@ -950,6 +1237,10 @@ async function loadReport() {
 
                 }
 
+
+                /* =====================================
+                   NOTE
+                ===================================== */
 
                 .report-note {
 
@@ -959,7 +1250,7 @@ async function loadReport() {
 
                     text-align:center;
 
-                    color:#aaa;
+                    color:#999;
 
                     font-size:12px;
 
@@ -967,6 +1258,10 @@ async function loadReport() {
 
             </style>
 
+
+            <!-- =====================================
+                 TITLE
+            ====================================== -->
 
             <h2
                 style="
@@ -979,11 +1274,13 @@ async function loadReport() {
             </h2>
 
 
-            <!-- ==================================
-                 DAILY REPORT TABLE
-            =================================== -->
+            <!-- =====================================
+                 DAILY REPORT
+            ====================================== -->
 
-            <div class="game-report-wrapper">
+            <div
+                class="game-report-wrapper"
+            >
 
                 <table
                     class="game-report-table"
@@ -1000,12 +1297,36 @@ async function loadReport() {
 
                             <th>
                                 Shift 1<br>
-                                Closing Cash
+                                Collection
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Collection
+                            </th>
+
+
+                            <th>
+                                Total<br>
+                                Collection
                             </th>
 
 
                             <th>
                                 Shift 1<br>
+                                Balance
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Balance
+                            </th>
+
+
+                            <th>
+                                Total<br>
                                 Balance
                             </th>
 
@@ -1018,24 +1339,31 @@ async function loadReport() {
 
                             <th>
                                 Shift 2<br>
-                                Closing Cash
-                            </th>
-
-
-                            <th>
-                                Shift 2<br>
-                                Balance
-                            </th>
-
-
-                            <th>
-                                Shift 2<br>
                                 Discount
                             </th>
 
 
                             <th>
-                                Expenses
+                                Total<br>
+                                Discount
+                            </th>
+
+
+                            <th>
+                                Shift 1<br>
+                                Expense
+                            </th>
+
+
+                            <th>
+                                Shift 2<br>
+                                Expense
+                            </th>
+
+
+                            <th>
+                                Total<br>
+                                Expense
                             </th>
 
 
@@ -1045,7 +1373,7 @@ async function loadReport() {
 
 
                             <th>
-                                Combined<br>
+                                Final<br>
                                 Closing Cash
                             </th>
 
@@ -1071,15 +1399,17 @@ async function loadReport() {
             </div>
 
 
-            <!-- ==================================
+            <!-- =====================================
                  TOTAL SUMMARY
-            =================================== -->
+            ====================================== -->
 
             <div
                 class="report-total-title"
             >
+
                 📊 Total Summary
                 (${monthTitle})
+
             </div>
 
 
@@ -1097,13 +1427,35 @@ async function loadReport() {
 
                             <th>
                                 Shift 1<br>
-                                Closing Cash
+                                Collection
                             </th>
+
+                            <th>
+                                Shift 2<br>
+                                Collection
+                            </th>
+
+                            <th>
+                                Total<br>
+                                Collection
+                            </th>
+
 
                             <th>
                                 Shift 1<br>
                                 Balance
                             </th>
+
+                            <th>
+                                Shift 2<br>
+                                Balance
+                            </th>
+
+                            <th>
+                                Total<br>
+                                Balance
+                            </th>
+
 
                             <th>
                                 Shift 1<br>
@@ -1112,29 +1464,37 @@ async function loadReport() {
 
                             <th>
                                 Shift 2<br>
-                                Closing Cash
-                            </th>
-
-                            <th>
-                                Shift 2<br>
-                                Balance
-                            </th>
-
-                            <th>
-                                Shift 2<br>
                                 Discount
                             </th>
 
                             <th>
-                                Expenses
+                                Total<br>
+                                Discount
                             </th>
+
+
+                            <th>
+                                Shift 1<br>
+                                Expense
+                            </th>
+
+                            <th>
+                                Shift 2<br>
+                                Expense
+                            </th>
+
+                            <th>
+                                Total<br>
+                                Expense
+                            </th>
+
 
                             <th>
                                 EasyPaisa
                             </th>
 
                             <th>
-                                Combined<br>
+                                Final<br>
                                 Closing Cash
                             </th>
 
@@ -1147,48 +1507,125 @@ async function loadReport() {
 
                         <tr>
 
-                            <td class="total-main">
-                                Rs ${money(totalShift1Closing)}
+                            <!-- COLLECTION -->
+
+                            <td>
+                                Rs ${money(
+                                    grandShift1Collection
+                                )}
                             </td>
 
-                            <td class="total-main">
-                                Rs ${money(totalShift1Balance)}
+                            <td>
+                                Rs ${money(
+                                    grandShift2Collection
+                                )}
                             </td>
-
-                            <td class="total-main">
-                                Rs ${money(totalShift1Discount)}
-                            </td>
-
-
-                            <td class="total-main">
-                                Rs ${money(totalShift2Closing)}
-                            </td>
-
-                            <td class="total-main">
-                                Rs ${money(totalShift2Balance)}
-                            </td>
-
-                            <td class="total-main">
-                                Rs ${money(totalShift2Discount)}
-                            </td>
-
-
-                            <td class="total-main">
-                                Rs ${money(totalExpenses)}
-                            </td>
-
-
-                            <td class="total-main">
-                                Rs ${money(totalEasyPaisa)}
-                            </td>
-
 
                             <td
                                 class="
-                                    total-combined
+                                    summary-total
                                 "
                             >
-                                Rs ${money(totalCombinedClosing)}
+                                Rs ${money(
+                                    grandTotalCollection
+                                )}
+                            </td>
+
+
+                            <!-- BALANCE -->
+
+                            <td>
+                                Rs ${money(
+                                    grandShift1Balance
+                                )}
+                            </td>
+
+                            <td>
+                                Rs ${money(
+                                    grandShift2Balance
+                                )}
+                            </td>
+
+                            <td
+                                class="
+                                    summary-total
+                                "
+                            >
+                                Rs ${money(
+                                    grandTotalBalance
+                                )}
+                            </td>
+
+
+                            <!-- DISCOUNT -->
+
+                            <td>
+                                Rs ${money(
+                                    grandShift1Discount
+                                )}
+                            </td>
+
+                            <td>
+                                Rs ${money(
+                                    grandShift2Discount
+                                )}
+                            </td>
+
+                            <td
+                                class="
+                                    summary-total
+                                "
+                            >
+                                Rs ${money(
+                                    grandTotalDiscount
+                                )}
+                            </td>
+
+
+                            <!-- EXPENSE -->
+
+                            <td>
+                                Rs ${money(
+                                    grandShift1Expense
+                                )}
+                            </td>
+
+                            <td>
+                                Rs ${money(
+                                    grandShift2Expense
+                                )}
+                            </td>
+
+                            <td
+                                class="
+                                    summary-total
+                                "
+                            >
+                                Rs ${money(
+                                    grandTotalExpense
+                                )}
+                            </td>
+
+
+                            <!-- EASYPAISA -->
+
+                            <td>
+                                Rs ${money(
+                                    grandEasyPaisa
+                                )}
+                            </td>
+
+
+                            <!-- FINAL CASH -->
+
+                            <td
+                                class="
+                                    summary-final
+                                "
+                            >
+                                Rs ${money(
+                                    grandClosingCash
+                                )}
                             </td>
 
                         </tr>
@@ -1200,15 +1637,15 @@ async function loadReport() {
             </div>
 
 
-            <!-- ==================================
-                 TOTAL COMBINED TIMING
-            =================================== -->
+            <!-- =====================================
+                 TOTAL TIMING
+            ====================================== -->
 
             <div
                 class="total-timing-box"
             >
 
-                🕐 Total Operational Timing
+                🕐 Selected Period Operational Timing
 
                 <br>
 
@@ -1227,8 +1664,11 @@ async function loadReport() {
             <div
                 class="report-note"
             >
-                ℹ️ Report is based on closed operational days
-                (Shift 1 and Shift 2).
+
+                ℹ️ Collection, Balance, Discount
+                and Expenses are shown separately
+                for Shift 1 and Shift 2.
+
             </div>
 
         `;
@@ -1244,7 +1684,6 @@ async function loadReport() {
         box.innerHTML = `
 
             <div
-                class="report-card"
                 style="
                     text-align:center;
                     padding:25px;
