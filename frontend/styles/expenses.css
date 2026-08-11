@@ -252,3 +252,32 @@ body::before {
         0 0 10px var(--neon),
         0 0 20px var(--neon);
 }
+
+
+/* =========================
+SEARCH + PRINT
+========================= */
+
+.search-print-box {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.search-print-box .search-bar {
+
+    width: 240px;
+
+}
+
+
+.search-print-box .btn-green {
+
+    white-space: nowrap;
+
+}
