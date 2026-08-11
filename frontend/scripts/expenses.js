@@ -779,7 +779,7 @@ function getCurrentOperationalDay() {
 
     // ==============================================
     // STEP 1
-    // CURRENT DAY ID DIRECT LOOKUP
+    // DIRECT DAY-ID LOOKUP
     // ==============================================
 
     if (
@@ -794,10 +794,8 @@ function getCurrentOperationalDay() {
 
     // ==============================================
     // STEP 2
-    // CURRENT DAY ID MATCH BY day_id
-    //
-    // Extra protection against Firebase
-    // number/string mismatch.
+    // DAY-ID MATCH
+    // Number / String mismatch protection
     // ==============================================
 
     if (currentId) {
@@ -830,8 +828,188 @@ function getCurrentOperationalDay() {
 
     // ==============================================
     // STEP 3
-    // FALLBACK
-    // FIND LATEST OPEN OPERATIONAL DAY
+    // 🔥 CURRENT DAY SYSTEM RECORD FALLBACK
+    //
+    // Agar system/current_day mein day_id hai
+    // lekin days collection mein record missing hai,
+    // to current system record se operational day
+    // construct karenge.
+    // ==============================================
+
+    const systemDay =
+        window.currentOperationalDayRecord;
+
+
+    if (
+        systemDay &&
+        currentId
+    ) {
+
+        let rawStart = null;
+
+
+        // Possible start fields
+        if (
+            systemDay.shift1?.startMs
+        ) {
+
+            rawStart =
+                systemDay.shift1.startMs;
+
+        }
+
+        else if (
+            systemDay.shift1?.start_ms
+        ) {
+
+            rawStart =
+                systemDay.shift1.start_ms;
+
+        }
+
+        else if (
+            systemDay.start_time
+        ) {
+
+            rawStart =
+                systemDay.start_time;
+
+        }
+
+        else if (
+            systemDay.startTime
+        ) {
+
+            rawStart =
+                systemDay.startTime;
+
+        }
+
+        else if (
+            systemDay.created_at
+        ) {
+
+            rawStart =
+                systemDay.created_at;
+
+        }
+
+
+        const startDate =
+            getRecordDate(
+                rawStart
+            );
+
+
+        if (startDate) {
+
+            let rawEnd = null;
+
+
+            if (
+                systemDay.shift2?.endMs
+            ) {
+
+                rawEnd =
+                    systemDay.shift2.endMs;
+
+            }
+
+            else if (
+                systemDay.shift2?.end_ms
+            ) {
+
+                rawEnd =
+                    systemDay.shift2.end_ms;
+
+            }
+
+            else if (
+                systemDay.end_time
+            ) {
+
+                rawEnd =
+                    systemDay.end_time;
+
+            }
+
+            else if (
+                systemDay.endTime
+            ) {
+
+                rawEnd =
+                    systemDay.endTime;
+
+            }
+
+
+            let endDate =
+                getRecordDate(
+                    rawEnd
+                );
+
+
+            // Current day is normally open
+            if (!endDate) {
+
+                endDate =
+                    new Date();
+
+            }
+
+
+            const fallbackDay = {
+
+                raw: {
+                    ...systemDay,
+
+                    is_closed:
+                        false
+
+                },
+
+                dayId:
+                    currentId,
+
+                startDate,
+
+                endDate,
+
+                operationalDateKey:
+                    getPakistanDateKey(
+                        startDate
+                    ),
+
+                operationalMonth:
+                    getMonthKey(
+                        startDate
+                    )
+
+            };
+
+
+            // Keep it available for all
+            // expense-page calculations
+            operationalDays[currentId] =
+                fallbackDay;
+
+
+            console.log(
+                "✅ CURRENT DAY BUILT FROM SYSTEM RECORD:",
+                fallbackDay
+            );
+
+
+            return fallbackDay;
+
+        }
+
+    }
+
+
+    // ==============================================
+    // STEP 4
+    // FALLBACK — LATEST OPEN DAY
     // ==============================================
 
     const openDays =
@@ -871,8 +1049,8 @@ function getCurrentOperationalDay() {
 
 
     // ==============================================
-    // STEP 4
-    // NO OPERATIONAL DAY FOUND
+    // STEP 5
+    // NO DAY FOUND
     // ==============================================
 
     return null;
