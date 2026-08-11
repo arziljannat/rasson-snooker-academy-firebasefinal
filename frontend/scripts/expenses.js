@@ -34,13 +34,13 @@ let selectedType = "all";
 
 let selectedDay = "current";
 
-let selectedMonth = null;
+let fromDate = "";
 
-let selectedYear = null;
+let toDate = "";
 
 
 // ======================================================
-// CURRENT DAY
+// CURRENT OPERATIONAL DAY
 // ======================================================
 
 async function loadCurrentDayId() {
@@ -53,12 +53,9 @@ async function loadCurrentDayId() {
             )
         );
 
-
     snap.forEach(d => {
 
-        const data =
-            d.data();
-
+        const data = d.data();
 
         const dataBranch =
             String(
@@ -66,7 +63,6 @@ async function loadCurrentDayId() {
             )
             .toLowerCase()
             .replace(/\s+/g, "");
-
 
         if (
             data.type === "current_day" &&
@@ -82,7 +78,6 @@ async function loadCurrentDayId() {
         }
 
     });
-
 
     console.log(
         "✅ CURRENT OPERATIONAL DAY:",
@@ -102,7 +97,7 @@ function getRecordDate(value) {
         return null;
     }
 
-
+    // Firebase Timestamp
     if (
         typeof value === "object" &&
         value.seconds
@@ -113,37 +108,42 @@ function getRecordDate(value) {
                 value.seconds * 1000
             );
 
-        return isNaN(
-            d.getTime()
-        )
+        return isNaN(d.getTime())
             ? null
             : d;
-
     }
 
+    // Firestore Timestamp with toDate()
+    if (
+        typeof value === "object" &&
+        typeof value.toDate === "function"
+    ) {
+
+        const d =
+            value.toDate();
+
+        return isNaN(d.getTime())
+            ? null
+            : d;
+    }
 
     const d =
         new Date(value);
 
-
-    return isNaN(
-        d.getTime()
-    )
+    return isNaN(d.getTime())
         ? null
         : d;
-
 }
 
 
 // ======================================================
 // LOAD OPERATIONAL DAYS
-// SAME DAYS SOURCE AS DASHBOARD / REPORTS
+// SAME DAYS SOURCE AS REPORTS / DASHBOARD
 // ======================================================
 
 async function loadOperationalDays() {
 
     operationalDays = {};
-
 
     const snap =
         await getDocs(
@@ -153,20 +153,17 @@ async function loadOperationalDays() {
             )
         );
 
-
     snap.forEach(docSnap => {
 
-        const d =
+        const data =
             docSnap.data();
-
 
         const dayBranch =
             String(
-                d.branch || ""
+                data.branch || ""
             )
             .toLowerCase()
             .replace(/\s+/g, "");
-
 
         if (
             dayBranch !== branch
@@ -174,15 +171,12 @@ async function loadOperationalDays() {
             return;
         }
 
-
         const dayId =
             String(
-                d.day_id ||
+                data.day_id ||
                 docSnap.id ||
                 ""
-            )
-            .trim();
-
+            ).trim();
 
         if (!dayId) {
             return;
@@ -193,38 +187,18 @@ async function loadOperationalDays() {
         // OPERATIONAL DAY START
         // ==================================================
 
-        let rawDate =
-            d.start_time ||
-            d.created_at ||
-            d.date;
-
-
-        // OLD DAY FIX
-        if (
-            !rawDate &&
-            d.shift1?.startMs
-        ) {
-
-            rawDate =
-                d.shift1.startMs;
-
-        }
-
-
-        if (
-            !rawDate &&
-            d.shift1?.start_ms
-        ) {
-
-            rawDate =
-                d.shift1.start_ms;
-
-        }
+        let rawStart =
+            data.shift1?.startMs ||
+            data.shift1?.start_ms ||
+            data.start_time ||
+            data.startTime ||
+            data.created_at ||
+            data.date;
 
 
         const startDate =
             getRecordDate(
-                rawDate
+                rawStart
             );
 
 
@@ -234,52 +208,71 @@ async function loadOperationalDays() {
 
 
         // ==================================================
-        // CLOSED CHECK
+        // OPERATIONAL DAY END
+        // ==================================================
+
+        let rawEnd =
+            data.shift2?.endMs ||
+            data.shift2?.end_ms ||
+            data.end_time ||
+            data.endTime ||
+            data.close_time ||
+            data.closeTime;
+
+
+        let endDate =
+            getRecordDate(
+                rawEnd
+            );
+
+
+        // Current open day:
+        // its end is NOW
+        if (!endDate) {
+
+            endDate =
+                new Date();
+
+        }
+
+
+        // ==================================================
+        // CLOSED STATUS
         // ==================================================
 
         const isClosed =
 
-            d.is_closed === true ||
+            data.is_closed === true ||
 
-            d.closed === true ||
+            data.closed === true ||
 
-            d.day_closed === true ||
+            data.day_closed === true ||
 
-            !!d.close_time ||
+            !!data.close_time ||
 
-            !!d.closeTime ||
+            !!data.closeTime ||
 
-            !!d.end_time ||
+            !!data.end_time ||
 
-            !!d.endTime ||
+            !!data.endTime ||
 
-            !!d.shift2?.close_time ||
+            !!data.shift2?.endMs ||
 
-            !!d.shift2?.closeTime ||
-
-            !!d.shift2?.endMs ||
-
-            !!d.shift2?.end_ms;
+            !!data.shift2?.end_ms;
 
 
         operationalDays[dayId] = {
 
             raw: {
-                ...d,
+                ...data,
+
                 is_closed:
                     isClosed
             },
 
             startDate,
 
-            month:
-                startDate.getMonth(),
-
-            year:
-                startDate.getFullYear(),
-
-            day:
-                startDate.getDate(),
+            endDate,
 
             operationalMonth:
                 `${startDate.getFullYear()}-${String(
@@ -308,8 +301,7 @@ function getCurrentOperationalDay() {
     const currentId =
         String(
             window.currentDayId || ""
-        )
-        .trim();
+        ).trim();
 
 
     if (
@@ -330,9 +322,13 @@ function getCurrentOperationalDay() {
         Object.values(
             operationalDays
         )
-        .filter(day =>
-            day.raw?.is_closed !== true
-        )
+        .filter(day => {
+
+            return (
+                day.raw?.is_closed !== true
+            );
+
+        })
         .sort(
             (a, b) =>
                 b.startDate.getTime() -
@@ -340,9 +336,7 @@ function getCurrentOperationalDay() {
         );
 
 
-    if (
-        openDays.length
-    ) {
+    if (openDays.length) {
 
         return openDays[0];
 
@@ -364,18 +358,18 @@ function getRecordDayId(record) {
         record?.day_id ||
         record?.dayId ||
         record?.current_day_id ||
+        record?.currentDayId ||
         ""
-    )
-    .trim();
+    ).trim();
 
 }
 
 
 // ======================================================
-// RECORD OPERATIONAL MONTH
+// GET OPERATIONAL DAY OF EXPENSE
 // ======================================================
 
-function getExpenseOperationalMonth(expense) {
+function getExpenseOperationalDay(expense) {
 
     const dayId =
         getRecordDayId(
@@ -383,19 +377,41 @@ function getExpenseOperationalMonth(expense) {
         );
 
 
-    // PRIMARY
     if (
         dayId &&
         operationalDays[dayId]
     ) {
 
-        return operationalDays[dayId]
-            .operationalMonth;
+        return operationalDays[dayId];
 
     }
 
 
-    // EXISTING SAVED FIELD
+    return null;
+
+}
+
+
+// ======================================================
+// GET OPERATIONAL MONTH
+// ======================================================
+
+function getExpenseOperationalMonth(expense) {
+
+    const day =
+        getExpenseOperationalDay(
+            expense
+        );
+
+
+    if (day) {
+
+        return day.operationalMonth;
+
+    }
+
+
+    // Existing saved field
     if (
         expense.operational_month
     ) {
@@ -405,7 +421,7 @@ function getExpenseOperationalMonth(expense) {
     }
 
 
-    // LEGACY FALLBACK
+    // Legacy fallback
     const date =
         getRecordDate(
             expense.created_at
@@ -429,7 +445,7 @@ function getExpenseOperationalMonth(expense) {
 
 
 // ======================================================
-// TIME FORMAT
+// FORMAT TIME
 // ======================================================
 
 function formatTime(timestamp) {
@@ -453,7 +469,7 @@ function formatTime(timestamp) {
                 "2-digit",
 
             month:
-                "2-digit",
+                "short",
 
             year:
                 "numeric",
@@ -530,7 +546,7 @@ window.saveExpense = async () => {
     const title =
         document.getElementById(
             "newTitle"
-        ).value;
+        ).value.trim();
 
     const amount =
         Number(
@@ -552,7 +568,8 @@ window.saveExpense = async () => {
 
     if (
         !title ||
-        !amount
+        !amount ||
+        amount <= 0
     ) {
 
         alert(
@@ -564,7 +581,7 @@ window.saveExpense = async () => {
 
 
     // ==================================================
-    // CURRENT OPERATIONAL DAY REQUIRED
+    // CURRENT OPERATIONAL DAY
     // ==================================================
 
     const currentDay =
@@ -584,6 +601,10 @@ window.saveExpense = async () => {
     }
 
 
+    // ==================================================
+    // SAVE
+    // ==================================================
+
     await addDoc(
         collection(
             db,
@@ -599,8 +620,7 @@ window.saveExpense = async () => {
 
             shift,
 
-            branch:
-                branch,
+            branch,
 
             // 🔥 PRIMARY OPERATIONAL DAY
             day_id:
@@ -620,8 +640,7 @@ window.saveExpense = async () => {
                     ? new Date(
                         selectedDate
                     ).toISOString()
-                    : new Date()
-                        .toISOString()
+                    : new Date().toISOString()
 
         }
     );
@@ -737,7 +756,7 @@ window.updateExpense = async () => {
     const title =
         document.getElementById(
             "editTitle"
-        ).value;
+        ).value.trim();
 
     const amount =
         Number(
@@ -764,7 +783,8 @@ window.updateExpense = async () => {
 
     if (
         !title ||
-        !amount
+        !amount ||
+        amount <= 0
     ) {
 
         alert(
@@ -776,8 +796,8 @@ window.updateExpense = async () => {
 
 
     // ==================================================
-    // IMPORTANT:
-    // DAY_ID CHANGE NAHI KARNA
+    // IMPORTANT
+    // day_id NEVER changes during edit
     // ==================================================
 
     await updateDoc(
@@ -801,8 +821,7 @@ window.updateExpense = async () => {
                     ? new Date(
                         editDate
                     ).toISOString()
-                    : new Date()
-                        .toISOString()
+                    : new Date().toISOString()
 
         }
     );
@@ -828,7 +847,9 @@ window.deleteExpense = async (
             "Delete this expense?"
         )
     ) {
+
         return;
+
     }
 
 
@@ -844,38 +865,15 @@ window.deleteExpense = async (
 
 
 // ======================================================
-// MONTH FILTER
+// TYPE FILTER
 // ======================================================
 
-window.filterExpensesByMonth = () => {
+window.filterByType = function () {
 
-    const input =
+    selectedType =
         document.getElementById(
-            "monthFilter"
-        );
-
-
-    if (
-        !input ||
-        !input.value
-    ) {
-        return;
-    }
-
-
-    const parts =
-        input.value.split("-");
-
-
-    selectedYear =
-        Number(
-            parts[0]
-        );
-
-    selectedMonth =
-        Number(
-            parts[1]
-        ) - 1;
+            "filterType"
+        ).value;
 
 
     renderTable();
@@ -884,76 +882,163 @@ window.filterExpensesByMonth = () => {
 
 
 // ======================================================
-// DEFAULT MONTH
-// OPERATIONAL DAY MONTH
+// DAY FILTER
 // ======================================================
 
-function setDefaultMonth() {
+window.filterByDay = function () {
 
-    const currentDay =
-        getCurrentOperationalDay();
-
-
-    let year;
-    let month;
+    selectedDay =
+        document.getElementById(
+            "dayFilter"
+        ).value;
 
 
+    renderTable();
+
+};
+
+
+// ======================================================
+// DATE RANGE FILTER
+// BASED ON OPERATIONAL DAY
+// ======================================================
+
+window.filterByDateRange = function () {
+
+    fromDate =
+        document.getElementById(
+            "fromDate"
+        ).value;
+
+    toDate =
+        document.getElementById(
+            "toDate"
+        ).value;
+
+
+    renderTable();
+
+};
+
+
+// ======================================================
+// CHECK OPERATIONAL DAY DATE RANGE
+// ======================================================
+
+function isOperationalDayInDateRange(
+    day
+) {
+
+    if (!day) {
+        return false;
+    }
+
+
+    // No date filter
     if (
-        currentDay?.startDate
+        !fromDate &&
+        !toDate
     ) {
 
-        year =
-            currentDay.startDate
-                .getFullYear();
-
-        month =
-            currentDay.startDate
-                .getMonth();
-
-    } else {
-
-        const now =
-            new Date();
-
-        year =
-            now.getFullYear();
-
-        month =
-            now.getMonth();
+        return true;
 
     }
 
 
-    selectedYear =
-        year;
+    // ==================================================
+    // FROM DATE
+    // ==================================================
 
-    selectedMonth =
-        month;
+    if (fromDate) {
+
+        const from =
+            new Date(
+                `${fromDate}T00:00:00`
+            );
 
 
-    const input =
-        document.getElementById(
-            "monthFilter"
-        );
+        // Compare operational day START
+        if (
+            day.startDate <
+            from
+        ) {
 
+            return false;
 
-    if (input) {
-
-        input.value =
-            `${year}-${String(
-                month + 1
-            ).padStart(
-                2,
-                "0"
-            )}`;
+        }
 
     }
+
+
+    // ==================================================
+    // TO DATE
+    // ==================================================
+
+    if (toDate) {
+
+        const to =
+            new Date(
+                `${toDate}T23:59:59.999`
+            );
+
+
+        // Compare operational day START
+        if (
+            day.startDate >
+            to
+        ) {
+
+            return false;
+
+        }
+
+    }
+
+
+    return true;
 
 }
 
 
 // ======================================================
-// RENDER
+// SEARCH
+// ======================================================
+
+window.searchExpenses = function () {
+
+    const search =
+        document.getElementById(
+            "searchInput"
+        )
+        .value
+        .toLowerCase();
+
+
+    const rows =
+        document.querySelectorAll(
+            "#expensesBody tr"
+        );
+
+
+    rows.forEach(row => {
+
+        const text =
+            row.innerText
+                .toLowerCase();
+
+
+        row.style.display =
+            text.includes(search)
+                ? ""
+                : "none";
+
+    });
+
+};
+
+
+// ======================================================
+// RENDER TABLE
 // ======================================================
 
 function renderTable() {
@@ -978,7 +1063,7 @@ function renderTable() {
     expenseData.forEach(e => {
 
         // ==================================================
-        // TYPE
+        // TYPE FILTER
         // ==================================================
 
         if (
@@ -992,7 +1077,7 @@ function renderTable() {
 
 
         // ==================================================
-        // CURRENT OPERATIONAL DAY
+        // OPERATIONAL DAY FILTER
         // ==================================================
 
         if (
@@ -1038,7 +1123,7 @@ function renderTable() {
                     expenseDate <
                     currentDay.startDate ||
                     expenseDate >
-                    new Date()
+                    currentDay.endDate
                 ) {
 
                     return;
@@ -1051,33 +1136,25 @@ function renderTable() {
 
 
         // ==================================================
-        // MONTH FILTER
-        // OPERATIONAL MONTH
+        // DATE RANGE
+        // OPERATIONAL DAY BASED
         // ==================================================
 
+        const expenseDay =
+            getExpenseOperationalDay(
+                e
+            );
+
+
         if (
-            selectedYear !== null &&
-            selectedMonth !== null
+            fromDate ||
+            toDate
         ) {
 
-            const selectedKey =
-                `${selectedYear}-${String(
-                    selectedMonth + 1
-                ).padStart(
-                    2,
-                    "0"
-                )}`;
-
-
-            const expenseMonth =
-                getExpenseOperationalMonth(
-                    e
-                );
-
-
             if (
-                expenseMonth !==
-                selectedKey
+                !isOperationalDayInDateRange(
+                    expenseDay
+                )
             ) {
 
                 return;
@@ -1127,6 +1204,15 @@ function renderTable() {
                     "\\'"
                 );
 
+            const safeCreatedAt =
+                String(
+                    e.created_at || ""
+                )
+                .replace(
+                    /'/g,
+                    "\\'"
+                );
+
 
             actions = `
 
@@ -1138,7 +1224,7 @@ function renderTable() {
                         ${Number(e.amount || 0)},
                         '${safeType}',
                         '${e.shift || "shift1"}',
-                        '${e.created_at || ""}'
+                        '${safeCreatedAt}'
                     )"
                 >
                     Edit
@@ -1208,77 +1294,6 @@ function renderTable() {
 
 
 // ======================================================
-// TYPE FILTER
-// ======================================================
-
-window.filterByType = function () {
-
-    selectedType =
-        document.getElementById(
-            "filterType"
-        ).value;
-
-
-    renderTable();
-
-};
-
-
-// ======================================================
-// DAY FILTER
-// ======================================================
-
-window.filterByDay = function () {
-
-    selectedDay =
-        document.getElementById(
-            "dayFilter"
-        ).value;
-
-
-    renderTable();
-
-};
-
-
-// ======================================================
-// SEARCH
-// ======================================================
-
-window.searchExpenses = function () {
-
-    const search =
-        document.getElementById(
-            "searchInput"
-        )
-        .value
-        .toLowerCase();
-
-
-    const rows =
-        document.querySelectorAll(
-            "#expensesBody tr"
-        );
-
-
-    rows.forEach(row => {
-
-        const text =
-            row.innerText
-                .toLowerCase();
-
-
-        row.style.display =
-            text.includes(search)
-                ? ""
-                : "none";
-
-    });
-
-};
-
-
-// ======================================================
 // REALTIME LISTENER
 // ======================================================
 
@@ -1308,6 +1323,7 @@ function startExpensesListener() {
 
     onSnapshot(
         q,
+
         snap => {
 
             expenseData = [];
@@ -1363,10 +1379,6 @@ async function initExpenses() {
 
 
         // 3
-        setDefaultMonth();
-
-
-        // 4
         startExpensesListener();
 
 
