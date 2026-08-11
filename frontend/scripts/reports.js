@@ -370,196 +370,6 @@ if (
 
 }
 
-      // ==========================================
-// 🔥 ACTUAL OPERATIONAL DATE
-//
-// IMPORTANT:
-// Firebase ke old records mein d.date
-// incorrect/old date ho sakti hai.
-//
-// Isliye SHIFT START ko first priority
-// rakhenge.
-// ==========================================
-
-let date = null;
-
-
-// ==========================================
-// 1. SHIFT 1 START
-// ==========================================
-
-const shift1StartMs =
-    Number(
-        d.shift1?.start_ms ||
-        d.shift1?.startMs ||
-        0
-    );
-
-if (
-    shift1StartMs >
-    1000000000000
-) {
-
-    date =
-        new Date(
-            shift1StartMs
-        );
-
-}
-
-
-// ==========================================
-// 2. SHIFT 2 START
-// ==========================================
-
-if (
-    !date
-) {
-
-    const shift2StartMs =
-        Number(
-            d.shift2?.start_ms ||
-            d.shift2?.startMs ||
-            0
-        );
-
-
-    if (
-        shift2StartMs >
-        1000000000000
-    ) {
-
-        date =
-            new Date(
-                shift2StartMs
-            );
-
-    }
-
-}
-
-
-// ==========================================
-// 3. START_TIME
-// ==========================================
-
-if (
-    !date &&
-    d.start_time
-) {
-
-    const testDate =
-        new Date(
-            d.start_time
-        );
-
-
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
-
-        date =
-            testDate;
-
-    }
-
-}
-
-
-// ==========================================
-// 4. SAVED DATE
-//
-// IMPORTANT:
-// d.date ab fallback hai.
-// ==========================================
-
-if (
-    !date &&
-    d.date
-) {
-
-    const testDate =
-        new Date(
-            d.date
-        );
-
-
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
-
-        date =
-            testDate;
-
-    }
-
-}
-
-
-// ==========================================
-// 5. CREATED_AT
-// ==========================================
-
-if (
-    !date &&
-    d.created_at
-) {
-
-    const testDate =
-        new Date(
-            d.created_at
-        );
-
-
-    if (
-        !isNaN(
-            testDate.getTime()
-        )
-    ) {
-
-        date =
-            testDate;
-
-    }
-
-}
-
-
-// ==========================================
-// 6. DAY ID TIMESTAMP
-// ==========================================
-
-if (
-    !date
-) {
-
-    const dayIdNumber =
-        Number(
-            dayId
-        );
-
-
-    if (
-        Number.isFinite(
-            dayIdNumber
-        ) &&
-        dayIdNumber >
-        1000000000000
-    ) {
-
-        date =
-            new Date(
-                dayIdNumber
-            );
-
-    }
-
-}
-
 
         // ==========================================
         // INVALID DATE
@@ -1249,6 +1059,90 @@ const s2 =
     d.shift2 ||
     {};
 
+
+
+  // ======================================
+// 🔥 ACTUAL OPERATIONAL DATE
+// SHIFT 1 / SHIFT 2 START SE DATE
+// ======================================
+
+let operationalDate = null;
+
+
+// ======================================
+// 1. SHIFT 1 START
+// ======================================
+
+const actualShift1StartMs =
+    Number(
+        s1.start_ms ||
+        s1.startMs ||
+        0
+    );
+
+
+// ======================================
+// 2. SHIFT 2 START
+// ======================================
+
+const actualShift2StartMs =
+    Number(
+        s2.start_ms ||
+        s2.startMs ||
+        0
+    );
+
+
+// ======================================
+// 3. SHIFT 1 KO FIRST PRIORITY
+// ======================================
+
+if (
+    actualShift1StartMs >
+    1000000000000
+) {
+
+    operationalDate =
+        new Date(
+            actualShift1StartMs
+        );
+
+}
+
+
+// ======================================
+// 4. SHIFT 2 FALLBACK
+// ======================================
+
+if (
+    !operationalDate &&
+    actualShift2StartMs >
+    1000000000000
+) {
+
+    operationalDate =
+        new Date(
+            actualShift2StartMs
+        );
+
+}
+
+
+// ======================================
+// 5. DAYS KA CALCULATED DATE FALLBACK
+// ======================================
+
+if (
+    !operationalDate &&
+    day.startDate
+) {
+
+    operationalDate =
+        new Date(
+            day.startDate
+        );
+
+}        
 
 
 // ======================================
