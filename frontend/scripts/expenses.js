@@ -11,18 +11,32 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+
 console.log("EXPENSES FIREBASE LOADED");
 
+
 const db = window.db;
+
+
+if (!db) {
+
+    console.error(
+        "❌ Firebase DB not loaded"
+    );
+
+}
+
 
 const branch =
     (localStorage.getItem("branch") || "")
         .toLowerCase()
         .replace(/\s+/g, "");
 
+
 const role =
     (localStorage.getItem("role") || "")
         .toLowerCase();
+
 
 let expenseData = [];
 
@@ -40,6 +54,195 @@ let toDate = "";
 
 
 // ======================================================
+// DATE KEY
+// PAKISTAN / OPERATIONAL DATE
+// ======================================================
+
+function getPakistanDateKey(date) {
+
+    if (!date) {
+        return null;
+    }
+
+
+    return date.toLocaleDateString(
+        "en-CA",
+        {
+            timeZone: "Asia/Karachi"
+        }
+    );
+
+}
+
+
+// ======================================================
+// MONTH KEY
+// YYYY-MM
+// ======================================================
+
+function getMonthKey(date) {
+
+    if (!date) {
+        return null;
+    }
+
+
+    return date.toLocaleDateString(
+        "en-CA",
+        {
+            timeZone: "Asia/Karachi",
+            year: "numeric",
+            month: "2-digit"
+        }
+    );
+
+}
+
+
+// ======================================================
+// DEFAULT CURRENT OPERATIONAL MONTH
+//
+// IMPORTANT:
+// Calendar month use nahi karna.
+// Current Operational Day ka START month use hoga.
+//
+// Example:
+//
+// 31 July 9 AM
+//      ↓
+// 1 August 9 AM
+//
+// Accounting Month = JULY
+// ======================================================
+
+function setCurrentMonthFilter() {
+
+    const currentDay =
+        getCurrentOperationalDay();
+
+
+    let operationalMonth = null;
+
+
+    // ==================================================
+    // PRIMARY
+    // CURRENT OPERATIONAL DAY
+    // ==================================================
+
+    if (
+        currentDay &&
+        currentDay.startDate
+    ) {
+
+        operationalMonth =
+            currentDay.operationalMonth;
+
+    }
+
+
+    // ==================================================
+    // FALLBACK
+    // AGAR OPERATIONAL DAY NA MILE
+    // ==================================================
+
+    if (!operationalMonth) {
+
+        const now =
+            new Date();
+
+        operationalMonth =
+            getMonthKey(now);
+
+    }
+
+
+    // ==================================================
+    // MONTH START
+    // ==================================================
+
+    fromDate =
+        `${operationalMonth}-01`;
+
+
+    // ==================================================
+    // MONTH END
+    // ==================================================
+
+    const parts =
+        operationalMonth.split("-");
+
+
+    const year =
+        Number(parts[0]);
+
+
+    const month =
+        Number(parts[1]);
+
+
+    const lastDay =
+        new Date(
+            year,
+            month,
+            0
+        ).getDate();
+
+
+    toDate =
+        `${operationalMonth}-${String(
+            lastDay
+        ).padStart(2, "0")}`;
+
+
+    // ==================================================
+    // SET HTML INPUTS
+    // ==================================================
+
+    const fromInput =
+        document.getElementById(
+            "fromDate"
+        );
+
+
+    const toInput =
+        document.getElementById(
+            "toDate"
+        );
+
+
+    if (fromInput) {
+
+        fromInput.value =
+            fromDate;
+
+    }
+
+
+    if (toInput) {
+
+        toInput.value =
+            toDate;
+
+    }
+
+
+    console.log(
+        "📅 CURRENT OPERATIONAL MONTH:",
+        operationalMonth
+    );
+
+
+    console.log(
+        "📅 FILTER:",
+        fromDate,
+        "→",
+        toDate
+    );
+
+}
+
+
+// ======================================================
 // CURRENT OPERATIONAL DAY
 // ======================================================
 
@@ -53,16 +256,23 @@ async function loadCurrentDayId() {
             )
         );
 
+
     snap.forEach(d => {
 
-        const data = d.data();
+        const data =
+            d.data();
+
 
         const dataBranch =
             String(
                 data.branch || ""
             )
             .toLowerCase()
-            .replace(/\s+/g, "");
+            .replace(
+                /\s+/g,
+                ""
+            );
+
 
         if (
             data.type === "current_day" &&
@@ -72,12 +282,15 @@ async function loadCurrentDayId() {
             window.currentDayId =
                 data.day_id;
 
+
             window.currentDayCreatedAt =
-                data.created_at || null;
+                data.created_at ||
+                null;
 
         }
 
     });
+
 
     console.log(
         "✅ CURRENT OPERATIONAL DAY:",
@@ -94,10 +307,16 @@ async function loadCurrentDayId() {
 function getRecordDate(value) {
 
     if (!value) {
+
         return null;
+
     }
 
-    // Firebase Timestamp
+
+    // ==================================================
+    // FIREBASE TIMESTAMP
+    // ==================================================
+
     if (
         typeof value === "object" &&
         value.seconds
@@ -108,12 +327,20 @@ function getRecordDate(value) {
                 value.seconds * 1000
             );
 
-        return isNaN(d.getTime())
+
+        return isNaN(
+            d.getTime()
+        )
             ? null
             : d;
+
     }
 
-    // Firestore Timestamp with toDate()
+
+    // ==================================================
+    // FIRESTORE TIMESTAMP toDate()
+    // ==================================================
+
     if (
         typeof value === "object" &&
         typeof value.toDate === "function"
@@ -122,28 +349,43 @@ function getRecordDate(value) {
         const d =
             value.toDate();
 
-        return isNaN(d.getTime())
+
+        return isNaN(
+            d.getTime()
+        )
             ? null
             : d;
+
     }
+
+
+    // ==================================================
+    // NORMAL DATE / STRING
+    // ==================================================
 
     const d =
         new Date(value);
 
-    return isNaN(d.getTime())
+
+    return isNaN(
+        d.getTime()
+    )
         ? null
         : d;
+
 }
 
 
 // ======================================================
 // LOAD OPERATIONAL DAYS
-// SAME DAYS SOURCE AS REPORTS / DASHBOARD
+//
+// SAME DAYS COLLECTION USED FOR OPERATIONAL ACCOUNTING
 // ======================================================
 
 async function loadOperationalDays() {
 
     operationalDays = {};
+
 
     const snap =
         await getDocs(
@@ -153,23 +395,40 @@ async function loadOperationalDays() {
             )
         );
 
+
     snap.forEach(docSnap => {
 
         const data =
             docSnap.data();
+
+
+        // ==================================================
+        // BRANCH
+        // ==================================================
 
         const dayBranch =
             String(
                 data.branch || ""
             )
             .toLowerCase()
-            .replace(/\s+/g, "");
+            .replace(
+                /\s+/g,
+                ""
+            );
+
 
         if (
             dayBranch !== branch
         ) {
+
             return;
+
         }
+
+
+        // ==================================================
+        // DAY ID
+        // ==================================================
 
         const dayId =
             String(
@@ -178,22 +437,76 @@ async function loadOperationalDays() {
                 ""
             ).trim();
 
+
         if (!dayId) {
+
             return;
+
         }
 
 
         // ==================================================
         // OPERATIONAL DAY START
+        //
+        // SHIFT 1 START IS PRIMARY
         // ==================================================
 
-        let rawStart =
-            data.shift1?.startMs ||
-            data.shift1?.start_ms ||
-            data.start_time ||
-            data.startTime ||
-            data.created_at ||
-            data.date;
+        let rawStart = null;
+
+
+        if (
+            data.shift1?.startMs
+        ) {
+
+            rawStart =
+                data.shift1.startMs;
+
+        }
+
+        else if (
+            data.shift1?.start_ms
+        ) {
+
+            rawStart =
+                data.shift1.start_ms;
+
+        }
+
+        else if (
+            data.start_time
+        ) {
+
+            rawStart =
+                data.start_time;
+
+        }
+
+        else if (
+            data.startTime
+        ) {
+
+            rawStart =
+                data.startTime;
+
+        }
+
+        else if (
+            data.created_at
+        ) {
+
+            rawStart =
+                data.created_at;
+
+        }
+
+        else if (
+            data.date
+        ) {
+
+            rawStart =
+                data.date;
+
+        }
 
 
         const startDate =
@@ -203,7 +516,9 @@ async function loadOperationalDays() {
 
 
         if (!startDate) {
+
             return;
+
         }
 
 
@@ -211,13 +526,62 @@ async function loadOperationalDays() {
         // OPERATIONAL DAY END
         // ==================================================
 
-        let rawEnd =
-            data.shift2?.endMs ||
-            data.shift2?.end_ms ||
-            data.end_time ||
-            data.endTime ||
-            data.close_time ||
-            data.closeTime;
+        let rawEnd = null;
+
+
+        if (
+            data.shift2?.endMs
+        ) {
+
+            rawEnd =
+                data.shift2.endMs;
+
+        }
+
+        else if (
+            data.shift2?.end_ms
+        ) {
+
+            rawEnd =
+                data.shift2.end_ms;
+
+        }
+
+        else if (
+            data.end_time
+        ) {
+
+            rawEnd =
+                data.end_time;
+
+        }
+
+        else if (
+            data.endTime
+        ) {
+
+            rawEnd =
+                data.endTime;
+
+        }
+
+        else if (
+            data.close_time
+        ) {
+
+            rawEnd =
+                data.close_time;
+
+        }
+
+        else if (
+            data.closeTime
+        ) {
+
+            rawEnd =
+                data.closeTime;
+
+        }
 
 
         let endDate =
@@ -226,8 +590,10 @@ async function loadOperationalDays() {
             );
 
 
-        // Current open day:
-        // its end is NOW
+        // ==================================================
+        // CURRENT OPEN DAY
+        // ==================================================
+
         if (!endDate) {
 
             endDate =
@@ -261,6 +627,19 @@ async function loadOperationalDays() {
             !!data.shift2?.end_ms;
 
 
+        // ==================================================
+        // OPERATIONAL MONTH
+        //
+        // IMPORTANT:
+        // START DATE KA MONTH
+        // ==================================================
+
+        const operationalMonth =
+            getMonthKey(
+                startDate
+            );
+
+
         operationalDays[dayId] = {
 
             raw: {
@@ -270,14 +649,14 @@ async function loadOperationalDays() {
                     isClosed
             },
 
+
             startDate,
+
 
             endDate,
 
-            operationalMonth:
-                `${startDate.getFullYear()}-${String(
-                    startDate.getMonth() + 1
-                ).padStart(2, "0")}`
+
+            operationalMonth
 
         };
 
@@ -304,6 +683,11 @@ function getCurrentOperationalDay() {
         ).trim();
 
 
+    // ==================================================
+    // PRIMARY
+    // CURRENT DAY ID
+    // ==================================================
+
     if (
         currentId &&
         operationalDays[currentId]
@@ -315,7 +699,8 @@ function getCurrentOperationalDay() {
 
 
     // ==================================================
-    // FALLBACK — LATEST OPEN DAY
+    // FALLBACK
+    // LATEST OPEN DAY
     // ==================================================
 
     const openDays =
@@ -336,7 +721,9 @@ function getCurrentOperationalDay() {
         );
 
 
-    if (openDays.length) {
+    if (
+        openDays.length
+    ) {
 
         return openDays[0];
 
@@ -369,10 +756,14 @@ function getRecordDayId(record) {
 // GET OPERATIONAL DAY OF EXPENSE
 // ======================================================
 
-function getExpenseOperationalDay(expense) {
+function getExpenseOperationalDay(
+    expense
+) {
 
     const dayId =
-        getRecordDayId(expense);
+        getRecordDayId(
+            expense
+        );
 
 
     // ==================================================
@@ -391,9 +782,9 @@ function getExpenseOperationalDay(expense) {
 
     // ==================================================
     // 2. OLD EXPENSE
-    // DAY_ID MISSING / DAY NOT FOUND
     //
-    // CREATED_AT KE ANDAR OPERATIONAL DAY FIND KARO
+    // DAY_ID MISSING
+    // CREATED_AT SE OPERATIONAL DAY FIND KARO
     // ==================================================
 
     const expenseDate =
@@ -403,7 +794,9 @@ function getExpenseOperationalDay(expense) {
 
 
     if (!expenseDate) {
+
         return null;
+
     }
 
 
@@ -415,8 +808,11 @@ function getExpenseOperationalDay(expense) {
     ) {
 
         if (
-            expenseDate >= day.startDate &&
-            expenseDate <= day.endDate
+            expenseDate >=
+                day.startDate &&
+
+            expenseDate <=
+                day.endDate
         ) {
 
             return day;
@@ -430,14 +826,17 @@ function getExpenseOperationalDay(expense) {
 
 }
 
+
 // ======================================================
 // GET OPERATIONAL MONTH
 // ======================================================
 
-function getExpenseOperationalMonth(expense) {
+function getExpenseOperationalMonth(
+    expense
+) {
 
     // ==================================================
-    // FIRST PRIORITY:
+    // FIRST PRIORITY
     // OPERATIONAL DAY
     // ==================================================
 
@@ -455,7 +854,7 @@ function getExpenseOperationalMonth(expense) {
 
 
     // ==================================================
-    // SECOND PRIORITY:
+    // SECOND PRIORITY
     // SAVED OPERATIONAL MONTH
     // ==================================================
 
@@ -469,7 +868,7 @@ function getExpenseOperationalMonth(expense) {
 
 
     // ==================================================
-    // THIRD PRIORITY:
+    // THIRD PRIORITY
     // LEGACY CALENDAR DATE
     // ==================================================
 
@@ -480,16 +879,14 @@ function getExpenseOperationalMonth(expense) {
 
 
     if (!date) {
+
         return null;
+
     }
 
 
-    return (
-        date.getFullYear() +
-        "-" +
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0")
+    return getMonthKey(
+        date
     );
 
 }
@@ -499,7 +896,9 @@ function getExpenseOperationalMonth(expense) {
 // FORMAT TIME
 // ======================================================
 
-function formatTime(timestamp) {
+function formatTime(
+    timestamp
+) {
 
     const date =
         getRecordDate(
@@ -508,7 +907,9 @@ function formatTime(timestamp) {
 
 
     if (!date) {
+
         return "-";
+
     }
 
 
@@ -554,7 +955,9 @@ window.openAddPopup = () => {
             "addPopup"
         )
         .classList
-        .remove("hide");
+        .remove(
+            "hide"
+        );
 
 };
 
@@ -566,7 +969,9 @@ window.closeAddPopup = () => {
             "addPopup"
         )
         .classList
-        .add("hide");
+        .add(
+            "hide"
+        );
 
 };
 
@@ -578,7 +983,9 @@ window.closeEditPopup = () => {
             "editPopup"
         )
         .classList
-        .add("hide");
+        .add(
+            "hide"
+        );
 
 };
 
@@ -594,10 +1001,12 @@ window.saveExpense = async () => {
             "newType"
         ).value;
 
+
     const title =
         document.getElementById(
             "newTitle"
         ).value.trim();
+
 
     const amount =
         Number(
@@ -606,10 +1015,12 @@ window.saveExpense = async () => {
             ).value
         );
 
+
     const selectedDate =
         document.getElementById(
             "newDate"
         ).value;
+
 
     const shift =
         document.getElementById(
@@ -628,6 +1039,7 @@ window.saveExpense = async () => {
         );
 
         return;
+
     }
 
 
@@ -649,6 +1061,7 @@ window.saveExpense = async () => {
         );
 
         return;
+
     }
 
 
@@ -673,17 +1086,21 @@ window.saveExpense = async () => {
 
             branch,
 
-            // 🔥 PRIMARY OPERATIONAL DAY
+
+            // PRIMARY OPERATIONAL DAY
             day_id:
                 window.currentDayId,
 
-            // 🔥 OPERATIONAL DAY START
+
+            // OPERATIONAL DAY START
             day_created_at:
                 currentDay.startDate,
 
-            // 🔥 OPERATIONAL MONTH
+
+            // OPERATIONAL MONTH
             operational_month:
                 currentDay.operationalMonth,
+
 
             // ACTUAL ENTRY TIME
             created_at:
@@ -701,9 +1118,11 @@ window.saveExpense = async () => {
         "newTitle"
     ).value = "";
 
+
     document.getElementById(
         "newAmount"
     ).value = "";
+
 
     document.getElementById(
         "newDate"
@@ -728,7 +1147,8 @@ window.editExpense = (
     created_at
 ) => {
 
-    editId = id;
+    editId =
+        id;
 
 
     document.getElementById(
@@ -793,7 +1213,9 @@ window.editExpense = (
             "editPopup"
         )
         .classList
-        .remove("hide");
+        .remove(
+            "hide"
+        );
 
 };
 
@@ -809,6 +1231,7 @@ window.updateExpense = async () => {
             "editTitle"
         ).value.trim();
 
+
     const amount =
         Number(
             document.getElementById(
@@ -816,15 +1239,18 @@ window.updateExpense = async () => {
             ).value
         );
 
+
     const type =
         document.getElementById(
             "editType"
         ).value;
 
+
     const shift =
         document.getElementById(
             "editShift"
         ).value;
+
 
     const editDate =
         document.getElementById(
@@ -843,12 +1269,18 @@ window.updateExpense = async () => {
         );
 
         return;
+
     }
 
 
     // ==================================================
     // IMPORTANT
-    // day_id NEVER changes during edit
+    //
+    // day_id / operational_month
+    // CHANGE NAHI HOGA
+    //
+    // EXPENSE APNE ORIGINAL
+    // OPERATIONAL DAY MEIN RAHEGA
     // ==================================================
 
     await updateDoc(
@@ -878,7 +1310,9 @@ window.updateExpense = async () => {
     );
 
 
-    editId = null;
+    editId =
+        null;
+
 
     closeEditPopup();
 
@@ -921,10 +1355,16 @@ window.deleteExpense = async (
 
 window.filterByType = function () {
 
-    selectedType =
+    const input =
         document.getElementById(
             "filterType"
-        ).value;
+        );
+
+
+    selectedType =
+        input
+            ? input.value
+            : "all";
 
 
     renderTable();
@@ -938,10 +1378,16 @@ window.filterByType = function () {
 
 window.filterByDay = function () {
 
-    selectedDay =
+    const input =
         document.getElementById(
             "dayFilter"
-        ).value;
+        );
+
+
+    selectedDay =
+        input
+            ? input.value
+            : "all";
 
 
     renderTable();
@@ -951,20 +1397,35 @@ window.filterByDay = function () {
 
 // ======================================================
 // DATE RANGE FILTER
-// BASED ON OPERATIONAL DAY
+//
+// SAFE VERSION
+// NULL ERROR NAHI AYEGA
 // ======================================================
 
 window.filterByDateRange = function () {
 
-    fromDate =
+    const fromInput =
         document.getElementById(
             "fromDate"
-        ).value;
+        );
 
-    toDate =
+
+    const toInput =
         document.getElementById(
             "toDate"
-        ).value;
+        );
+
+
+    fromDate =
+        fromInput
+            ? fromInput.value
+            : "";
+
+
+    toDate =
+        toInput
+            ? toInput.value
+            : "";
 
 
     renderTable();
@@ -974,6 +1435,8 @@ window.filterByDateRange = function () {
 
 // ======================================================
 // CHECK OPERATIONAL DAY DATE RANGE
+//
+// DATE FILTER OPERATIONAL DAY START PAR
 // ======================================================
 
 function isOperationalDayInDateRange(
@@ -981,11 +1444,16 @@ function isOperationalDayInDateRange(
 ) {
 
     if (!day) {
+
         return false;
+
     }
 
 
-    // No date filter
+    // ==================================================
+    // NO DATE FILTER
+    // ==================================================
+
     if (
         !fromDate &&
         !toDate
@@ -1008,7 +1476,6 @@ function isOperationalDayInDateRange(
             );
 
 
-        // Compare operational day START
         if (
             day.startDate <
             from
@@ -1033,7 +1500,6 @@ function isOperationalDayInDateRange(
             );
 
 
-        // Compare operational day START
         if (
             day.startDate >
             to
@@ -1052,17 +1518,113 @@ function isOperationalDayInDateRange(
 
 
 // ======================================================
+// CHECK CURRENT SELECTED OPERATIONAL MONTH
+// ======================================================
+
+function isExpenseInSelectedMonth(
+    expense
+) {
+
+    if (
+        !fromDate ||
+        !toDate
+    ) {
+
+        return true;
+
+    }
+
+
+    // ==================================================
+    // IF USER SELECTED EXACT MONTH
+    // ==================================================
+
+    const fromMonth =
+        fromDate.slice(
+            0,
+            7
+        );
+
+
+    const toMonth =
+        toDate.slice(
+            0,
+            7
+        );
+
+
+    // ==================================================
+    // SAME MONTH
+    // USE OPERATIONAL MONTH
+    // ==================================================
+
+    if (
+        fromMonth ===
+        toMonth
+    ) {
+
+        const expenseMonth =
+            getExpenseOperationalMonth(
+                expense
+            );
+
+
+        if (!expenseMonth) {
+
+            return false;
+
+        }
+
+
+        return (
+            expenseMonth ===
+            fromMonth
+        );
+
+    }
+
+
+    // ==================================================
+    // MULTI-MONTH CUSTOM RANGE
+    //
+    // OPERATIONAL DAY START DATE
+    // ==================================================
+
+    const expenseDay =
+        getExpenseOperationalDay(
+            expense
+        );
+
+
+    return isOperationalDayInDateRange(
+        expenseDay
+    );
+
+}
+
+
+// ======================================================
 // SEARCH
 // ======================================================
 
 window.searchExpenses = function () {
 
-    const search =
+    const input =
         document.getElementById(
             "searchInput"
-        )
-        .value
-        .toLowerCase();
+        );
+
+
+    if (!input) {
+
+        return;
+
+    }
+
+
+    const search =
+        input.value
+            .toLowerCase();
 
 
     const rows =
@@ -1101,14 +1663,17 @@ function renderTable() {
 
 
     if (!body) {
+
         return;
+
     }
 
 
     body.innerHTML = "";
 
 
-    let total = 0;
+    let total =
+        0;
 
 
     expenseData.forEach(e => {
@@ -1127,100 +1692,97 @@ function renderTable() {
         }
 
 
-// ==================================================
-// OPERATIONAL DAY FILTER
-// ==================================================
-
-if (
-    selectedDay === "current"
-) {
-
-    const currentDay =
-        getCurrentOperationalDay();
-
-
-    if (!currentDay) {
-
-        return;
-
-    }
-
-
-    // ==============================================
-    // EXPENSE KA OPERATIONAL DAY FIND KARO
-    // ==============================================
-
-    const expenseDay =
-        getExpenseOperationalDay(e);
-
-
-    if (expenseDay) {
-
-        const expenseDayId =
-            getRecordDayId(e);
-
-
-        const currentDayId =
-            String(
-                window.currentDayId || ""
-            ).trim();
-
-
-        // ==========================================
-        // EXACT DAY_ID MATCH
-        // ==========================================
+        // ==================================================
+        // CURRENT OPERATIONAL DAY FILTER
+        // ==================================================
 
         if (
-            expenseDayId &&
-            String(
+            selectedDay === "current"
+        ) {
+
+            const currentDay =
+                getCurrentOperationalDay();
+
+
+            if (!currentDay) {
+
+                return;
+
+            }
+
+
+            const expenseDay =
+                getExpenseOperationalDay(
+                    e
+                );
+
+
+            if (!expenseDay) {
+
+                return;
+
+            }
+
+
+            const expenseDayId =
+                getRecordDayId(
+                    e
+                );
+
+
+            const currentDayId =
+                String(
+                    window.currentDayId ||
+                    ""
+                ).trim();
+
+
+            // ==================================================
+            // EXACT DAY ID MATCH
+            // ==================================================
+
+            if (
                 expenseDayId
-            ) !== currentDayId
-        ) {
+            ) {
 
-            return;
+                if (
+                    String(
+                        expenseDayId
+                    ) !==
+                    currentDayId
+                ) {
+
+                    return;
+
+                }
+
+            }
+
+            else {
+
+                // ==================================================
+                // LEGACY RECORD
+                // ==================================================
+
+                if (
+                    expenseDay.startDate.getTime() !==
+                    currentDay.startDate.getTime()
+                ) {
+
+                    return;
+
+                }
+
+            }
 
         }
 
 
-        // ==========================================
-        // LEGACY RECORD
-        // DAY_ID MISSING
+        // ==================================================
+        // MONTH / DATE FILTER
         //
-        // OBJECT MATCH SE CHECK KARO
-        // ==========================================
-
-        if (
-            !expenseDayId &&
-            expenseDay.startDate.getTime() !==
-            currentDay.startDate.getTime()
-        ) {
-
-            return;
-
-        }
-
-    } else {
-
-        // ==========================================
-        // OPERATIONAL DAY MILA HI NAHI
-        // ==========================================
-
-        return;
-
-    }
-
-}
-
+        // CURRENT MONTH = OPERATIONAL MONTH
         // ==================================================
-        // DATE RANGE
-        // OPERATIONAL DAY BASED
-        // ==================================================
-
-        const expenseDay =
-            getExpenseOperationalDay(
-                e
-            );
-
 
         if (
             fromDate ||
@@ -1228,8 +1790,8 @@ if (
         ) {
 
             if (
-                !isOperationalDayInDateRange(
-                    expenseDay
+                !isExpenseInSelectedMonth(
+                    e
                 )
             ) {
 
@@ -1254,7 +1816,8 @@ if (
         // ACTIONS
         // ==================================================
 
-        let actions = "";
+        let actions =
+            "";
 
 
         if (
@@ -1271,6 +1834,7 @@ if (
                     "\\'"
                 );
 
+
             const safeType =
                 String(
                     e.type || ""
@@ -1279,6 +1843,7 @@ if (
                     /'/g,
                     "\\'"
                 );
+
 
             const safeCreatedAt =
                 String(
@@ -1297,7 +1862,9 @@ if (
                     onclick="editExpense(
                         '${e.id}',
                         '${safeTitle}',
-                        ${Number(e.amount || 0)},
+                        ${Number(
+                            e.amount || 0
+                        )},
                         '${safeType}',
                         '${e.shift || "shift1"}',
                         '${safeCreatedAt}'
@@ -1305,6 +1872,7 @@ if (
                 >
                     Edit
                 </button>
+
 
                 <button
                     class="btn-red"
@@ -1320,6 +1888,10 @@ if (
         }
 
 
+        // ==================================================
+        // TABLE ROW
+        // ==================================================
+
         body.innerHTML += `
 
             <tr>
@@ -1328,13 +1900,16 @@ if (
                     ${e.title || "-"}
                 </td>
 
+
                 <td>
                     ${e.amount || 0}
                 </td>
 
+
                 <td>
                     ${e.type || "-"}
                 </td>
+
 
                 <td>
                     ${
@@ -1344,11 +1919,13 @@ if (
                     }
                 </td>
 
+
                 <td>
                     ${formatTime(
                         e.created_at
                     )}
                 </td>
+
 
                 <td>
                     ${actions}
@@ -1361,10 +1938,22 @@ if (
     });
 
 
-    document.getElementById(
-        "todayTotal"
-    ).innerText =
-        total + " PKR";
+    // ==================================================
+    // CURRENT MONTH TOTAL
+    // ==================================================
+
+    const totalElement =
+        document.getElementById(
+            "todayTotal"
+        );
+
+
+    if (totalElement) {
+
+        totalElement.innerText =
+            total + " PKR";
+
+    }
 
 }
 
@@ -1383,11 +1972,13 @@ function startExpensesListener() {
                 "expenses"
             ),
 
+
             where(
                 "branch",
                 "==",
                 branch
             ),
+
 
             orderBy(
                 "created_at",
@@ -1398,11 +1989,13 @@ function startExpensesListener() {
 
 
     onSnapshot(
+
         q,
 
         snap => {
 
-            expenseData = [];
+            expenseData =
+                [];
 
 
             snap.forEach(
@@ -1425,6 +2018,7 @@ function startExpensesListener() {
 
         },
 
+
         error => {
 
             console.error(
@@ -1433,6 +2027,7 @@ function startExpensesListener() {
             );
 
         }
+
     );
 
 }
@@ -1446,23 +2041,41 @@ async function initExpenses() {
 
     try {
 
-        // 1
+        // ==================================================
+        // 1. CURRENT DAY
+        // ==================================================
+
         await loadCurrentDayId();
 
 
-        // 2
+        // ==================================================
+        // 2. ALL OPERATIONAL DAYS
+        // ==================================================
+
         await loadOperationalDays();
 
 
-        // 3
+        // ==================================================
+        // 3. DEFAULT CURRENT OPERATIONAL MONTH
+        // ==================================================
+
+        setCurrentMonthFilter();
+
+
+        // ==================================================
+        // 4. LISTENER
+        // ==================================================
+
         startExpensesListener();
 
 
         console.log(
             "✅ EXPENSES OPERATIONAL DAY READY",
             {
+
                 currentDayId:
                     window.currentDayId,
+
 
                 currentDay:
                     getCurrentOperationalDay()
