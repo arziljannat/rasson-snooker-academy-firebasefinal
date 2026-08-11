@@ -54,27 +54,42 @@ async function loadOperationalDays(){
 
     operationalDays = {};
 
+    const branch =
+        localStorage.getItem("branch");
+
     const snap = await getDocs(
-        collection(window.db, "days")
+        query(
+            collection(window.db, "days"),
+            where("branch", "==", branch)
+        )
     );
 
-    snap.forEach(doc => {
+    snap.forEach(docSnap => {
 
-        let d = doc.data();
+        const d = docSnap.data();
 
-        let dayId =
+        const dayId =
             String(d.day_id || "");
 
-        let rawDate =
-            d.start_time ||
-            d.created_at ||
-            d.date;
+        if (!dayId) return;
 
-        if(!rawDate) return;
+        // 🔥 OPERATIONAL DATE
+        // Shift 1 ke actual start time se date niklegi
+        let startMs =
+            Number(d.shift1?.startMs || 0);
 
-        let date = new Date(rawDate);
+        let date;
 
-        if(isNaN(date.getTime())) return;
+        if (startMs) {
+
+            date = new Date(startMs);
+
+        } else {
+
+            date = new Date(d.date);
+        }
+
+        if (isNaN(date.getTime())) return;
 
         operationalDays[dayId] = {
 
@@ -88,9 +103,14 @@ async function loadOperationalDays(){
 
             day: date.getDate()
         };
-    });
-}
 
+    });
+
+    console.log(
+        "📊 REPORT OPERATIONAL DAYS:",
+        operationalDays
+    );
+}
 
 
 buttons[2].onclick = () => {
@@ -106,9 +126,9 @@ buttons[2].onclick = () => {
 
 document.getElementById("viewReportBtn").onclick = async () => {
 
-    await loadOperationalDays();
-
     if (currentReport === "game") {
+
+        await loadOperationalDays();
 
         loadReport();
 
@@ -125,371 +145,8 @@ document.getElementById("viewReportBtn").onclick = async () => {
 async function loadReport() {
 
     let dates = getDates();
+
     if (!dates) return;
-
-    let branch = localStorage.getItem("branch");
-    let box = document.getElementById("reportOutput");
-
-    box.innerHTML = "Loading...";
-
-    try {
-
-        // =========================
-        // LOAD COLLECTIONS
-        // =========================
-
-        const sessionsSnap = await getDocs(
-            query(
-                collection(window.db, "sessions"),
-                where("branch", "==", branch)
-            )
-        );
-
-        const expenseSnap = await getDocs(
-            query(
-                collection(window.db, "expenses"),
-                where("branch", "==", branch)
-            )
-        );
-
-        const easySnap = await getDocs(
-            query(
-                collection(window.db, "easypaisa"),
-                where("branch", "==", branch)
-            )
-        );
-
-        const canteenSnap = await getDocs(
-            query(
-                collection(window.db, "canteen_logs"),
-                where("branch", "==", branch)
-            )
-        );
-
-        // =========================
-        // TOTALS
-        // =========================
-
-        let totalGame = 0;
-        let totalCanteen = 0;
-        let totalExpense = 0;
-        let totalEasy = 0;
-        let dayBoxes = {};
-
-        // =========================
-        // GAME INCOME
-        // =========================
-
-        sessionsSnap.forEach(doc => {
-
-    let d = doc.data();
-
-    if(d.is_deleted === true) return;
-
-    let dayId =
-        String(d.day_id || "");
-
-    let operational =
-        operationalDays[dayId];
-
-    if(!operational) return;
-
-    let opDate =
-        operational.startDate;
-
-    if(
-        opDate < dates.from ||
-        opDate > dates.to
-    ) return;
-
-    if(!dayBoxes[dayId]){
-
-        dayBoxes[dayId] = {
-
-            game: 0,
-            canteen: 0,
-            expense: 0,
-            easy: 0,
-
-            start: operational.raw.start_time,
-            close: operational.raw.end_time,
-
-            label:
-                opDate.toLocaleDateString()
-        };
-    }
-
-    let amount = Number(
-        d.final_amount ||
-        d.total_price ||
-        0
-    );
-
-    totalGame += amount;
-
-    dayBoxes[dayId].game += amount;
-
-    let canteen =
-        Number(d.canteen_total || 0);
-
-    totalCanteen += canteen;
-
-    dayBoxes[dayId].canteen += canteen;
-});
-
-        // =========================
-        // CANTEEN
-        // =========================
-
-        canteenSnap.forEach(doc => {
-
-            let d = doc.data();
-
-            let date;
-
-            if (d.created_at?.seconds) {
-                date = new Date(d.created_at.seconds * 1000);
-            } else {
-                date = new Date(d.created_at);
-            }
-
-            if (date >= dates.from && date <= dates.to) {
-
-                totalCanteen += Number(d.total || 0);
-            }
-        });
-
-        // =========================
-        // EXPENSES
-        // =========================
-
-        expenseSnap.forEach(doc => {
-
-    let d = doc.data();
-
-    let dayId =
-        String(d.day_id || "");
-
-    let operational =
-        operationalDays[dayId];
-
-    if(!operational) return;
-
-    let opDate =
-        operational.startDate;
-
-    if(
-        opDate < dates.from ||
-        opDate > dates.to
-    ) return;
-
-    if(!dayBoxes[dayId]){
-
-        dayBoxes[dayId] = {
-
-            game: 0,
-            canteen: 0,
-            expense: 0,
-            easy: 0,
-
-            start: operational.raw.start_time,
-            close: operational.raw.end_time,
-
-            label:
-                opDate.toLocaleDateString()
-        };
-    }
-
-    let amount =
-        Number(d.amount || 0);
-
-    totalExpense += amount;
-
-    dayBoxes[dayId].expense += amount;
-});
-
-        // =========================
-        // EASYPAISA
-        // =========================
-
-        easySnap.forEach(doc => {
-
-    let d = doc.data();
-
-    let dayId =
-        String(d.day_id || "");
-
-    let operational =
-        operationalDays[dayId];
-
-    if(!operational) return;
-
-    let opDate =
-        operational.startDate;
-
-    if(
-        opDate < dates.from ||
-        opDate > dates.to
-    ) return;
-
-    if(!dayBoxes[dayId]){
-
-        dayBoxes[dayId] = {
-
-            game: 0,
-            canteen: 0,
-            expense: 0,
-            easy: 0,
-
-            start: operational.raw.start_time,
-            close: operational.raw.end_time,
-
-            label:
-                opDate.toLocaleDateString()
-        };
-    }
-
-    let amount =
-        Number(d.amount || 0);
-
-    totalEasy += amount;
-
-    dayBoxes[dayId].easy += amount;
-});
-
-        // =========================
-        // NET
-        // =========================
-
-        let gross =
-            totalGame + totalCanteen;
-
-        let net =
-            gross - totalExpense - totalEasy;
-
-        // =========================
-        // HTML
-        // =========================
-        let daysHtml = "";
-
-Object.values(dayBoxes).forEach(day => {
-
-    let net =
-        day.game +
-        day.canteen -
-        day.expense -
-        day.easy;
-
-    let start =
-        day.start
-        ? new Date(day.start)
-            .toLocaleString()
-        : "-";
-
-    let close =
-        day.close
-        ? new Date(day.close)
-            .toLocaleString()
-        : "-";
-
-    daysHtml += `
-
-    <div class="report-card"
-    style="margin-bottom:20px;">
-
-        <h3 style="color:#00ffcc;">
-            Operational Day:
-            ${day.label}
-        </h3>
-
-        <div>
-            <b>Open:</b>
-            ${start}
-        </div>
-
-        <div>
-            <b>Close:</b>
-            ${close}
-        </div>
-
-        <hr>
-
-        <div>Game:
-        Rs ${day.game}</div>
-
-        <div>Canteen:
-        Rs ${day.canteen}</div>
-
-        <div>Expenses:
-        Rs ${day.expense}</div>
-
-        <div>EasyPaisa:
-        Rs ${day.easy}</div>
-
-        <h3 style="color:#00ffcc;">
-            Net:
-            Rs ${net}
-        </h3>
-
-    </div>
-    `;
-});
-
-
-      
-        let html = `
-            <h2>Game Report</h2>
-
-            <div class="report-card">
-                <b>Game Income:</b>
-                Rs ${totalGame}
-            </div>
-
-            <div class="report-card">
-                <b>Canteen:</b>
-                Rs ${totalCanteen}
-            </div>
-
-            <div class="report-card">
-                <b>Expenses:</b>
-                Rs ${totalExpense}
-            </div>
-
-            <div class="report-card">
-                <b>EasyPaisa:</b>
-                Rs ${totalEasy}
-            </div>
-
-            <hr>
-
-${daysHtml}
-
-<hr>
-
-<h2 style="color:#00ffcc;">
-    Net Profit:
-    Rs ${net}
-</h2>
-        `;
-
-        box.innerHTML = html;
-
-    } catch (err) {
-
-        console.error(err);
-
-        box.innerHTML =
-            "Error loading report";
-    }
-}
-
-async function loadCanteenReport() {
-
-    let dates = getDates();
-    if (!dates) return;
-
-    let branch =
-        localStorage.getItem("branch");
 
     let box =
         document.getElementById("reportOutput");
@@ -498,81 +155,428 @@ async function loadCanteenReport() {
 
     try {
 
-        const snap = await getDocs(
+        // ==========================================
+        // 🔥 REPORT DATA AB DAYS SNAPSHOT SE AYEGA
+        // ==========================================
 
-            query(
-                collection(window.db, "canteen_logs"),
-                where("branch", "==", branch)
-            )
-        );
+        let rows = [];
 
-        let total = 0;
+        Object.values(operationalDays).forEach(day => {
 
-        let itemsHtml = "";
+            const d = day.raw;
 
-        snap.forEach(doc => {
+            const operationalDate =
+                day.startDate;
 
-            let d = doc.data();
-
-            let date;
-
-            if (d.created_at?.seconds) {
-
-                date = new Date(
-                    d.created_at.seconds * 1000
-                );
-
-            } else {
-
-                date = new Date(d.created_at);
-            }
+            // ======================================
+            // DATE FILTER
+            // ======================================
 
             if (
-                date < dates.from ||
-                date > dates.to
-            ) return;
+                operationalDate < dates.from ||
+                operationalDate > dates.to
+            ) {
+                return;
+            }
 
-            total += Number(d.total || 0);
+            const s1 =
+                d.shift1 || {};
 
-            itemsHtml += `
+            const s2 =
+                d.shift2 || {};
+
+            const combined =
+                d.combined || {};
+
+            // ======================================
+            // SHIFT 1 BALANCE
+            // ======================================
+
+            const shift1Balance =
+                Number(s1.gameBalance || 0) +
+                Number(s1.canteenBalance || 0);
+
+            // ======================================
+            // SHIFT 2 BALANCE
+            // ======================================
+
+            const shift2Balance =
+                Number(s2.gameBalance || 0) +
+                Number(s2.canteenBalance || 0);
+
+            // ======================================
+            // DATE
+            // ======================================
+
+            const dateLabel =
+                operationalDate.toLocaleDateString(
+                    "en-PK",
+                    {
+                        timeZone: "Asia/Karachi",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit"
+                    }
+                );
+
+            // ======================================
+            // SHIFT 1 TIMING
+            // ======================================
+
+            let shift1Timing = "-";
+
+            if (
+                s1.startMs &&
+                s1.endMs
+            ) {
+
+                const start =
+                    new Date(s1.startMs)
+                    .toLocaleTimeString(
+                        "en-PK",
+                        {
+                            timeZone: "Asia/Karachi",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    );
+
+                const close =
+                    new Date(s1.endMs)
+                    .toLocaleTimeString(
+                        "en-PK",
+                        {
+                            timeZone: "Asia/Karachi",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    );
+
+                shift1Timing =
+                    `${start} → ${close}`;
+            }
+
+            // ======================================
+            // SHIFT 2 TIMING
+            // ======================================
+
+            let shift2Timing = "-";
+
+            if (
+                s2.startMs &&
+                s2.endMs
+            ) {
+
+                const start =
+                    new Date(s2.startMs)
+                    .toLocaleTimeString(
+                        "en-PK",
+                        {
+                            timeZone: "Asia/Karachi",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    );
+
+                const close =
+                    new Date(s2.endMs)
+                    .toLocaleTimeString(
+                        "en-PK",
+                        {
+                            timeZone: "Asia/Karachi",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    );
+
+                shift2Timing =
+                    `${start} → ${close}`;
+            }
+
+            // ======================================
+            // SAVE ROW
+            // ======================================
+
+            rows.push({
+
+                date:
+                    dateLabel,
+
+                dateMs:
+                    operationalDate.getTime(),
+
+                shift1Closing:
+                    Number(
+                        s1.closingCash || 0
+                    ),
+
+                shift1Balance:
+                    shift1Balance,
+
+                shift1Discount:
+                    Number(
+                        s1.discount || 0
+                    ),
+
+                shift1Timing:
+                    shift1Timing,
+
+                shift2Closing:
+                    Number(
+                        s2.closingCash || 0
+                    ),
+
+                shift2Balance:
+                    shift2Balance,
+
+                shift2Discount:
+                    Number(
+                        s2.discount || 0
+                    ),
+
+                shift2Timing:
+                    shift2Timing,
+
+                expenses:
+                    Number(
+                        combined.expenses || 0
+                    ),
+
+                easypaisa:
+                    Number(
+                        combined.easypaisa || 0
+                    ),
+
+                combinedClosing:
+                    Number(
+                        combined.closingCash || 0
+                    )
+            });
+
+        });
+
+        // ==========================================
+        // SORT DATE WISE
+        // ==========================================
+
+        rows.sort(
+            (a, b) =>
+                a.dateMs - b.dateMs
+        );
+
+        // ==========================================
+        // NO DATA
+        // ==========================================
+
+        if (rows.length === 0) {
+
+            box.innerHTML = `
+                <div class="report-card">
+                    <h3>No report data found</h3>
+                    <p>
+                        Selected date range mein
+                        koi closed operational day nahi mila.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+        // ==========================================
+        // BUILD TABLE
+        // ==========================================
+
+        let rowsHtml = "";
+
+        rows.forEach(row => {
+
+            rowsHtml += `
+
                 <tr>
-                    <td>${d.item_name || "-"}</td>
-                    <td>${d.qty || 0}</td>
-                    <td>${d.total || 0}</td>
+
+                    <td>
+                        <b>${row.date}</b>
+                    </td>
+
+                    <!-- SHIFT 1 CLOSING -->
+                    <td>
+                        Rs ${row.shift1Closing}
+                    </td>
+
+                    <!-- SHIFT 1 BALANCE -->
+                    <td>
+                        Rs ${row.shift1Balance}
+                    </td>
+
+                    <!-- SHIFT 1 DISCOUNT -->
+                    <td>
+                        Rs ${row.shift1Discount}
+                    </td>
+
+                    <!-- SHIFT 1 TIMING -->
+                    <td>
+                        ${row.shift1Timing}
+                    </td>
+
+                    <!-- SHIFT 2 CLOSING -->
+                    <td>
+                        Rs ${row.shift2Closing}
+                    </td>
+
+                    <!-- SHIFT 2 BALANCE -->
+                    <td>
+                        Rs ${row.shift2Balance}
+                    </td>
+
+                    <!-- SHIFT 2 DISCOUNT -->
+                    <td>
+                        Rs ${row.shift2Discount}
+                    </td>
+
+                    <!-- SHIFT 2 TIMING -->
+                    <td>
+                        ${row.shift2Timing}
+                    </td>
+
+                    <!-- EXPENSE -->
+                    <td>
+                        Rs ${row.expenses}
+                    </td>
+
+                    <!-- EASYPAISA -->
+                    <td>
+                        Rs ${row.easypaisa}
+                    </td>
+
+                    <!-- COMBINED CLOSING -->
+                    <td>
+                        <b>
+                            Rs ${row.combinedClosing}
+                        </b>
+                    </td>
+
                 </tr>
+
             `;
         });
 
+        // ==========================================
+        // FINAL REPORT
+        // ==========================================
+
         box.innerHTML = `
 
-            <h2>Canteen Report</h2>
+            <h2>
+                Game Report
+            </h2>
 
-            <div class="report-card">
-                <b>Total Canteen Income:</b>
-                Rs ${total}
+            <div
+                style="
+                    width:100%;
+                    overflow-x:auto;
+                    margin-top:15px;
+                "
+            >
+
+                <table
+                    class="report-table"
+                    style="
+                        min-width:1500px;
+                        white-space:nowrap;
+                    "
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Shift 1<br>
+                                Closing Cash
+                            </th>
+
+                            <th>
+                                Shift 1<br>
+                                Balance
+                            </th>
+
+                            <th>
+                                Shift 1<br>
+                                Discount
+                            </th>
+
+                            <th>
+                                Shift 1<br>
+                                Timing
+                            </th>
+
+                            <th>
+                                Shift 2<br>
+                                Closing Cash
+                            </th>
+
+                            <th>
+                                Shift 2<br>
+                                Balance
+                            </th>
+
+                            <th>
+                                Shift 2<br>
+                                Discount
+                            </th>
+
+                            <th>
+                                Shift 2<br>
+                                Timing
+                            </th>
+
+                            <th>
+                                Expenses
+                            </th>
+
+                            <th>
+                                EasyPaisa
+                            </th>
+
+                            <th>
+                                Combined<br>
+                                Closing Cash
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${rowsHtml}
+
+                    </tbody>
+
+                </table>
+
             </div>
 
-            <hr>
-
-            <table class="report-table">
-
-                <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Total</th>
-                </tr>
-
-                ${itemsHtml}
-
-            </table>
         `;
 
     } catch (err) {
 
-        console.error(err);
+        console.error(
+            "❌ REPORT ERROR:",
+            err
+        );
 
         box.innerHTML =
-            "Error loading canteen report";
+            "Error loading report";
     }
 }
 
