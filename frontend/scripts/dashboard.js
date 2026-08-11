@@ -615,14 +615,25 @@ async function loadOperationalDays(){
 
 // ======================================================
 // MONTHLY ACCOUNTING
-// SAME OPERATIONAL DAY SOURCE
-// USED BY REPORTS
+// OPERATIONAL DATE BASED
+//
+// IMPORTANT:
+// 1 operational date = 1 accounting day
+//
+// Agar Firebase mein same operational date ke
+// duplicate day records hon to sirf FIRST record
+// accounting mein count hoga.
+//
+// Is se:
+// - Monthly Income double nahi hoga
+// - Monthly Expense double nahi hoga
+// - EasyPaisa double nahi hoga
+// - Shift totals double nahi honge
 // ======================================================
 
 function getMonthlyOperationalAccounting(){
 
     const branch =
-
         (localStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
@@ -649,18 +660,25 @@ function getMonthlyOperationalAccounting(){
     };
 
 
+    // ==================================================
+    // UNIQUE OPERATIONAL DATES
+    // ==================================================
+
+    const countedDates =
+        new Set();
+
+
     Object.values(
         operationalDays || {}
     ).forEach(day => {
-
 
         const raw =
             day.raw || {};
 
 
-        // ==========================================
+        // ==============================================
         // BRANCH
-        // ==========================================
+        // ==============================================
 
         if(
 
@@ -679,9 +697,9 @@ function getMonthlyOperationalAccounting(){
         }
 
 
-        // ==========================================
+        // ==============================================
         // MONTH
-        // ==========================================
+        // ==============================================
 
         if(
 
@@ -698,9 +716,9 @@ function getMonthlyOperationalAccounting(){
         }
 
 
-        // ==========================================
+        // ==============================================
         // ONLY CLOSED OPERATIONAL DAYS
-        // ==========================================
+        // ==============================================
 
         if(
             raw.is_closed !== true
@@ -710,6 +728,78 @@ function getMonthlyOperationalAccounting(){
 
         }
 
+
+        // ==============================================
+        // OPERATIONAL DATE KEY
+        //
+        // Asia/Karachi
+        // ==============================================
+
+        if(
+            !day.startDate
+        ){
+
+            return;
+
+        }
+
+
+        const operationalDateKey =
+            new Intl.DateTimeFormat(
+                "en-CA",
+                {
+                    timeZone:
+                        "Asia/Karachi",
+
+                    year:
+                        "numeric",
+
+                    month:
+                        "2-digit",
+
+                    day:
+                        "2-digit"
+                }
+            ).format(
+                new Date(
+                    day.startDate
+                )
+            );
+
+
+        // ==============================================
+        // DUPLICATE OPERATIONAL DAY
+        // ==============================================
+
+        if(
+            countedDates.has(
+                operationalDateKey
+            )
+        ){
+
+            console.warn(
+                "⚠️ DASHBOARD DUPLICATE OPERATIONAL DAY SKIPPED:",
+                operationalDateKey,
+                raw.day_id
+            );
+
+            return;
+
+        }
+
+
+        // ==============================================
+        // MARK DATE AS COUNTED
+        // ==============================================
+
+        countedDates.add(
+            operationalDateKey
+        );
+
+
+        // ==============================================
+        // SHIFT DATA
+        // ==============================================
 
         const s1 =
             raw.shift1 || {};
@@ -723,23 +813,21 @@ function getMonthlyOperationalAccounting(){
             raw.combined || {};
 
 
-        // ==========================================
+        // ==============================================
         // SHIFT 1 COLLECTION
-        // ==========================================
+        // ==============================================
 
         const shift1Collection =
-
             Number(
                 s1.gameCollection || 0
             );
 
 
-        // ==========================================
+        // ==============================================
         // SHIFT 2 COLLECTION
-        // ==========================================
+        // ==============================================
 
         const shift2Collection =
-
             Number(
                 s2.gameCollection || 0
             );
@@ -754,14 +842,13 @@ function getMonthlyOperationalAccounting(){
 
 
         result.gameCollection +=
-
             shift1Collection +
             shift2Collection;
 
 
-        // ==========================================
+        // ==============================================
         // BALANCE
-        // ==========================================
+        // ==============================================
 
         result.gameBalance +=
 
@@ -776,9 +863,9 @@ function getMonthlyOperationalAccounting(){
             );
 
 
-        // ==========================================
+        // ==============================================
         // DISCOUNT
-        // ==========================================
+        // ==============================================
 
         result.discount +=
 
@@ -793,9 +880,9 @@ function getMonthlyOperationalAccounting(){
             );
 
 
-        // ==========================================
+        // ==============================================
         // EXPENSE
-        // ==========================================
+        // ==============================================
 
         result.expense +=
 
@@ -810,9 +897,9 @@ function getMonthlyOperationalAccounting(){
             );
 
 
-        // ==========================================
+        // ==============================================
         // EASYPAISA
-        // ==========================================
+        // ==============================================
 
         result.easyPaisa +=
 
@@ -821,8 +908,11 @@ function getMonthlyOperationalAccounting(){
             );
 
 
-        result.days++;
+        // ==============================================
+        // COUNT UNIQUE OPERATIONAL DAY
+        // ==============================================
 
+        result.days++;
 
     });
 
@@ -830,6 +920,14 @@ function getMonthlyOperationalAccounting(){
     console.log(
         "📊 DASHBOARD MONTHLY ACCOUNTING:",
         result
+    );
+
+
+    console.log(
+        "📅 DASHBOARD UNIQUE ACCOUNTING DAYS:",
+        Array.from(
+            countedDates
+        )
     );
 
 
@@ -1912,33 +2010,70 @@ async function updateDashboard(){
     );
 
 
-    // ======================================================
-    // MONTHLY AVERAGE
-    // ======================================================
+// ======================================================
+// UNIQUE CLOSED OPERATIONAL DAYS
+// FOR MONTHLY AVERAGE
+// ======================================================
 
-    let operationalMonthDays =
+const uniqueMonthDates =
+    new Set();
 
-        Object.values(
-            operationalDays
-        ).filter(d => {
 
-            return (
+Object.values(
+    operationalDays || {}
+).forEach(d => {
 
-                d.month ===
-                selectedMonth
+    if(
 
-                &&
+        d.month !==
+        selectedMonth ||
 
-                d.year ===
-                selectedYear
+        d.year !==
+        selectedYear ||
 
-                &&
+        d.raw?.is_closed !== true ||
 
-                d.raw?.is_closed === true
+        !d.startDate
 
-            );
+    ){
 
-        }).length;
+        return;
+
+    }
+
+
+    const dateKey =
+        new Intl.DateTimeFormat(
+            "en-CA",
+            {
+                timeZone:
+                    "Asia/Karachi",
+
+                year:
+                    "numeric",
+
+                month:
+                    "2-digit",
+
+                day:
+                    "2-digit"
+            }
+        ).format(
+            new Date(
+                d.startDate
+            )
+        );
+
+
+    uniqueMonthDates.add(
+        dateKey
+    );
+
+});
+
+
+let operationalMonthDays =
+    uniqueMonthDates.size;
 
 
     if(
