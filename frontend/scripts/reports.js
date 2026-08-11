@@ -1250,58 +1250,6 @@ const s2 =
     {};
 
 
- // ==========================================
-// 🔥 ACTUAL OPERATIONAL DATE
-// SHIFT 1 FIREBASE SNAPSHOT SE
-// ==========================================
-
-let operationalDate = null;
-
-
-const actualShift1StartMs =
-    Number(
-        s1.start_ms ||
-        s1.startMs ||
-        0
-    );
-
-
-const actualShift2StartMs =
-    Number(
-        s2.start_ms ||
-        s2.startMs ||
-        0
-    );
-
-
-if (
-    actualShift1StartMs > 1000000000000
-) {
-
-    operationalDate =
-        new Date(
-            actualShift1StartMs
-        );
-
-} else if (
-    actualShift2StartMs > 1000000000000
-) {
-
-    operationalDate =
-        new Date(
-            actualShift2StartMs
-        );
-
-} else if (
-    day.startDate
-) {
-
-    operationalDate =
-        new Date(
-            day.startDate
-        );
-
-}         
 
 // ======================================
 // INVALID
