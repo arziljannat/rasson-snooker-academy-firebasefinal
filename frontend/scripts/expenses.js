@@ -52,6 +52,9 @@ let fromDate = "";
 
 let toDate = "";
 
+// SEARCH
+let searchText = "";
+
 
 // ======================================================
 // DATE KEY
@@ -1604,7 +1607,7 @@ function isExpenseInSelectedMonth(
 
 
 // ======================================================
-// SEARCH
+// SEARCH EXPENSES
 // ======================================================
 
 window.searchExpenses = function () {
@@ -1622,10 +1625,35 @@ window.searchExpenses = function () {
     }
 
 
-    const search =
+    // Search expense NAME / TITLE
+    searchText =
         input.value
+            .trim()
             .toLowerCase();
 
+
+    // Re-render table
+    //
+    // Is se:
+    // 1. Matching expenses show honge
+    // 2. Total bhi matching expenses ka hoga
+    // 3. Print bhi matching expenses ka hoga
+
+    renderTable();
+
+};
+
+
+// ======================================================
+// PRINT FILTERED EXPENSES
+//
+// Jo expenses screen par filtered hain
+// sirf unhi ka print niklega.
+//
+// Edit / Delete buttons print nahi honge.
+// ======================================================
+
+window.printFilteredExpenses = function () {
 
     const rows =
         document.querySelectorAll(
@@ -1633,19 +1661,452 @@ window.searchExpenses = function () {
         );
 
 
+    if (!rows.length) {
+
+        alert(
+            "No expenses found to print."
+        );
+
+        return;
+
+    }
+
+
+    let total = 0;
+
+    let tableRows = "";
+
+
     rows.forEach(row => {
 
-        const text =
-            row.innerText
-                .toLowerCase();
+        const cells =
+            row.querySelectorAll(
+                "td"
+            );
 
 
-        row.style.display =
-            text.includes(search)
-                ? ""
-                : "none";
+        // Expected:
+        // 0 = Title
+        // 1 = Amount
+        // 2 = Type
+        // 3 = Shift
+        // 4 = Date
+        // 5 = Actions
+
+        if (
+            cells.length < 5
+        ) {
+
+            return;
+
+        }
+
+
+        const title =
+            cells[0]
+                .innerText
+                .trim();
+
+
+        const amountText =
+            cells[1]
+                .innerText
+                .trim();
+
+
+        const type =
+            cells[2]
+                .innerText
+                .trim();
+
+
+        const shift =
+            cells[3]
+                .innerText
+                .trim();
+
+
+        const date =
+            cells[4]
+                .innerText
+                .trim();
+
+
+        const amount =
+            Number(
+                amountText.replace(
+                    /[^0-9.-]/g,
+                    ""
+                )
+            ) || 0;
+
+
+        total += amount;
+
+
+        tableRows += `
+
+            <tr>
+
+                <td>
+                    ${title}
+                </td>
+
+                <td>
+                    ${amountText}
+                </td>
+
+                <td>
+                    ${type}
+                </td>
+
+                <td>
+                    ${shift}
+                </td>
+
+                <td>
+                    ${date}
+                </td>
+
+            </tr>
+
+        `;
 
     });
+
+
+    if (!tableRows) {
+
+        alert(
+            "No expenses found to print."
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // CURRENT FILTER VALUES
+    // ==================================================
+
+    const searchValue =
+        document.getElementById(
+            "searchInput"
+        )?.value
+        || "";
+
+
+    const fromValue =
+        document.getElementById(
+            "fromDate"
+        )?.value
+        || "";
+
+
+    const toValue =
+        document.getElementById(
+            "toDate"
+        )?.value
+        || "";
+
+
+    const typeValue =
+        document.getElementById(
+            "filterType"
+        )?.value
+        || "all";
+
+
+    const dayValue =
+        document.getElementById(
+            "dayFilter"
+        )?.value
+        || "all";
+
+
+    // ==================================================
+    // OPEN PRINT WINDOW
+    // ==================================================
+
+    const printWindow =
+        window.open(
+            "",
+            "_blank",
+            "width=1000,height=800"
+        );
+
+
+    if (!printWindow) {
+
+        alert(
+            "Please allow pop-ups to print."
+        );
+
+        return;
+
+    }
+
+
+    printWindow.document.write(`
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>
+        Rasson Snooker Academy - Expense Report
+    </title>
+
+
+    <style>
+
+        body {
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            padding:
+                30px;
+
+            color:
+                #111;
+
+        }
+
+
+        h1 {
+
+            text-align:
+                center;
+
+            margin-bottom:
+                5px;
+
+        }
+
+
+        h2 {
+
+            text-align:
+                center;
+
+            margin-top:
+                0;
+
+            font-size:
+                18px;
+
+        }
+
+
+        .info {
+
+            margin-top:
+                25px;
+
+            line-height:
+                1.8;
+
+        }
+
+
+        table {
+
+            width:
+                100%;
+
+            border-collapse:
+                collapse;
+
+            margin-top:
+                25px;
+
+        }
+
+
+        th,
+        td {
+
+            border:
+                1px solid #222;
+
+            padding:
+                10px;
+
+            text-align:
+                center;
+
+        }
+
+
+        th {
+
+            background:
+                #eee;
+
+        }
+
+
+        .total {
+
+            margin-top:
+                20px;
+
+            text-align:
+                right;
+
+            font-size:
+                20px;
+
+            font-weight:
+                bold;
+
+        }
+
+
+        @media print {
+
+            body {
+
+                padding:
+                    10px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <h1>
+        RASSON SNOOKER ACADEMY
+    </h1>
+
+
+    <h2>
+        EXPENSE REPORT
+    </h2>
+
+
+    <div class="info">
+
+        <b>Branch:</b>
+        ${branch || "-"}
+
+        <br>
+
+
+        <b>Expense Type:</b>
+        ${typeValue}
+
+
+        <br>
+
+
+        <b>Day Filter:</b>
+        ${dayValue}
+
+
+        <br>
+
+
+        <b>From:</b>
+        ${fromValue || "-"}
+
+        &nbsp;&nbsp;
+
+
+        <b>To:</b>
+        ${toValue || "-"}
+
+
+        <br>
+
+
+        <b>Search:</b>
+        ${searchValue || "All Expenses"}
+
+    </div>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Title
+                </th>
+
+                <th>
+                    Amount
+                </th>
+
+                <th>
+                    Type
+                </th>
+
+                <th>
+                    Shift
+                </th>
+
+                <th>
+                    Date & Time
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            ${tableRows}
+
+        </tbody>
+
+    </table>
+
+
+    <div class="total">
+
+        Total:
+        ${total.toLocaleString()}
+        PKR
+
+    </div>
+
+
+    <script>
+
+        window.onload =
+            function () {
+
+                window.print();
+
+            };
+
+    <\/script>
+
+
+</body>
+
+</html>
+
+    `);
+
+
+    printWindow.document.close();
 
 };
 
@@ -1802,6 +2263,34 @@ function renderTable() {
         }
 
 
+// ==================================================
+// SEARCH FILTER
+//
+// Expense title/name ke against search
+// ==================================================
+
+if (searchText) {
+
+    const expenseTitle =
+        String(
+            e.title || ""
+        ).toLowerCase();
+
+
+    if (
+        !expenseTitle.includes(
+            searchText
+        )
+    ) {
+
+        return;
+
+    }
+
+}
+
+        
+
         // ==================================================
         // TOTAL
         // ==================================================
@@ -1942,16 +2431,40 @@ function renderTable() {
     // CURRENT MONTH TOTAL
     // ==================================================
 
-    const totalElement =
-        document.getElementById(
-            "todayTotal"
-        );
+const totalElement =
+    document.getElementById(
+        "todayTotal"
+    );
 
 
-    if (totalElement) {
+const totalLabel =
+    document.getElementById(
+        "totalLabel"
+    );
 
-        totalElement.innerText =
-            total + " PKR";
+
+if (totalElement) {
+
+    totalElement.innerText =
+        total.toLocaleString() +
+        " PKR";
+
+}
+
+
+if (totalLabel) {
+
+    if (searchText) {
+
+        totalLabel.innerText =
+            "Search Total:";
+
+    }
+
+    else {
+
+        totalLabel.innerText =
+            "Current Month Total:";
 
     }
 
