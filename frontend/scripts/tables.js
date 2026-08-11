@@ -4113,6 +4113,107 @@ if (!snap.empty) {
     return;
 }
 
+// ======================================================
+// 🔥 SHIFT 2 CLOSE — UNPAID BILL CHECK
+// Jab tak Shift 2 ke saare completed bills paid nahi hote,
+// Shift 2 close nahi hogi.
+// Running tables ko is check mein include nahi karna.
+// ======================================================
+
+const unpaidBillsQuery = query(
+    collection(window.db, "sessions"),
+    where("branch", "==", BRANCH),
+    where("day_id", "==", window.currentDayId),
+    where("shift_number", "==", 2)
+);
+
+const unpaidBillsSnap = await getDocs(unpaidBillsQuery);
+
+const unpaidBills = [];
+
+unpaidBillsSnap.forEach(docSnap => {
+
+    const data = docSnap.data();
+
+    // Deleted session ignore
+    if (data.is_deleted === true) {
+        return;
+    }
+
+    // 🔥 Running table/bill ko ignore karo
+    // Running game Shift 2 close ko block nahi karega.
+    if (!data.end_time) {
+        return;
+    }
+
+    // 🔥 PAID bill ko ignore karo
+    if (data.paid === true) {
+        return;
+    }
+
+    // Yahan tak pohanch gaya = completed but unpaid bill
+    unpaidBills.push({
+        id: docSnap.id,
+        table: data.table_id || "Unknown Table",
+        player1: data.player1_name || "Player 1",
+        player2: data.player2_name || "Player 2",
+        total:
+            Number(
+                data.total_bill_amount ??
+                (
+                    Number(data.final_game_amount || data.final_amount || 0) +
+                    Number(data.canteen_total || 0)
+                )
+            ),
+        remaining:
+            Number(
+                data.remaining_payment ??
+                data.total_bill_amount ??
+                0
+            )
+    });
+
+});
+
+
+// ======================================================
+// ❌ UNPAID BILL MIL GAYA → SHIFT 2 CLOSE BLOCK
+// ======================================================
+
+if (unpaidBills.length > 0) {
+
+    console.log(
+        "⛔ SHIFT 2 CLOSE BLOCKED — UNPAID BILLS:",
+        unpaidBills
+    );
+
+    const billList = unpaidBills
+        .map(bill =>
+            `${bill.table} — ${bill.player1} VS ${bill.player2}`
+        )
+        .join("\n");
+
+    alert(
+        "Shift 2 Close nahi ho sakti ❌\n\n" +
+        "Pehle ye unpaid bills paid karein:\n\n" +
+        billList
+    );
+
+    return;
+}
+
+
+// ======================================================
+// ✅ ALL SHIFT 2 BILLS PAID
+// Ab Shift 2 Close continue hogi.
+// ======================================================
+
+console.log(
+    "✅ SHIFT 2 CLOSE — ALL BILLS PAID"
+);
+
+
+  
     // cannot close if any table still running
 // ======================================================
 // 🔥 SHIFT 2 CLOSE — RUNNING TABLES ALLOWED
