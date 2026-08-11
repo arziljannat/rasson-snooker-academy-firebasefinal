@@ -3,13 +3,28 @@ import {
     getDocs
 }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+// ======================================================
+// PAGE LOAD
+// ======================================================
+
 document.addEventListener("DOMContentLoaded", async () => {
 
-    const branch = (localStorage.getItem("branch") || "").toLowerCase();
+    const branch =
+        (localStorage.getItem("branch") || "")
+        .toLowerCase()
+        .trim();
+
+
+    // ==================================================
+    // GET CURRENT OPERATIONAL DAY
+    // ==================================================
 
     const snap = await getDocs(
-    collection(window.db, "system")
-);
+        collection(window.db, "system")
+    );
+
 
     snap.forEach(d => {
 
@@ -17,83 +32,170 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (
             data.type === "current_day" &&
-            (data.branch || "").toLowerCase() === branch
+            (data.branch || "").toLowerCase().trim() === branch
         ) {
-            window.currentDayId = data.day_id;
+
+            window.currentDayId =
+                data.day_id;
+
         }
+
     });
 
-    console.log("🔥 DASHBOARD CURRENT DAY:", window.currentDayId);
+
+    console.log(
+        "🔥 DASHBOARD CURRENT DAY:",
+        window.currentDayId
+    );
+
+
+    // ==================================================
+    // LOAD OPERATIONAL DAYS FIRST
+    // ==================================================
 
     await loadOperationalDays();
 
-    loadDashboardRealtime();
 
-    // ✅ MONTH FILTER
-const monthInput = document.getElementById("dashboardMonthFilter");
+    // ==================================================
+    // LOAD ALL DASHBOARD DATA
+    // ONLY AFTER EVERYTHING LOADS
+    // ==================================================
 
-if(monthInput){
+    await loadDashboardRealtime();
 
-    let operationalCurrent =
-        operationalDays[String(window.currentDayId)];
 
-    if(operationalCurrent){
+    // ==================================================
+    // MONTH FILTER
+    // ==================================================
 
-        selectedMonth =
-            operationalCurrent.month;
+    const monthInput =
+        document.getElementById(
+            "dashboardMonthFilter"
+        );
 
-        selectedYear =
-            operationalCurrent.year;
 
-        monthInput.value =
-`${selectedYear}-${String(selectedMonth+1).padStart(2,"0")}`;
+    if(monthInput){
 
-    }else{
+        let operationalCurrent =
+            operationalDays[
+                String(window.currentDayId)
+            ];
 
-        let now = new Date();
 
-        monthInput.value =
-`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+        if(operationalCurrent){
+
+            selectedMonth =
+                operationalCurrent.month;
+
+            selectedYear =
+                operationalCurrent.year;
+
+
+            monthInput.value =
+                `${selectedYear}-${String(
+                    selectedMonth + 1
+                ).padStart(2,"0")}`;
+
+        }
+
+        else{
+
+            let now =
+                new Date();
+
+
+            monthInput.value =
+                `${now.getFullYear()}-${String(
+                    now.getMonth() + 1
+                ).padStart(2,"0")}`;
+
+        }
+
+
+        monthInput.addEventListener(
+            "change",
+            (e) => {
+
+                let value =
+                    e.target.value;
+
+
+                if(!value) return;
+
+
+                let parts =
+                    value.split("-");
+
+
+                selectedYear =
+                    Number(parts[0]);
+
+
+                selectedMonth =
+                    Number(parts[1]) - 1;
+
+
+                updateDashboard();
+
+            }
+        );
+
     }
 
-    monthInput.addEventListener("change", (e)=>{
-
-        let value = e.target.value;
-
-        if(!value) return;
-
-        let parts = value.split("-");
-
-        selectedYear = Number(parts[0]);
-        selectedMonth = Number(parts[1]) - 1;
-
-        updateDashboard();
-    });
-}
 });
 
-const role = (localStorage.getItem("role") || "").toLowerCase();
 
+// ======================================================
+// ROLE
+// ======================================================
+
+const role =
+    (localStorage.getItem("role") || "")
+    .toLowerCase();
+
+
+// ======================================================
+// GLOBAL DATA
+// ======================================================
 
 let tablesData = [];
+
 let sessionsData = [];
+
 let canteenData = [];
+
 let expenseData = [];
+
 let realtimeTodayEasy = 0;
+
 let realtimeMonthlyEasy = 0;
-let selectedMonth = new Date().getMonth();
-let selectedYear = new Date().getFullYear();
+
+let selectedMonth =
+    new Date().getMonth();
+
+let selectedYear =
+    new Date().getFullYear();
 
 let operationalDays = {};
 
+
+// ======================================================
+// SET TEXT
+// ======================================================
+
 function setText(id, value){
 
-    const el = document.getElementById(id);
+    const el =
+        document.getElementById(id);
+
 
     if(el){
 
-        el.innerText = value ?? 0;
+        el.innerText =
+            value ?? 0;
+
     }
+
 }
 
 
@@ -104,232 +206,415 @@ function setText(id, value){
 function getRecordDayId(record){
 
     return String(
+
         record?.day_id ||
+
         record?.dayId ||
+
         record?.current_day_id ||
+
         record?.currentDayId ||
+
         ""
+
     ).trim();
 
 }
 
 
+// ======================================================
+// DATE HELPER
+// Supports Firestore Timestamp + normal dates
+// ======================================================
 
+function getRecordDate(value){
+
+    if(!value) return null;
+
+
+    // Firestore Timestamp
+    if(
+        typeof value === "object" &&
+        value.seconds
+    ){
+
+        const date =
+            new Date(
+                value.seconds * 1000
+            );
+
+        return isNaN(date.getTime())
+            ? null
+            : date;
+
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    return isNaN(date.getTime())
+        ? null
+        : date;
+
+}
+
+
+// ======================================================
+// LOAD OPERATIONAL DAYS
+// ======================================================
 
 async function loadOperationalDays(){
 
     operationalDays = {};
 
-    const snap = await getDocs(
-        collection(window.db, "days")
-    );
+
+    const snap =
+        await getDocs(
+            collection(window.db, "days")
+        );
+
 
     snap.forEach(doc => {
 
-        let d = doc.data();
+        let d =
+            doc.data();
+
 
         let dayId =
-            String(d.day_id || "");
+            String(
+                d.day_id || ""
+            ).trim();
 
-       let rawDate =
+
+        // ==============================================
+        // GET DAY DATE
+        // ==============================================
+
+        let rawDate =
             d.start_time ||
             d.created_at ||
             d.date;
 
-// 🔥 FIX FOR OLD DAYS
-if (!d.start_time && d.shift1?.startMs) {
-    rawDate = d.shift1.startMs;
-}
 
-if(!rawDate) return;
+        // ==============================================
+        // OLD DAY FIX
+        // ==============================================
 
-let date = new Date(rawDate);
-        console.log("DAY DEBUG:", {
-    dayId,
-    raw: d,
-    parsed: date,
-    closed:
-        d.is_closed ||
-        d.closed ||
-        d.day_closed ||
-        d.close_time ||
-        d.closeTime
-});
+        if(
+            !d.start_time &&
+            d.shift1?.startMs
+        ){
 
-        if(isNaN(date.getTime())) return;
+            rawDate =
+                d.shift1.startMs;
 
-        // 🔥 ONLY CLOSED DAYS
-// 🔥 SKIP ONLY CURRENT RUNNING DAY
+        }
 
-operationalDays[dayId] = {
 
-    raw: {
+        if(!rawDate) return;
 
-        ...d,
 
-// 🔥 AUTO FIX OLD DAYS
-is_closed:
-    d.is_closed === true ||
-    d.closed === true ||
-    d.day_closed === true ||
-    !!d.close_time ||
-    !!d.closeTime ||
-    !!d.end_time ||
-    !!d.endTime ||
-    !!d.shift2?.close_time ||
-    !!d.shift2?.closeTime ||
-    !!d.shift1?.close_time ||
-    !!d.shift1?.closeTime
-    },
+        let date =
+            getRecordDate(rawDate);
 
-    startDate: date,
 
-    month: date.getMonth(),
+        if(!date) return;
 
-    year: date.getFullYear(),
 
-    day: date.getDate(),
+        // ==============================================
+        // CLOSED CHECK
+        // ==============================================
 
-    isCurrent:
-        String(d.day_id) ===
-        String(window.currentDayId)
-};
+        const isClosed =
+
+            d.is_closed === true ||
+
+            d.closed === true ||
+
+            d.day_closed === true ||
+
+            !!d.close_time ||
+
+            !!d.closeTime ||
+
+            !!d.end_time ||
+
+            !!d.endTime ||
+
+            !!d.shift2?.close_time ||
+
+            !!d.shift2?.closeTime ||
+
+            !!d.shift1?.close_time ||
+
+            !!d.shift1?.closeTime;
+
+
+        // ==============================================
+        // SAVE OPERATIONAL DAY
+        // ==============================================
+
+        operationalDays[dayId] = {
+
+            raw: {
+
+                ...d,
+
+                is_closed:
+                    isClosed
+
+            },
+
+
+            startDate:
+                date,
+
+
+            month:
+                date.getMonth(),
+
+
+            year:
+                date.getFullYear(),
+
+
+            day:
+                date.getDate(),
+
+
+            isCurrent:
+
+                String(d.day_id) ===
+                String(window.currentDayId)
+
+        };
+
+
     });
+
+
+    console.log(
+        "📅 OPERATIONAL DAYS LOADED:",
+        Object.keys(
+            operationalDays
+        ).length
+    );
+
 }
 
 
 // ======================================================
 // MONTHLY ACCOUNTING
-// SAME SOURCE AS REPORTS
+// SAME OPERATIONAL DAY SOURCE
+// USED BY REPORTS
 // ======================================================
 
 function getMonthlyOperationalAccounting(){
 
     const branch =
+
         (localStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
+
     let result = {
 
         gameCollection: 0,
+
         gameBalance: 0,
+
         discount: 0,
+
         expense: 0,
+
         easyPaisa: 0,
 
         shift1: 0,
+
         shift2: 0,
 
         days: 0
+
     };
 
 
-    Object.values(operationalDays || {}).forEach(day => {
+    Object.values(
+        operationalDays || {}
+    ).forEach(day => {
 
-        const raw = day.raw || {};
 
-        // ==============================
-        // BRANCH FILTER
-        // ==============================
+        const raw =
+            day.raw || {};
+
+
+        // ==========================================
+        // BRANCH
+        // ==========================================
 
         if(
-            (raw.branch || "").toLowerCase().trim()
-            !== branch
+
+            (raw.branch || "")
+            .toLowerCase()
+            .trim()
+
+            !==
+
+            branch
+
         ){
+
             return;
+
         }
 
 
-        // ==============================
-        // MONTH FILTER
-        // ==============================
+        // ==========================================
+        // MONTH
+        // ==========================================
 
         if(
-            day.month !== selectedMonth ||
-            day.year !== selectedYear
+
+            day.month !==
+            selectedMonth ||
+
+            day.year !==
+            selectedYear
+
         ){
+
             return;
+
         }
 
 
-        // ==============================
-        // CLOSED DAYS ONLY
-        // ==============================
+        // ==========================================
+        // ONLY CLOSED OPERATIONAL DAYS
+        // ==========================================
 
-        if(raw.is_closed !== true){
+        if(
+            raw.is_closed !== true
+        ){
+
             return;
+
         }
 
 
         const s1 =
             raw.shift1 || {};
 
+
         const s2 =
             raw.shift2 || {};
+
 
         const combined =
             raw.combined || {};
 
 
-        // ==============================
-        // GAME COLLECTION
-        // ==============================
+        // ==========================================
+        // SHIFT 1 COLLECTION
+        // ==========================================
 
         const shift1Collection =
-            Number(s1.gameCollection || 0);
+
+            Number(
+                s1.gameCollection || 0
+            );
+
+
+        // ==========================================
+        // SHIFT 2 COLLECTION
+        // ==========================================
 
         const shift2Collection =
-            Number(s2.gameCollection || 0);
+
+            Number(
+                s2.gameCollection || 0
+            );
 
 
         result.shift1 +=
             shift1Collection;
 
+
         result.shift2 +=
             shift2Collection;
 
+
         result.gameCollection +=
+
             shift1Collection +
             shift2Collection;
 
 
-        // ==============================
-        // GAME BALANCE
-        // ==============================
+        // ==========================================
+        // BALANCE
+        // ==========================================
 
         result.gameBalance +=
-            Number(s1.gameBalance || 0) +
-            Number(s2.gameBalance || 0);
+
+            Number(
+                s1.gameBalance || 0
+            )
+
+            +
+
+            Number(
+                s2.gameBalance || 0
+            );
 
 
-        // ==============================
+        // ==========================================
         // DISCOUNT
-        // ==============================
+        // ==========================================
 
         result.discount +=
-            Number(s1.discount || 0) +
-            Number(s2.discount || 0);
+
+            Number(
+                s1.discount || 0
+            )
+
+            +
+
+            Number(
+                s2.discount || 0
+            );
 
 
-        // ==============================
+        // ==========================================
         // EXPENSE
-        // ==============================
+        // ==========================================
 
         result.expense +=
-            Number(s1.expenses || 0) +
-            Number(s2.expenses || 0);
+
+            Number(
+                s1.expenses || 0
+            )
+
+            +
+
+            Number(
+                s2.expenses || 0
+            );
 
 
-        // ==============================
+        // ==========================================
         // EASYPAISA
-        // ==============================
+        // ==========================================
 
         result.easyPaisa +=
-            Number(combined.easypaisa || 0);
+
+            Number(
+                combined.easypaisa || 0
+            );
 
 
         result.days++;
+
 
     });
 
@@ -341,145 +626,244 @@ function getMonthlyOperationalAccounting(){
 
 
     return result;
+
 }
 
 
+// ======================================================
+// LOAD ALL DASHBOARD DATA
+// ONE UPDATE ONLY AFTER EVERYTHING LOADS
+// ======================================================
 
-
-async function loadDashboardRealtime() {
+async function loadDashboardRealtime(){
 
     const branch =
+
         (localStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
-    if (!branch) return;
+
+    if(!branch) return;
 
 
-    // ==============================
+    // ==================================================
     // TABLES
-    // ==============================
+    // ==================================================
 
     const tablesSnap =
+
         await getDocs(
-            collection(window.db, "tables")
+            collection(
+                window.db,
+                "tables"
+            )
         );
+
 
     tablesData = [];
 
+
     let uniqueTables = {};
+
 
     tablesSnap.forEach(d => {
 
-        let t = d.data();
+        let t =
+            d.data();
+
 
         if(
-            (t.branch || "").toLowerCase().trim()
-            !== branch
+
+            (t.branch || "")
+            .toLowerCase()
+            .trim()
+
+            !==
+
+            branch
+
         ){
+
             return;
+
         }
 
+
         let tableName =
-            (t.table_id || t.name || "")
+
+            (
+                t.table_id ||
+                t.name ||
+                ""
+            )
             .toLowerCase()
             .trim();
 
-        if(uniqueTables[tableName]) return;
 
-        uniqueTables[tableName] = true;
+        if(
+            uniqueTables[tableName]
+        ){
+
+            return;
+
+        }
+
+
+        uniqueTables[tableName] =
+            true;
+
 
         tablesData.push(t);
+
     });
 
 
-    // ==============================
+    // ==================================================
     // SESSIONS
-    // ==============================
+    // ==================================================
 
     const sessionsSnap =
+
         await getDocs(
-            collection(window.db, "sessions")
+            collection(
+                window.db,
+                "sessions"
+            )
         );
+
 
     sessionsData = [];
 
+
     sessionsSnap.forEach(d => {
 
-        let s = d.data();
+        let s =
+            d.data();
+
 
         if(
-            (s.branch || "").toLowerCase().trim()
-            === branch
+
+            (s.branch || "")
+            .toLowerCase()
+            .trim()
+
+            ===
+
+            branch
+
         ){
+
             sessionsData.push(s);
+
         }
 
     });
 
 
-    // ==============================
+    // ==================================================
     // CANTEEN
-    // ==============================
+    // ==================================================
 
     const canteenSnap =
+
         await getDocs(
-            collection(window.db, "canteen_logs")
+            collection(
+                window.db,
+                "canteen_logs"
+            )
         );
+
 
     canteenData = [];
 
+
     canteenSnap.forEach(d => {
 
-        let c = d.data();
+        let c =
+            d.data();
+
 
         if(
-            (c.branch || "").toLowerCase().trim()
-            === branch
+
+            (c.branch || "")
+            .toLowerCase()
+            .trim()
+
+            ===
+
+            branch
+
         ){
+
             canteenData.push(c);
+
         }
 
     });
 
 
-    // ==============================
+    // ==================================================
     // EXPENSES
-    // ==============================
+    // ==================================================
 
     const expenseSnap =
+
         await getDocs(
-            collection(window.db, "expenses")
+            collection(
+                window.db,
+                "expenses"
+            )
         );
+
 
     expenseData = [];
 
+
     expenseSnap.forEach(d => {
 
-        let e = d.data();
+        let e =
+            d.data();
+
 
         if(
-            (e.branch || "").toLowerCase().trim()
-            === branch
+
+            (e.branch || "")
+            .toLowerCase()
+            .trim()
+
+            ===
+
+            branch
+
         ){
+
             expenseData.push(e);
+
         }
 
     });
 
 
-    // ==============================
+    // ==================================================
     // EASYPAISA
-    // ==============================
+    // ==================================================
 
     const easySnap =
+
         await getDocs(
-            collection(window.db, "easypaisa")
+            collection(
+                window.db,
+                "easypaisa"
+            )
         );
+
 
     window.latestEasyDocs = [];
 
+
     let todayEasy = 0;
+
 
     const currentDayId =
         window.currentDayId;
@@ -487,41 +871,81 @@ async function loadDashboardRealtime() {
 
     easySnap.forEach(d => {
 
-        let e = d.data();
+        let e =
+            d.data();
 
-        if(e.is_deleted === true) return;
+
+        // ==============================================
+        // DELETED
+        // ==============================================
 
         if(
-            (e.branch || "").toLowerCase().trim()
-            !== branch
+            e.is_deleted === true
         ){
+
             return;
+
         }
+
+
+        // ==============================================
+        // BRANCH
+        // ==============================================
+
+        if(
+
+            (e.branch || "")
+            .toLowerCase()
+            .trim()
+
+            !==
+
+            branch
+
+        ){
+
+            return;
+
+        }
+
 
         window.latestEasyDocs.push(e);
 
+
         let amount =
-            Number(e.amount || 0);
+            Number(
+                e.amount || 0
+            );
+
 
         let recordDayId =
             getRecordDayId(e);
 
 
-        // ==============================
-        // TODAY EASYPAISA
-        // ==============================
-
         let operational =
-            operationalDays[recordDayId];
+            operationalDays[
+                recordDayId
+            ];
 
+
+        // ==============================================
+        // TODAY EASYPAISA
+        // ==============================================
 
         if(
+
             recordDayId ===
-            String(currentDayId) &&
+            String(currentDayId)
+
+            &&
 
             !operational?.raw?.is_closed
+
         ){
-            todayEasy += amount;
+
+            todayEasy +=
+                amount;
+
         }
 
     });
@@ -537,710 +961,1360 @@ async function loadDashboardRealtime() {
     );
 
 
-    // ==============================
-    // EVERYTHING LOADED
-    // ONLY ONE UPDATE
-    // ==============================
+    // ==================================================
+    // IMPORTANT:
+    // UPDATE DASHBOARD ONLY ONCE
+    // ==================================================
 
     await updateDashboard();
 
 }
-        
-      
 
-async function updateDashboard() {
 
-    let now = new Date();
-    const currentDayId = window.currentDayId;
-    let todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
-
-    let today_game_total=0, today_paid=0, today_unpaid=0;
-    let today_sessions=0, completed_sessions=0;
-    let today_canteen_total=0;
-    let today_expense=0;
-
-    let monthly_income=0;
-
-    // ======================================================
-// MONTHLY ACCOUNTING
-// REPORTS KE SAME SOURCE SE
+// ======================================================
+// UPDATE DASHBOARD
 // ======================================================
 
-const monthlyAccounting =
-    getMonthlyOperationalAccounting();
+async function updateDashboard(){
+
+    const currentDayId =
+        window.currentDayId;
 
 
-let monthly_income =
-    monthlyAccounting.gameCollection;
+    let todayStart =
+        new Date();
 
 
-let monthly_expense =
-    monthlyAccounting.expense;
-
-
-let monthly_easy =
-    monthlyAccounting.easyPaisa;
-
-
-let shift1Monthly =
-    monthlyAccounting.shift1;
-
-
-let shift2Monthly =
-    monthlyAccounting.shift2;
-
-
-let today_easy =
-    realtimeTodayEasy || 0;
-    // 🔥 RESET TODAY VALUES FOR OPERATIONAL DAY
-            today_sessions = 0;
-            completed_sessions = 0;
-            today_game_total = 0;
-            today_paid = 0;
-            today_unpaid = 0;
-            today_canteen_total = 0;
-            today_expense = 0;
-            let monthly_easy = 0;
-
-(window.latestEasyDocs || []).forEach(e => {
-
-    // 🔥 SKIP DELETED EASYPAISA
-if (e.is_deleted === true) return;
-    
-    let rawDate =
-    e.created_at?.seconds
-    ? e.created_at.seconds * 1000
-    : e.created_at;
-
-if (!rawDate) return;
-
-let date = new Date(rawDate);
-
-if (isNaN(date.getTime())) return;
-
-if (
-    (e.branch || "").toLowerCase() !==
-    (localStorage.getItem("branch") || "").toLowerCase()
-) return;
-
-    if (!e.created_at) return;
-    const easyMonth =
-    date.getMonth();
-
-const easyYear =
-    date.getFullYear();
-
-    let operational =
-    operationalDays[String(e.day_id)];
-
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    operational.raw?.is_closed === true
-){
-
-    monthly_easy += Number(e.amount || 0);
-
-}
-});
-
-    let monthly_canteen=0;
-    let monthly_expense=0;
-    let shift1Monthly = 0;
-    let shift2Monthly = 0;
-    // ================= SESSIONS =================
-    sessionsData.forEach(s=>{
-        // 🔥 SKIP DELETED SESSIONS
-if (s.is_deleted === true) return;
-
-    let date = new Date(s.start_time || s.startTime || s.created_at);
-    let amount = Number(
-    s.final_amount ||
-    s.total_amount ||
-    s.amount ||
-    0
-);
-
-    // 🔥 CURRENT DAY ONLY
-
-let sessionDayId =
-    s.day_id ||
-    s.dayId ||
-    s.current_day_id ||
-    0;
-
- let operational =
-    operationalDays[String(sessionDayId)];       
-
-if(String(sessionDayId) === String(currentDayId)){
-
-    if(
-    operational &&
-    operational.raw?.is_closed === true
-){
-    return;
-}
-
-    if (isNaN(date.getTime())) return;
-
-    today_sessions++;
-    today_game_total += amount;
-
-    if(s.paid){
-        today_paid++;
-    } else {
-        today_unpaid++;
-    }
-
-    if(s.end_time){
-        completed_sessions++;
-    }
-}
-
-    // 🔥 MONTHLY (NO DAY FILTER)
-    // 🔥 MONTHLY OPERATIONAL LOGIC
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    operational.raw?.is_closed === true
-){
-
-    monthly_income += amount;
-
-// 🔥 SHIFT SPLIT USING SESSION START TIME
-
-let sessionHour = date.getHours();
-
-// 🔥 9 AM → 8 PM = SHIFT 1
-// 🔥 8 PM → NEXT MORNING = SHIFT 2
-
-if(sessionHour >= 9 && sessionHour < 20){
-
-    shift1Monthly += amount;
-
-}else{
-
-    shift2Monthly += amount;
-}
-
-}
-});
-
-    // ================= CANTEEN =================
-
-// 🔥 FROM CANTEEN LOGS
-canteenData.forEach(c=>{
-    let date = new Date(c.time || c.created_at || c.date);
-let amount = Number(c.total || c.amount || 0);
-
-// 🔥 CURRENT DAY
-
-
-// 🔥 CURRENT DAY
-
-let todayOperational =
-    operationalDays[String(c.day_id)];
-
-if(
-    todayOperational &&
-    todayOperational.raw?.is_closed === true
-){
-    return;
-}
-    
-if(String(c.day_id) === String(currentDayId)){
-    if(date>=todayStart){
-        today_canteen_total+=amount;
-    }
-}
-
-// 🔥 MONTHLY (NO FILTER)
-let operational =
-    operationalDays[String(c.day_id)];
-
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    operational.raw?.is_closed === true
-){
-    monthly_canteen += amount;
-}
-});
-
-// 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
-    // 🔥 ALSO FROM SESSIONS (VERY IMPORTANT)
-sessionsData.forEach(s=>{
-
-    // 🔥 SKIP DELETED SESSIONS
-    if (s.is_deleted === true) return;
-
-    let date = new Date(
-        s.start_time ||
-        s.startTime ||
-        s.created_at
+    todayStart.setHours(
+        0,
+        0,
+        0,
+        0
     );
 
-    let canteen =
-        Number(s.canteen_total || 0);
 
-    // 🔥 CURRENT DAY
-    if(String(s.day_id) === String(currentDayId)){
+    // ==================================================
+    // TODAY VARIABLES
+    // ==================================================
+
+    let today_game_total = 0;
+
+    let today_paid = 0;
+
+    let today_unpaid = 0;
+
+    let today_sessions = 0;
+
+    let completed_sessions = 0;
+
+    let today_canteen_total = 0;
+
+    let today_expense = 0;
+
+
+    // ==================================================
+    // MONTHLY VARIABLES
+    // FROM OPERATIONAL DAYS
+    // ==================================================
+
+    const monthlyAccounting =
+
+        getMonthlyOperationalAccounting();
+
+
+    let monthly_income =
+
+        monthlyAccounting.gameCollection;
+
+
+    let monthly_expense =
+
+        monthlyAccounting.expense;
+
+
+    let monthly_easy =
+
+        monthlyAccounting.easyPaisa;
+
+
+    let shift1Monthly =
+
+        monthlyAccounting.shift1;
+
+
+    let shift2Monthly =
+
+        monthlyAccounting.shift2;
+
+
+    let monthly_canteen = 0;
+
+
+    let today_easy =
+        realtimeTodayEasy || 0;
+
+
+    // ==================================================
+    // SESSIONS
+    // ==================================================
+
+    sessionsData.forEach(s => {
+
+
+        // ==============================================
+        // DELETED
+        // ==============================================
+
+        if(
+            s.is_deleted === true
+        ){
+
+            return;
+
+        }
+
+
+        let date =
+            getRecordDate(
+
+                s.start_time ||
+
+                s.startTime ||
+
+                s.created_at
+
+            );
+
+
+        if(!date) return;
+
+
+        let amount =
+
+            Number(
+
+                s.final_amount ||
+
+                s.total_amount ||
+
+                s.amount ||
+
+                0
+
+            );
+
+
+        let sessionDayId =
+            getRecordDayId(s);
+
 
         let operational =
-    operationalDays[String(s.day_id)];
+            operationalDays[
+                sessionDayId
+            ];
 
-if(
-    operational &&
-    operational.raw?.is_closed === true
-){
-    return;
-}
 
-        if(date >= todayStart){
-            today_canteen_total += canteen;
+        // ==============================================
+        // CURRENT OPERATIONAL DAY
+        // ==============================================
+
+        if(
+
+            sessionDayId ===
+            String(currentDayId)
+
+        ){
+
+            // ==========================================
+            // IGNORE CLOSED CURRENT DAY
+            // ==========================================
+
+            if(
+
+                operational &&
+                operational.raw?.is_closed === true
+
+            ){
+
+                return;
+
+            }
+
+
+            today_sessions++;
+
+
+            today_game_total +=
+                amount;
+
+
+            // ==========================================
+            // PAID / UNPAID
+            // ==========================================
+
+            if(s.paid){
+
+                today_paid++;
+
+            }
+
+            else{
+
+                today_unpaid++;
+
+            }
+
+
+            // ==========================================
+            // COMPLETED
+            // ==========================================
+
+            if(
+                s.end_time ||
+                s.endTime ||
+                s.checkout_time ||
+                s.checkoutTime
+            ){
+
+                completed_sessions++;
+
+            }
+
         }
-    }
 
-    // 🔥 MONTHLY
-    let operational =
-        operationalDays[String(s.day_id)];
-
-    if(
-        operational &&
-        operational.month === selectedMonth &&
-        operational.year === selectedYear &&
-        operational.raw?.is_closed === true
-    ){
-        monthly_canteen += canteen;
-    }
-});
-
-    // ================= EXPENSE =================
-    expenseData.forEach(e=>{
-        // 🔥 SKIP DELETED EXPENSES
-if (e.is_deleted === true) return;
-
-    let date;
-
-    if (e.created_at?.seconds) {
-        date = new Date(e.created_at.seconds * 1000);
-    } else {
-        date = new Date(e.created_at);
-    }
-
-    if(isNaN(date.getTime())) return;
-
-    let amount = Number(e.amount || 0);
+    });
 
 
-// TODAY
+    // ==================================================
+    // CANTEEN LOGS
+    // ==================================================
 
-let todayOperational =
-    operationalDays[String(e.day_id)];
-
-if(
-    String(e.day_id) === String(currentDayId) &&
-    !todayOperational?.raw?.is_closed
-){
-    today_expense += amount;
-}
-
-    // MONTHLY
-    let operational =
-    operationalDays[String(e.day_id)];
-
-if(
-    operational &&
-    operational.month === selectedMonth &&
-    operational.year === selectedYear &&
-    operational.raw?.is_closed === true
-){
-
-    monthly_expense += amount;
-
-}
-});
-
-    // ================= EASYPAISA =================
+    canteenData.forEach(c => {
 
 
-    // ================= UI =================
-    setText("totalTables", tablesData.length);
-const activeTablesCount = sessionsData.filter(s => {
+        let date =
+            getRecordDate(
 
-    // 🔥 SKIP DELETED
-    if (s.is_deleted === true) return false;
+                c.time ||
+                c.created_at ||
+                c.date
 
-    // 🔥 ONLY CURRENT OPERATIONAL DAY
-    const sameDay =
-        String(
-            s.day_id ||
-            s.dayId ||
-            s.current_day_id ||
-            ""
-        ) === String(currentDayId);
+            );
 
-    // 🔥 RUNNING SESSION
-    const running =
-        !s.end_time &&
-        !s.endTime &&
-        !s.checkout_time &&
-        !s.checkoutTime &&
-        !s.closeTime &&
-        !s.close_time;
 
-    // 🔥 IGNORE OLD CLOSED DAYS
-    const operational =
-        operationalDays[
-            String(
-                s.day_id ||
-                s.dayId ||
-                s.current_day_id ||
-                ""
-            )
-        ];
+        if(!date) return;
 
-   if (
-    operational &&
-    operational.raw?.is_closed === true &&
-    !operational.isCurrent
-) {
-    return false;
-}
 
-    return sameDay && running;
+        let amount =
 
-}).length;
-    
-setText("activeTables", activeTablesCount);
-setText("freeTables", tablesData.length - activeTablesCount);
+            Number(
 
-    setText("todaySessions", today_sessions);
-    setText("completedSessions", completed_sessions);
+                c.total ||
+                c.amount ||
+                0
 
-    setText("todayIncome", today_game_total);
-    setText("todayCanteen", today_canteen_total);
-    setText("todayExpenses", today_expense);
+            );
+
+
+        let recordDayId =
+            getRecordDayId(c);
+
+
+        let todayOperational =
+            operationalDays[
+                recordDayId
+            ];
+
+
+        // ==============================================
+        // TODAY
+        // ==============================================
+
+        if(
+
+            recordDayId ===
+            String(currentDayId)
+
+            &&
+
+            !todayOperational?.raw?.is_closed
+
+        ){
+
+            if(
+                date >= todayStart
+            ){
+
+                today_canteen_total +=
+                    amount;
+
+            }
+
+        }
+
+
+        // ==============================================
+        // MONTHLY
+        // ==============================================
+
+        let operational =
+            operationalDays[
+                recordDayId
+            ];
+
+
+        if(
+
+            operational &&
+
+            operational.month ===
+            selectedMonth &&
+
+            operational.year ===
+            selectedYear &&
+
+            operational.raw?.is_closed === true
+
+        ){
+
+            monthly_canteen +=
+                amount;
+
+        }
+
+    });
+
+
+    // ==================================================
+    // CANTEEN FROM SESSIONS
+    // ==================================================
+
+    sessionsData.forEach(s => {
+
+
+        if(
+            s.is_deleted === true
+        ){
+
+            return;
+
+        }
+
+
+        let date =
+            getRecordDate(
+
+                s.start_time ||
+
+                s.startTime ||
+
+                s.created_at
+
+            );
+
+
+        if(!date) return;
+
+
+        let canteen =
+            Number(
+                s.canteen_total || 0
+            );
+
+
+        let sessionDayId =
+            getRecordDayId(s);
+
+
+        let operational =
+            operationalDays[
+                sessionDayId
+            ];
+
+
+        // ==============================================
+        // TODAY
+        // ==============================================
+
+        if(
+
+            sessionDayId ===
+            String(currentDayId)
+
+        ){
+
+            if(
+
+                operational &&
+                operational.raw?.is_closed === true
+
+            ){
+
+                return;
+
+            }
+
+
+            if(
+                date >= todayStart
+            ){
+
+                today_canteen_total +=
+                    canteen;
+
+            }
+
+        }
+
+
+        // ==============================================
+        // MONTHLY
+        // ==============================================
+
+        if(
+
+            operational &&
+
+            operational.month ===
+            selectedMonth &&
+
+            operational.year ===
+            selectedYear &&
+
+            operational.raw?.is_closed === true
+
+        ){
+
+            monthly_canteen +=
+                canteen;
+
+        }
+
+    });
+
+
+    // ==================================================
+    // EXPENSES
+    // ==================================================
+
+    expenseData.forEach(e => {
+
+
+        // ==============================================
+        // DELETED
+        // ==============================================
+
+        if(
+            e.is_deleted === true
+        ){
+
+            return;
+
+        }
+
+
+        let date =
+            getRecordDate(
+                e.created_at
+            );
+
+
+        if(!date) return;
+
+
+        let amount =
+            Number(
+                e.amount || 0
+            );
+
+
+        let recordDayId =
+            getRecordDayId(e);
+
+
+        let todayOperational =
+            operationalDays[
+                recordDayId
+            ];
+
+
+        // ==============================================
+        // TODAY
+        // ==============================================
+
+        if(
+
+            recordDayId ===
+            String(currentDayId)
+
+            &&
+
+            !todayOperational?.raw?.is_closed
+
+        ){
+
+            today_expense +=
+                amount;
+
+        }
+
+
+        // ==============================================
+        // MONTHLY
+        // ==============================================
+
+        // IMPORTANT:
+        // monthly_expense already comes from
+        // operationalDays / Reports source.
+        //
+        // Therefore we DO NOT add it again here.
+        //
+
+    });
+
+
+    // ==================================================
+    // UI - TABLES
+    // ==================================================
+
+    setText(
+        "totalTables",
+        tablesData.length
+    );
+
+
+    // ==================================================
+    // ACTIVE TABLES
+    // ==================================================
+
+    const activeTablesCount =
+
+        sessionsData.filter(s => {
+
+
+            if(
+                s.is_deleted === true
+            ){
+
+                return false;
+
+            }
+
+
+            const sameDay =
+
+                getRecordDayId(s)
+
+                ===
+
+                String(
+                    currentDayId
+                );
+
+
+            // ==========================================
+            // RUNNING SESSION
+            // ==========================================
+
+            const running =
+
+                !s.end_time &&
+
+                !s.endTime &&
+
+                !s.checkout_time &&
+
+                !s.checkoutTime &&
+
+                !s.closeTime &&
+
+                !s.close_time;
+
+
+            const operational =
+
+                operationalDays[
+                    getRecordDayId(s)
+                ];
+
+
+            // ==========================================
+            // IGNORE OLD CLOSED DAYS
+            // ==========================================
+
+            if(
+
+                operational &&
+
+                operational.raw?.is_closed === true &&
+
+                !operational.isCurrent
+
+            ){
+
+                return false;
+
+            }
+
+
+            return (
+                sameDay &&
+                running
+            );
+
+        }).length;
+
+
+    setText(
+        "activeTables",
+        activeTablesCount
+    );
+
+
+    setText(
+        "freeTables",
+        Math.max(
+            0,
+            tablesData.length -
+            activeTablesCount
+        )
+    );
+
+
+    // ==================================================
+    // TODAY UI
+    // ==================================================
+
+    setText(
+        "todaySessions",
+        today_sessions
+    );
+
+
+    setText(
+        "completedSessions",
+        completed_sessions
+    );
+
+
+    setText(
+        "todayIncome",
+        today_game_total
+    );
+
+
+    setText(
+        "todayCanteen",
+        today_canteen_total
+    );
+
+
+    setText(
+        "todayExpenses",
+        today_expense
+    );
+
+
+    // ==================================================
+    // TODAY NET
+    // ==================================================
 
     const finalTodayNet =
-    Number(today_game_total || 0)
-    + Number(today_canteen_total || 0)
-    - Number(today_expense || 0)
-    - Number(today_easy || 0);
 
-setText("netIncome", finalTodayNet);
+        Number(
+            today_game_total || 0
+        )
 
-    setText("paidBills", today_paid);
-    setText("unpaidBills", today_unpaid);
+        +
 
-    setText("monthlyIncome", monthly_income);
-    setText("monthlycanteen", monthly_canteen);
-    setText("monthlyExpenses", monthly_expense);
-    setText(
-    "monthlyEasyPaisa",
-    realtimeMonthlyEasy || monthly_easy || 0
-);
+        Number(
+            today_canteen_total || 0
+        )
 
-    const finalMonthlyProfit =
-    Number(monthly_income || 0)
-    + Number(monthly_canteen || 0)
-    - Number(monthly_expense || 0)
-    - Number(monthly_easy || 0);
+        -
 
-setText("netProfit", finalMonthlyProfit);
-    setText("shift1Monthly", shift1Monthly);
-    setText("shift2Monthly", shift2Monthly);
+        Number(
+            today_expense || 0
+        )
 
-let operationalMonthDays =
-    Object.values(operationalDays).filter(d=>{
+        -
 
-        return (
-            d.month === selectedMonth &&
-            d.year === selectedYear &&
-            d.raw?.is_closed === true
+        Number(
+            today_easy || 0
         );
 
-    }).length;
 
-if(operationalMonthDays <= 0){
-    operationalMonthDays = 1;
-}
+    setText(
+        "netIncome",
+        finalTodayNet
+    );
 
-let monthlyAvg =
-    Number(monthly_income || 0)
-    / operationalMonthDays;
 
-setText(
-    "monthlyAverage",
-    Math.round(monthlyAvg)
-);
+    // ==================================================
+    // PAID / UNPAID
+    // ==================================================
 
-renderTableSalesBoxes();
+    setText(
+        "paidBills",
+        today_paid
+    );
 
-    // 🔥 ROLE CONTROL
-    if(role==="staff"){
-        document.querySelectorAll(".admin-only")
-            .forEach(el=>el.style.display="none");
+
+    setText(
+        "unpaidBills",
+        today_unpaid
+    );
+
+
+    // ==================================================
+    // MONTHLY UI
+    // ==================================================
+
+    setText(
+        "monthlyIncome",
+        monthly_income
+    );
+
+
+    setText(
+        "monthlycanteen",
+        monthly_canteen
+    );
+
+
+    setText(
+        "monthlyExpenses",
+        monthly_expense
+    );
+
+
+    setText(
+        "monthlyEasyPaisa",
+        monthly_easy
+    );
+
+
+    // ==================================================
+    // MONTHLY PROFIT
+    // ==================================================
+
+    const finalMonthlyProfit =
+
+        Number(
+            monthly_income || 0
+        )
+
+        +
+
+        Number(
+            monthly_canteen || 0
+        )
+
+        -
+
+        Number(
+            monthly_expense || 0
+        )
+
+        -
+
+        Number(
+            monthly_easy || 0
+        );
+
+
+    setText(
+        "netProfit",
+        finalMonthlyProfit
+    );
+
+
+    // ==================================================
+    // SHIFT MONTHLY
+    // ==================================================
+
+    setText(
+        "shift1Monthly",
+        shift1Monthly
+    );
+
+
+    setText(
+        "shift2Monthly",
+        shift2Monthly
+    );
+
+
+    // ==================================================
+    // MONTHLY AVERAGE
+    // ==================================================
+
+    let operationalMonthDays =
+
+        Object.values(
+            operationalDays
+        ).filter(d => {
+
+            return (
+
+                d.month ===
+                selectedMonth
+
+                &&
+
+                d.year ===
+                selectedYear
+
+                &&
+
+                d.raw?.is_closed === true
+
+            );
+
+        }).length;
+
+
+    if(
+        operationalMonthDays <= 0
+    ){
+
+        operationalMonthDays = 1;
+
     }
 
-            console.log({
-        today_canteen_total,
-        monthly_canteen,
-        shift1Monthly,
-        shift2Monthly
-        });
+
+    let monthlyAvg =
+
+        Number(
+            monthly_income || 0
+        )
+
+        /
+
+        operationalMonthDays;
+
+
+    setText(
+        "monthlyAverage",
+        Math.round(
+            monthlyAvg
+        )
+    );
+
+
+    // ==================================================
+    // TABLE SALES BOXES
+    // ==================================================
+
+    renderTableSalesBoxes();
+
+
+    // ==================================================
+    // ROLE CONTROL
+    // ==================================================
+
+    if(
+        role === "staff"
+    ){
+
+        document
+            .querySelectorAll(
+                ".admin-only"
+            )
+            .forEach(el => {
+
+                el.style.display =
+                    "none";
+
+            });
+
+    }
+
+
+    // ==================================================
+    // DEBUG
+    // ==================================================
+
+    console.log(
+        "📊 DASHBOARD FINAL VALUES:",
+        {
+
+            branch:
+                localStorage.getItem(
+                    "branch"
+                ),
+
+            currentDayId,
+
+            selectedMonth:
+                selectedMonth + 1,
+
+            selectedYear,
+
+            today_game_total,
+
+            today_canteen_total,
+
+            today_expense,
+
+            today_easy,
+
+            monthly_income,
+
+            monthly_canteen,
+
+            monthly_expense,
+
+            monthly_easy,
+
+            shift1Monthly,
+
+            shift2Monthly,
+
+            monthlyAvg
+
+        }
+    );
+
 }
+
+
+// ======================================================
+// TABLE SALES BOXES
+// ======================================================
 
 function renderTableSalesBoxes(){
 
-    // =========================
+
+    // ==================================================
     // STAFF CONTAINER
-    // =========================
+    // ==================================================
 
     const staffContainer =
+
         document.getElementById(
             "staffTableSalesContainer"
         );
 
-    // =========================
+
+    // ==================================================
     // ADMIN CONTAINER
-    // =========================
+    // ==================================================
 
     const adminContainer =
+
         document.getElementById(
             "tableSalesContainer"
         );
 
+
     if(staffContainer){
-        staffContainer.innerHTML = "";
+
+        staffContainer.innerHTML =
+            "";
+
     }
+
 
     if(adminContainer){
-        adminContainer.innerHTML = "";
+
+        adminContainer.innerHTML =
+            "";
+
     }
 
+
     let staffStats = {};
+
     let adminStats = {};
 
-    // =========================
-    // TABLE CREATE
-    // =========================
 
-    tablesData.forEach(t=>{
+    // ==================================================
+    // CREATE TABLES
+    // ==================================================
+
+    tablesData.forEach(t => {
+
 
         let tableName =
+
             t.table_id ||
+
             t.name ||
+
             "Unknown Table";
+
 
         staffStats[tableName] = {
-            shift1:0,
-            shift2:0,
-            total:0
+
+            shift1: 0,
+
+            shift2: 0,
+
+            total: 0
+
         };
+
 
         adminStats[tableName] = {
-            shift1:0,
-            shift2:0,
-            total:0
+
+            shift1: 0,
+
+            shift2: 0,
+
+            total: 0
+
         };
+
     });
 
-    // =========================
+
+    // ==================================================
     // SESSION LOOP
-    // =========================
+    // ==================================================
 
-    sessionsData.forEach(s=>{
+    sessionsData.forEach(s => {
 
-        if(s.is_deleted === true) return;
-
-        let tableName =
-            s.table_id ||
-            s.table ||
-            s.table_name ||
-            "Unknown Table";
-
-        if(!staffStats[tableName]){
-
-            staffStats[tableName] = {
-                shift1:0,
-                shift2:0,
-                total:0
-            };
-        }
-
-        if(!adminStats[tableName]){
-
-            adminStats[tableName] = {
-                shift1:0,
-                shift2:0,
-                total:0
-            };
-        }
-
-        let amount = Number(
-            s.final_amount ||
-            s.total_amount ||
-            s.amount ||
-            0
-        );
-
-        let sessionDate = new Date(
-            s.start_time ||
-            s.startTime ||
-            s.created_at
-        );
-
-        if(isNaN(sessionDate.getTime())) return;
-
-        let hour = sessionDate.getHours();
-
-        let shiftKey =
-            (hour >= 9 && hour < 20)
-            ? "shift1"
-            : "shift2";
-
-        let dayId =
-            s.day_id ||
-            s.dayId ||
-            s.current_day_id;
-
-        let operational =
-            operationalDays[String(dayId)];
-
-        // =========================
-        // STAFF = CURRENT RUNNING DAY
-        // =========================
 
         if(
-            String(dayId) ===
-            String(window.currentDayId)
+            s.is_deleted === true
+        ){
+
+            return;
+
+        }
+
+
+        let tableName =
+
+            s.table_id ||
+
+            s.table ||
+
+            s.table_name ||
+
+            "Unknown Table";
+
+
+        if(
+            !staffStats[tableName]
+        ){
+
+            staffStats[tableName] = {
+
+                shift1: 0,
+
+                shift2: 0,
+
+                total: 0
+
+            };
+
+        }
+
+
+        if(
+            !adminStats[tableName]
+        ){
+
+            adminStats[tableName] = {
+
+                shift1: 0,
+
+                shift2: 0,
+
+                total: 0
+
+            };
+
+        }
+
+
+        let amount =
+
+            Number(
+
+                s.final_amount ||
+
+                s.total_amount ||
+
+                s.amount ||
+
+                0
+
+            );
+
+
+        let sessionDate =
+
+            getRecordDate(
+
+                s.start_time ||
+
+                s.startTime ||
+
+                s.created_at
+
+            );
+
+
+        if(!sessionDate) return;
+
+
+        let hour =
+            sessionDate.getHours();
+
+
+        let shiftKey =
+
+            (
+                hour >= 9 &&
+                hour < 20
+            )
+
+            ?
+
+            "shift1"
+
+            :
+
+            "shift2";
+
+
+        let dayId =
+            getRecordDayId(s);
+
+
+        let operational =
+
+            operationalDays[
+                dayId
+            ];
+
+
+        // ==================================================
+        // STAFF
+        // CURRENT RUNNING DAY
+        // ==================================================
+
+        if(
+
+            dayId ===
+            String(
+                window.currentDayId
+            )
+
         ){
 
             if(
                 !operational?.raw?.is_closed
             ){
 
-                staffStats[tableName][shiftKey]
-                    += amount;
+                staffStats[
+                    tableName
+                ][
+                    shiftKey
+                ] += amount;
 
-                staffStats[tableName].total
-                    += amount;
+
+                staffStats[
+                    tableName
+                ].total += amount;
+
             }
+
         }
 
-        // =========================
-        // ADMIN = OPERATIONAL MONTH
-        // =========================
+
+        // ==================================================
+        // ADMIN
+        // SELECTED OPERATIONAL MONTH
+        // ==================================================
 
         if(
+
             operational &&
-            operational.month === selectedMonth &&
-            operational.year === selectedYear &&
+
+            operational.month ===
+            selectedMonth &&
+
+            operational.year ===
+            selectedYear &&
+
             operational.raw?.is_closed === true
+
         ){
 
-            adminStats[tableName][shiftKey]
-                += amount;
+            adminStats[
+                tableName
+            ][
+                shiftKey
+            ] += amount;
 
-            adminStats[tableName].total
-                += amount;
+
+            adminStats[
+                tableName
+            ].total += amount;
+
         }
+
     });
 
-    // =========================
-    // SORT FUNCTION
-    // =========================
+
+    // ==================================================
+    // SORT TABLES
+    // ==================================================
 
     function sortTables(obj){
 
-        return Object.keys(obj).sort((a,b)=>{
+        return Object.keys(obj)
+            .sort((a,b) => {
 
-            const aIsRoom =
-                a.toLowerCase()
-                .includes("room");
 
-            const bIsRoom =
-                b.toLowerCase()
-                .includes("room");
+                const aIsRoom =
 
-            if(aIsRoom && !bIsRoom)
-                return 1;
+                    a.toLowerCase()
+                    .includes("room");
 
-            if(!aIsRoom && bIsRoom)
-                return -1;
 
-            let aNum =
-                parseInt(
-                    a.match(/\d+/)?.[0] || 0
-                );
+                const bIsRoom =
 
-            let bNum =
-                parseInt(
-                    b.match(/\d+/)?.[0] || 0
-                );
+                    b.toLowerCase()
+                    .includes("room");
 
-            return aNum - bNum;
-        });
+
+                if(
+                    aIsRoom &&
+                    !bIsRoom
+                ){
+
+                    return 1;
+
+                }
+
+
+                if(
+                    !aIsRoom &&
+                    bIsRoom
+                ){
+
+                    return -1;
+
+                }
+
+
+                let aNum =
+
+                    parseInt(
+
+                        a.match(
+                            /\d+/
+                        )?.[0] || 0
+
+                    );
+
+
+                let bNum =
+
+                    parseInt(
+
+                        b.match(
+                            /\d+/
+                        )?.[0] || 0
+
+                    );
+
+
+                return aNum - bNum;
+
+            });
+
     }
 
-    // =========================
+
+    // ==================================================
     // STAFF UI
-    // =========================
+    // ==================================================
 
     if(staffContainer){
 
-        sortTables(staffStats)
-        .forEach(table=>{
+        sortTables(
+            staffStats
+        )
+        .forEach(table => {
 
-            let t = staffStats[table];
+
+            let t =
+                staffStats[table];
+
 
             staffContainer.innerHTML += `
 
-            <div class="table-sale-box">
+                <div class="table-sale-box">
 
-                <h2>${table}</h2>
+                    <h2>${table}</h2>
 
-                <p>Shift1 : ${t.shift1}</p>
+                    <p>
+                        Shift1 : ${t.shift1}
+                    </p>
 
-                <p>Shift2 : ${t.shift2}</p>
+                    <p>
+                        Shift2 : ${t.shift2}
+                    </p>
 
-                <p>Total : ${t.total}</p>
+                    <p>
+                        Total : ${t.total}
+                    </p>
 
-            </div>
+                </div>
+
             `;
+
         });
+
     }
 
-    // =========================
+
+    // ==================================================
     // ADMIN UI
-    // =========================
+    // ==================================================
 
     if(adminContainer){
 
-        sortTables(adminStats)
-        .forEach(table=>{
+        sortTables(
+            adminStats
+        )
+        .forEach(table => {
 
-            let t = adminStats[table];
+
+            let t =
+                adminStats[table];
+
 
             adminContainer.innerHTML += `
 
-            <div class="table-sale-box">
+                <div class="table-sale-box">
 
-                <h2>${table}</h2>
+                    <h2>${table}</h2>
 
-                <p>Shift1 : ${t.shift1}</p>
+                    <p>
+                        Shift1 : ${t.shift1}
+                    </p>
 
-                <p>Shift2 : ${t.shift2}</p>
+                    <p>
+                        Shift2 : ${t.shift2}
+                    </p>
 
-                <p>Total : ${t.total}</p>
+                    <p>
+                        Total : ${t.total}
+                    </p>
 
-            </div>
+                </div>
+
             `;
+
         });
+
     }
+
 }
