@@ -95,20 +95,38 @@
             + Add Expense
         </button>
 
-        <input
-            type="text"
-            id="searchInput"
-            class="search-bar"
-            placeholder="Search..."
-            onkeyup="searchExpenses()"
-        >
+<div class="search-print-box">
+
+    <input
+        type="text"
+        id="searchInput"
+        class="search-bar"
+        placeholder="Search expense name..."
+        oninput="searchExpenses()"
+    >
+
+    <button
+        class="btn-green"
+        onclick="printFilteredExpenses()"
+    >
+        🖨 Print
+    </button>
+
+</div>
 
     </div>
 
     <!-- TOTAL -->
-<div class="total-box expense-total-center">
-    <span>Current Month Total:</span>
-    <b id="todayTotal">0 PKR</b>
+<div class="total-box">
+
+    <span id="totalLabel">
+        Current Month Total:
+    </span>
+
+    <b id="todayTotal">
+        0 PKR
+    </b>
+
 </div>
 
     <!-- TABLE -->
