@@ -452,7 +452,7 @@ async function loadReport(days) {
             const d =
                 day.raw || {};
 
-          console.log(
+console.log(
     "🔎 REPORT DAY CHECK:",
     {
         dayId: d.day_id,
@@ -463,27 +463,6 @@ async function loadReport(days) {
         created_at: d.created_at,
 
         calculatedDate:
-    d.shift1?.startMs
-        ? new Date(
-            Number(d.shift1.startMs)
-          ).toLocaleString(
-            "en-PK",
-            {
-                timeZone: "Asia/Karachi"
-            }
-          )
-        : (
-            Number(d.day_id) > 1000000000000
-                ? new Date(
-                    Number(d.day_id)
-                  ).toLocaleString(
-                    "en-PK",
-                    {
-                        timeZone: "Asia/Karachi"
-                    }
-                  )
-                : d.date || null
-          )
             d.shift1?.startMs
                 ? new Date(
                     Number(d.shift1.startMs)
@@ -493,7 +472,18 @@ async function loadReport(days) {
                         timeZone: "Asia/Karachi"
                     }
                   )
-                : null
+                : (
+                    Number(d.day_id) > 1000000000000
+                        ? new Date(
+                            Number(d.day_id)
+                          ).toLocaleString(
+                            "en-PK",
+                            {
+                                timeZone: "Asia/Karachi"
+                            }
+                          )
+                        : d.date || null
+                  )
     }
 );
 
