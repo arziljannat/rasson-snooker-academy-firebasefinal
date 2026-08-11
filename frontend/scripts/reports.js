@@ -2709,51 +2709,646 @@ if (
 
 function printReportThermal() {
 
-    let content = document.getElementById("reportOutput").innerHTML;
+    const report =
+        document.getElementById("reportOutput");
 
-    let win = window.open("", "", "width=300,height=600");
+    if (!report) {
+
+        alert("Report not found");
+
+        return;
+
+    }
+
+    // ==========================================
+    // SELECTED DATES
+    // ==========================================
+
+    const fromDate =
+        document.getElementById("fromDate")?.value || "";
+
+    const toDate =
+        document.getElementById("toDate")?.value || "";
+
+
+    // ==========================================
+    // CURRENT BRANCH
+    // ==========================================
+
+    const branch =
+        localStorage.getItem("branch") || "Branch";
+
+
+    // ==========================================
+    // REPORT CONTENT
+    // ==========================================
+
+    const content =
+        report.innerHTML;
+
+
+    // ==========================================
+    // OPEN PRINT WINDOW
+    // ==========================================
+
+    const win =
+        window.open(
+            "",
+            "_blank",
+            "width=1200,height=800"
+        );
+
+
+    if (!win) {
+
+        alert(
+            "Print window blocked. Please allow popups."
+        );
+
+        return;
+
+    }
+
+
+    // ==========================================
+    // PRINT DOCUMENT
+    // ==========================================
+
+    win.document.open();
 
     win.document.write(`
-    <html>
-    <head>
-        <title>Print</title>
-        <style>
-            body { font-family: monospace; width: 250px; margin:auto; }
-            .center { text-align:center; }
-            hr { border:1px dashed #000; margin:5px 0; }
-            .report-card { margin-bottom:10px; }
-        </style>
-    </head>
-    <body>
 
-        <div class="center">
-            <h3>Rasson Snooker Academy</h3>
-            <small>${localStorage.getItem("branch")}</small>
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        Rasson Snooker Academy - Game Report
+    </title>
+
+
+    <style>
+
+        /* =====================================
+           PAGE
+        ===================================== */
+
+        @page {
+
+            size: A4 landscape;
+
+            margin: 10mm;
+
+        }
+
+
+        /* =====================================
+           BODY
+        ===================================== */
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            background: #fff;
+
+            color: #000;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-size: 10px;
+
+        }
+
+
+        /* =====================================
+           PRINT HEADER
+        ===================================== */
+
+        .print-header {
+
+            text-align: center;
+
+            margin-bottom: 12px;
+
+            border-bottom:
+                2px solid #000;
+
+            padding-bottom: 8px;
+
+        }
+
+
+        .print-header h1 {
+
+            margin: 0;
+
+            font-size: 20px;
+
+            font-weight: 900;
+
+        }
+
+
+        .print-header h2 {
+
+            margin: 3px 0;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+        }
+
+
+        .print-header .branch {
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+        }
+
+
+        .print-header .date-range {
+
+            margin-top: 4px;
+
+            font-size: 10px;
+
+        }
+
+
+        /* =====================================
+           REMOVE SCREEN STYLING
+        ===================================== */
+
+        .game-report-wrapper,
+        .report-total-wrapper {
+
+            width: 100% !important;
+
+            max-width: 100% !important;
+
+            min-width: 0 !important;
+
+            overflow: visible !important;
+
+            margin: 0 !important;
+
+            padding: 0 !important;
+
+            background: #fff !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+
+        }
+
+
+        /* =====================================
+           MAIN TABLE
+        ===================================== */
+
+        .game-report-table {
+
+            width: 100% !important;
+
+            min-width: 0 !important;
+
+            table-layout: fixed !important;
+
+            border-collapse: collapse !important;
+
+            color: #000 !important;
+
+            background: #fff !important;
+
+        }
+
+
+        .game-report-table th {
+
+            padding: 5px 3px !important;
+
+            color: #000 !important;
+
+            background: #e8e8e8 !important;
+
+            border:
+                1px solid #000 !important;
+
+            font-size: 8px !important;
+
+            font-weight: 900 !important;
+
+            text-align: center !important;
+
+            vertical-align: middle !important;
+
+        }
+
+
+        .game-report-table td {
+
+            padding: 5px 3px !important;
+
+            color: #000 !important;
+
+            background: #fff !important;
+
+            border:
+                1px solid #555 !important;
+
+            font-size: 8px !important;
+
+            font-weight: 600 !important;
+
+            text-align: center !important;
+
+            vertical-align: middle !important;
+
+        }
+
+
+        .game-report-table tr:hover td {
+
+            background: #fff !important;
+
+        }
+
+
+        /* =====================================
+           TOTAL COLUMNS
+        ===================================== */
+
+        .total-column {
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            font-weight: 900 !important;
+
+        }
+
+
+        .easypaisa-column {
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            font-weight: 900 !important;
+
+        }
+
+
+        .closing-cash-column {
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            font-weight: 900 !important;
+
+        }
+
+
+        .combined-timing {
+
+            color: #000 !important;
+
+            font-weight: 700 !important;
+
+        }
+
+
+        /* =====================================
+           REPORT TITLE
+        ===================================== */
+
+        .report-total-title {
+
+            margin-top: 12px !important;
+
+            padding: 6px !important;
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            border:
+                1px solid #000 !important;
+
+            border-radius: 0 !important;
+
+            font-size: 11px !important;
+
+            font-weight: 900 !important;
+
+            text-align: left !important;
+
+        }
+
+
+        /* =====================================
+           TOTAL TABLE
+        ===================================== */
+
+        .report-total-table {
+
+            width: 100% !important;
+
+            min-width: 0 !important;
+
+            table-layout: fixed !important;
+
+            border-collapse: collapse !important;
+
+            color: #000 !important;
+
+        }
+
+
+        .report-total-table th {
+
+            padding: 5px 3px !important;
+
+            color: #000 !important;
+
+            background: #e8e8e8 !important;
+
+            border:
+                1px solid #000 !important;
+
+            font-size: 8px !important;
+
+            font-weight: 900 !important;
+
+            text-align: center !important;
+
+        }
+
+
+        .report-total-table td {
+
+            padding: 6px 3px !important;
+
+            color: #000 !important;
+
+            background: #fff !important;
+
+            border:
+                1px solid #000 !important;
+
+            font-size: 9px !important;
+
+            font-weight: 900 !important;
+
+            text-align: center !important;
+
+        }
+
+
+        .summary-total {
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            font-weight: 900 !important;
+
+        }
+
+
+        .summary-final {
+
+            color: #000 !important;
+
+            background: #eeeeee !important;
+
+            font-weight: 900 !important;
+
+        }
+
+
+        /* =====================================
+           TIMING
+        ===================================== */
+
+        .total-timing-box {
+
+            margin-top: 8px !important;
+
+            padding: 6px !important;
+
+            color: #000 !important;
+
+            background: #fff !important;
+
+            border:
+                1px solid #000 !important;
+
+            border-radius: 0 !important;
+
+            font-size: 9px !important;
+
+            font-weight: 700 !important;
+
+            text-align: center !important;
+
+        }
+
+
+        .total-timing-box span {
+
+            color: #000 !important;
+
+            font-size: 10px !important;
+
+        }
+
+
+        /* =====================================
+           NOTE
+        ===================================== */
+
+        .report-note {
+
+            margin-top: 6px !important;
+
+            padding: 4px !important;
+
+            color: #333 !important;
+
+            font-size: 8px !important;
+
+            text-align: center !important;
+
+        }
+
+
+        /* =====================================
+           HIDE SCREEN ONLY TITLES
+        ===================================== */
+
+        #reportOutput > h2 {
+
+            display: none !important;
+
+        }
+
+
+        /* =====================================
+           PAGE BREAK
+        ===================================== */
+
+        .report-total-title {
+
+            page-break-after: avoid;
+
+        }
+
+
+        .report-total-wrapper {
+
+            page-break-before: avoid;
+
+        }
+
+
+        tr {
+
+            page-break-inside: avoid;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================
+         PRINT HEADER
+    ===================================== -->
+
+    <div class="print-header">
+
+        <h1>
+            Rasson Snooker Academy
+        </h1>
+
+        <h2>
+            Branch Income Report
+        </h2>
+
+        <div class="branch">
+            Branch: ${branch}
         </div>
 
-        <hr>
+        <div class="date-range">
+
+            From:
+            ${fromDate || "-"}
+
+            &nbsp;&nbsp; → &nbsp;&nbsp;
+
+            To:
+            ${toDate || "-"}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         REPORT
+    ===================================== -->
+
+    <div id="printReportContent">
 
         ${content}
 
-        <hr>
+    </div>
 
-        <div class="center">
-            ${new Date().toLocaleString()}
-        </div>
 
-        <script>
-            window.onload = function() {
+    <!-- =====================================
+         PRINT FOOTER
+    ===================================== -->
+
+    <div
+        style="
+            margin-top:10px;
+            padding-top:6px;
+            border-top:1px solid #000;
+            text-align:center;
+            font-size:8px;
+        "
+    >
+
+        Printed:
+        ${new Date().toLocaleString("en-PK")}
+
+    </div>
+
+
+    <script>
+
+        window.onload = function() {
+
+            setTimeout(function() {
+
                 window.print();
-                window.close();
-            }
-        </script>
 
-    </body>
-    </html>
+            }, 500);
+
+        };
+
+
+        window.onafterprint = function() {
+
+            window.close();
+
+        };
+
+    <\/script>
+
+
+</body>
+
+</html>
+
     `);
 
     win.document.close();
+
 }
+
+<!-- =====================================
+         Load Inventory Function 
+ ===================================== -->
+  
 async function loadInventoryReport() {
 
     let dates = getDates();
