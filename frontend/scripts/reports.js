@@ -427,6 +427,30 @@ async function loadReport(days) {
             const d =
                 day.raw || {};
 
+          console.log(
+    "🔎 REPORT DAY CHECK:",
+    {
+        dayId: d.day_id,
+        branch: d.branch,
+        shift1StartMs: d.shift1?.startMs,
+        date: d.date,
+        start_time: d.start_time,
+        created_at: d.created_at,
+
+        calculatedDate:
+            d.shift1?.startMs
+                ? new Date(
+                    Number(d.shift1.startMs)
+                  ).toLocaleString(
+                    "en-PK",
+                    {
+                        timeZone: "Asia/Karachi"
+                    }
+                  )
+                : null
+    }
+);
+
             const s1 =
                 d.shift1 || {};
 
