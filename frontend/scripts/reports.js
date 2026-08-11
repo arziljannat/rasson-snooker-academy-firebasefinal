@@ -405,19 +405,21 @@ async function loadReport() {
 
 
             // ======================================
-            // FINAL CLOSING CASH
+            // NET CASH
             //
-            // DIRECT COMBINED SNAPSHOT
-            //
-            // Combined mein already:
-            // Shift 1 Closing + Shift 2 Closing
-            // save hota hai.
+            // Total Collection
+            // - Total Balance
+            // - Total Discount
+            // - Total Expense
+            // - EasyPaisa
             // ======================================
-
+            
             const finalClosingCash =
-                Number(
-                    combined.closingCash || 0
-                );
+                totalCollection -
+                totalBalance -
+                totalDiscount -
+                totalExpense -
+                easypaisa;
 
 
             // ======================================
@@ -842,12 +844,19 @@ async function loadReport() {
 
                     <!-- EASYPAISA -->
 
-                    <td class="report-center">
-
-                        Rs ${money(
-                            row.easypaisa
-                        )}
-
+                    <td
+                        class="
+                            report-center
+                            easypaisa-column
+                        "
+                    >
+                    
+                        <strong>
+                            Rs ${money(
+                                row.easypaisa
+                            )}
+                        </strong>
+                    
                     </td>
 
 
@@ -1043,6 +1052,21 @@ async function loadReport() {
                     background:
                         rgba(0,255,204,0.06) !important;
 
+                }
+
+                /* =====================================
+                   EASYPAISA HIGHLIGHT
+                 ===================================== */
+                
+                .easypaisa-column {
+                
+                    color:#00ffcc !important;
+                
+                    font-weight:900 !important;
+                
+                    background:
+                        rgba(0,255,204,0.06) !important;
+                
                 }
 
 
@@ -1609,10 +1633,17 @@ async function loadReport() {
 
                             <!-- EASYPAISA -->
 
-                            <td>
+                            <td
+                                class="
+                                    summary-total
+                                    easypaisa-column
+                                "
+                            >
+                            
                                 Rs ${money(
                                     grandEasyPaisa
                                 )}
+                            
                             </td>
 
 
