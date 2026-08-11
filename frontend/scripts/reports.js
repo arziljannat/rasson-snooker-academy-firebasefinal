@@ -11,21 +11,76 @@ orderBy
 
 
 function getDates() {
-    let fromInput = document.getElementById("fromDate").value;
-    let toInput = document.getElementById("toDate").value;
+
+    const fromInput =
+        document.getElementById("fromDate").value;
+
+    const toInput =
+        document.getElementById("toDate").value;
+
 
     if (!fromInput || !toInput) {
+
         alert("Select date range");
+
         return null;
     }
 
-    let from = new Date(fromInput);
-    let to = new Date(toInput);
 
-    from.setHours(0,0,0,0);
-    to.setHours(23,59,59,999);
+    // ==========================================
+    // INPUT: YYYY-MM-DD
+    // ==========================================
 
-    return { from, to };
+    const [fy, fm, fd] =
+        fromInput.split("-").map(Number);
+
+    const [ty, tm, td] =
+        toInput.split("-").map(Number);
+
+
+    // ==========================================
+    // LOCAL CALENDAR DATE
+    // ==========================================
+
+    const from =
+        new Date(
+            fy,
+            fm - 1,
+            fd,
+            0,
+            0,
+            0,
+            0
+        );
+
+
+    const to =
+        new Date(
+            ty,
+            tm - 1,
+            td,
+            23,
+            59,
+            59,
+            999
+        );
+
+
+    return {
+
+        from,
+        to,
+
+        // 🔥 DATE KEYS
+        // Timezone ka issue nahi hoga
+
+        fromKey:
+            `${fy}-${String(fm).padStart(2, "0")}-${String(fd).padStart(2, "0")}`,
+
+        toKey:
+            `${ty}-${String(tm).padStart(2, "0")}-${String(td).padStart(2, "0")}`
+
+    };
 }
 
 const buttons = document.querySelectorAll(".report-btn");
@@ -52,65 +107,6 @@ let operationalDays = {};
 
 async function loadOperationalDays(){
 
-    operationalDays = {};
-
-    const branch =
-        localStorage.getItem("branch");
-
-    const snap = await getDocs(
-        query(
-            collection(window.db, "days"),
-            where("branch", "==", branch)
-        )
-    );
-
-    snap.forEach(docSnap => {
-
-        const d = docSnap.data();
-
-        const dayId =
-            String(d.day_id || "");
-
-        if (!dayId) return;
-
-        // 🔥 OPERATIONAL DATE
-        // Shift 1 ke actual start time se date niklegi
-        let startMs =
-            Number(d.shift1?.startMs || 0);
-
-        let date;
-
-        if (startMs) {
-
-            date = new Date(startMs);
-
-        } else {
-
-            date = new Date(d.date);
-        }
-
-        if (isNaN(date.getTime())) return;
-
-        operationalDays[dayId] = {
-
-            raw: d,
-
-            startDate: date,
-
-            month: date.getMonth(),
-
-            year: date.getFullYear(),
-
-            day: date.getDate()
-        };
-
-    });
-
-    console.log(
-        "📊 REPORT OPERATIONAL DAYS:",
-        operationalDays
-    );
-}
 
 
 buttons[2].onclick = () => {
@@ -126,23 +122,58 @@ buttons[2].onclick = () => {
 
 document.getElementById("viewReportBtn").onclick = async () => {
 
-    if (currentReport === "game") {
+    try {
 
-        await loadOperationalDays();
+        if (currentReport === "game") {
 
-        loadReport();
+            // ======================================
+            // DAYS LOAD KARO
+            // ======================================
 
-    } else if (currentReport === "canteen") {
+            const days =
+                await loadOperationalDays();
 
-        loadCanteenReport();
 
-    } else {
+            // ======================================
+            // REPORT KO WAHI DATA PASS KARO
+            // ======================================
 
-        loadInventoryReport();
+            await loadReport(days);
+
+
+        } else if (currentReport === "canteen") {
+
+            await loadCanteenReport();
+
+
+        } else {
+
+            await loadInventoryReport();
+
+        }
+
+    } catch (err) {
+
+        console.error(
+            "❌ REPORT BUTTON ERROR:",
+            err
+        );
+
     }
+
 };
 
-async function loadReport() {
+async function loadReport(days) {
+
+    if (!days) {
+
+        console.error(
+            "❌ REPORT: days data missing"
+        );
+
+        return;
+    }
+
 
     let dates = getDates();
 
@@ -251,7 +282,7 @@ async function loadReport() {
         let rows = [];
 
 
-        Object.values(operationalDays).forEach(day => {
+        Object.values(days || {}).forEach(day => {
 
             const d =
                 day.raw || {};
@@ -303,16 +334,29 @@ async function loadReport() {
 
 
             // ======================================
-            // DATE FILTER
+            // CALENDAR DATE FILTER
+            // TIME IGNORE KARO
             // ======================================
-
+            
+            const operationalKey =
+                new Intl.DateTimeFormat(
+                    "en-CA",
+                    {
+                        timeZone: "Asia/Karachi",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit"
+                    }
+                ).format(operationalDate);
+            
+            
             if (
-                operationalDate < dates.from ||
-                operationalDate > dates.to
+                operationalKey < dates.fromKey ||
+                operationalKey > dates.toKey
             ) {
-
+            
                 return;
-
+            
             }
 
 
@@ -505,6 +549,23 @@ async function loadReport() {
         // ==========================================
         // SORT DATE
         // ==========================================
+
+              console.log(
+            "📊 REPORT FILTER RESULT:",
+            {
+                from:
+                    dates.fromKey,
+        
+                to:
+                    dates.toKey,
+        
+                availableDays:
+                    Object.keys(days || {}).length,
+        
+                matchedRows:
+                    rows.length
+            }
+        );
 
         rows.sort(
             (a, b) =>
