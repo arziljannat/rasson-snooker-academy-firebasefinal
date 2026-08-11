@@ -2714,42 +2714,29 @@ function printReportThermal() {
 
     if (!report) {
 
-        alert("Report not found");
+        alert("Report not found ❌");
 
         return;
 
     }
 
-    // ==========================================
-    // SELECTED DATES
-    // ==========================================
-
-    const fromDate =
-        document.getElementById("fromDate")?.value || "";
-
-    const toDate =
-        document.getElementById("toDate")?.value || "";
-
-
-    // ==========================================
-    // CURRENT BRANCH
-    // ==========================================
-
-    const branch =
-        localStorage.getItem("branch") || "Branch";
-
-
-    // ==========================================
-    // REPORT CONTENT
-    // ==========================================
 
     const content =
         report.innerHTML;
 
 
-    // ==========================================
-    // OPEN PRINT WINDOW
-    // ==========================================
+    const fromDate =
+        document.getElementById("fromDate")?.value || "-";
+
+
+    const toDate =
+        document.getElementById("toDate")?.value || "-";
+
+
+    const branch =
+        localStorage.getItem("branch") ||
+        "Branch";
+
 
     const win =
         window.open(
@@ -2762,7 +2749,7 @@ function printReportThermal() {
     if (!win) {
 
         alert(
-            "Print window blocked. Please allow popups."
+            "Print popup blocked ❌\n\nBrowser mein popups allow karo."
         );
 
         return;
@@ -2770,13 +2757,7 @@ function printReportThermal() {
     }
 
 
-    // ==========================================
-    // PRINT DOCUMENT
-    // ==========================================
-
-    win.document.open();
-
-    win.document.write(`
+    const printHTML = `
 
 <!DOCTYPE html>
 
@@ -2784,567 +2765,408 @@ function printReportThermal() {
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <title>
-        Rasson Snooker Academy - Game Report
-    </title>
+<title>Rasson Snooker Academy Report</title>
 
+<style>
 
-    <style>
+@page {
 
-        /* =====================================
-           PAGE
-        ===================================== */
+    size: A4 landscape;
 
-        @page {
+    margin: 10mm;
 
-            size: A4 landscape;
+}
 
-            margin: 10mm;
 
-        }
+* {
 
+    box-sizing: border-box;
 
-        /* =====================================
-           BODY
-        ===================================== */
+}
 
-        * {
 
-            box-sizing: border-box;
+body {
 
-        }
+    margin: 0;
 
+    padding: 0;
 
-        body {
+    background: white;
 
-            margin: 0;
+    color: black;
 
-            padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
 
-            background: #fff;
+    font-size: 10px;
 
-            color: #000;
+}
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
 
-            font-size: 10px;
+.print-header {
 
-        }
+    text-align: center;
 
+    border-bottom: 2px solid black;
 
-        /* =====================================
-           PRINT HEADER
-        ===================================== */
+    padding-bottom: 8px;
 
-        .print-header {
+    margin-bottom: 10px;
 
-            text-align: center;
+}
 
-            margin-bottom: 12px;
 
-            border-bottom:
-                2px solid #000;
+.print-header h1 {
 
-            padding-bottom: 8px;
+    margin: 0;
 
-        }
+    font-size: 20px;
 
+    font-weight: 900;
 
-        .print-header h1 {
+}
 
-            margin: 0;
 
-            font-size: 20px;
+.print-header h2 {
 
-            font-weight: 900;
+    margin: 3px 0;
 
-        }
+    font-size: 15px;
 
+}
 
-        .print-header h2 {
 
-            margin: 3px 0;
+.print-header div {
 
-            font-size: 15px;
+    font-size: 10px;
 
-            font-weight: 700;
+    margin-top: 3px;
 
-        }
+}
 
 
-        .print-header .branch {
+#reportOutput {
 
-            font-size: 12px;
+    width: 100% !important;
 
-            font-weight: 700;
+    max-width: 100% !important;
 
-        }
+    min-width: 0 !important;
 
+    padding: 0 !important;
 
-        .print-header .date-range {
+    margin: 0 !important;
 
-            margin-top: 4px;
+    background: white !important;
 
-            font-size: 10px;
+    color: black !important;
 
-        }
+}
 
 
-        /* =====================================
-           REMOVE SCREEN STYLING
-        ===================================== */
+#reportOutput h2 {
 
-        .game-report-wrapper,
-        .report-total-wrapper {
+    display: none !important;
 
-            width: 100% !important;
+}
 
-            max-width: 100% !important;
 
-            min-width: 0 !important;
+.game-report-wrapper {
 
-            overflow: visible !important;
+    width: 100% !important;
 
-            margin: 0 !important;
+    max-width: 100% !important;
 
-            padding: 0 !important;
+    min-width: 0 !important;
 
-            background: #fff !important;
+    overflow: visible !important;
 
-            border: none !important;
+    padding: 0 !important;
 
-            box-shadow: none !important;
+    margin: 0 !important;
 
-        }
+    background: white !important;
 
+    border: none !important;
 
-        /* =====================================
-           MAIN TABLE
-        ===================================== */
+    box-shadow: none !important;
 
-        .game-report-table {
+}
 
-            width: 100% !important;
 
-            min-width: 0 !important;
+.game-report-table {
 
-            table-layout: fixed !important;
+    width: 100% !important;
 
-            border-collapse: collapse !important;
+    min-width: 0 !important;
 
-            color: #000 !important;
+    table-layout: fixed !important;
 
-            background: #fff !important;
+    border-collapse: collapse !important;
 
-        }
+    background: white !important;
 
+    color: black !important;
 
-        .game-report-table th {
+}
 
-            padding: 5px 3px !important;
 
-            color: #000 !important;
+.game-report-table th {
 
-            background: #e8e8e8 !important;
+    background: #e5e5e5 !important;
 
-            border:
-                1px solid #000 !important;
+    color: black !important;
 
-            font-size: 8px !important;
+    border: 1px solid black !important;
 
-            font-weight: 900 !important;
+    padding: 5px 3px !important;
 
-            text-align: center !important;
+    font-size: 8px !important;
 
-            vertical-align: middle !important;
+    font-weight: 900 !important;
 
-        }
+    text-align: center !important;
 
+}
 
-        .game-report-table td {
 
-            padding: 5px 3px !important;
+.game-report-table td {
 
-            color: #000 !important;
+    background: white !important;
 
-            background: #fff !important;
+    color: black !important;
 
-            border:
-                1px solid #555 !important;
+    border: 1px solid #555 !important;
 
-            font-size: 8px !important;
+    padding: 5px 3px !important;
 
-            font-weight: 600 !important;
+    font-size: 8px !important;
 
-            text-align: center !important;
+    font-weight: 600 !important;
 
-            vertical-align: middle !important;
+    text-align: center !important;
 
-        }
+}
 
 
-        .game-report-table tr:hover td {
+.report-total-wrapper {
 
-            background: #fff !important;
+    width: 100% !important;
 
-        }
+    min-width: 0 !important;
 
+    padding: 0 !important;
 
-        /* =====================================
-           TOTAL COLUMNS
-        ===================================== */
+    margin: 10px 0 0 0 !important;
 
-        .total-column {
+    background: white !important;
 
-            color: #000 !important;
+    color: black !important;
 
-            background: #eeeeee !important;
+    border: none !important;
 
-            font-weight: 900 !important;
+    box-shadow: none !important;
 
-        }
+}
 
 
-        .easypaisa-column {
+.report-total-title {
 
-            color: #000 !important;
+    background: #e5e5e5 !important;
 
-            background: #eeeeee !important;
+    color: black !important;
 
-            font-weight: 900 !important;
+    border: 1px solid black !important;
 
-        }
+    padding: 5px !important;
 
+    margin: 8px 0 0 0 !important;
 
-        .closing-cash-column {
+    font-size: 10px !important;
 
-            color: #000 !important;
+    font-weight: 900 !important;
 
-            background: #eeeeee !important;
+}
 
-            font-weight: 900 !important;
 
-        }
+.report-total-table {
 
+    width: 100% !important;
 
-        .combined-timing {
+    min-width: 0 !important;
 
-            color: #000 !important;
+    table-layout: fixed !important;
 
-            font-weight: 700 !important;
+    border-collapse: collapse !important;
 
-        }
+    background: white !important;
 
+    color: black !important;
 
-        /* =====================================
-           REPORT TITLE
-        ===================================== */
+}
 
-        .report-total-title {
 
-            margin-top: 12px !important;
+.report-total-table th {
 
-            padding: 6px !important;
+    background: #e5e5e5 !important;
 
-            color: #000 !important;
+    color: black !important;
 
-            background: #eeeeee !important;
+    border: 1px solid black !important;
 
-            border:
-                1px solid #000 !important;
+    padding: 5px 3px !important;
 
-            border-radius: 0 !important;
+    font-size: 8px !important;
 
-            font-size: 11px !important;
+    font-weight: 900 !important;
 
-            font-weight: 900 !important;
+    text-align: center !important;
 
-            text-align: left !important;
+}
 
-        }
 
+.report-total-table td {
 
-        /* =====================================
-           TOTAL TABLE
-        ===================================== */
+    background: white !important;
 
-        .report-total-table {
+    color: black !important;
 
-            width: 100% !important;
+    border: 1px solid black !important;
 
-            min-width: 0 !important;
+    padding: 5px 3px !important;
 
-            table-layout: fixed !important;
+    font-size: 9px !important;
 
-            border-collapse: collapse !important;
+    font-weight: 800 !important;
 
-            color: #000 !important;
+    text-align: center !important;
 
-        }
+}
 
 
-        .report-total-table th {
+.total-timing-box {
 
-            padding: 5px 3px !important;
+    margin-top: 8px !important;
 
-            color: #000 !important;
+    padding: 5px !important;
 
-            background: #e8e8e8 !important;
+    background: white !important;
 
-            border:
-                1px solid #000 !important;
+    color: black !important;
 
-            font-size: 8px !important;
+    border: 1px solid black !important;
 
-            font-weight: 900 !important;
+    text-align: center !important;
 
-            text-align: center !important;
+    font-size: 8px !important;
 
-        }
+}
 
 
-        .report-total-table td {
+.report-note {
 
-            padding: 6px 3px !important;
+    color: #333 !important;
 
-            color: #000 !important;
+    font-size: 8px !important;
 
-            background: #fff !important;
+    text-align: center !important;
 
-            border:
-                1px solid #000 !important;
+    margin-top: 5px !important;
 
-            font-size: 9px !important;
+}
 
-            font-weight: 900 !important;
 
-            text-align: center !important;
+tr {
 
-        }
+    page-break-inside: avoid;
 
+}
 
-        .summary-total {
 
-            color: #000 !important;
-
-            background: #eeeeee !important;
-
-            font-weight: 900 !important;
-
-        }
-
-
-        .summary-final {
-
-            color: #000 !important;
-
-            background: #eeeeee !important;
-
-            font-weight: 900 !important;
-
-        }
-
-
-        /* =====================================
-           TIMING
-        ===================================== */
-
-        .total-timing-box {
-
-            margin-top: 8px !important;
-
-            padding: 6px !important;
-
-            color: #000 !important;
-
-            background: #fff !important;
-
-            border:
-                1px solid #000 !important;
-
-            border-radius: 0 !important;
-
-            font-size: 9px !important;
-
-            font-weight: 700 !important;
-
-            text-align: center !important;
-
-        }
-
-
-        .total-timing-box span {
-
-            color: #000 !important;
-
-            font-size: 10px !important;
-
-        }
-
-
-        /* =====================================
-           NOTE
-        ===================================== */
-
-        .report-note {
-
-            margin-top: 6px !important;
-
-            padding: 4px !important;
-
-            color: #333 !important;
-
-            font-size: 8px !important;
-
-            text-align: center !important;
-
-        }
-
-
-        /* =====================================
-           HIDE SCREEN ONLY TITLES
-        ===================================== */
-
-        #reportOutput > h2 {
-
-            display: none !important;
-
-        }
-
-
-        /* =====================================
-           PAGE BREAK
-        ===================================== */
-
-        .report-total-title {
-
-            page-break-after: avoid;
-
-        }
-
-
-        .report-total-wrapper {
-
-            page-break-before: avoid;
-
-        }
-
-
-        tr {
-
-            page-break-inside: avoid;
-
-        }
-
-    </style>
+</style>
 
 </head>
-
 
 <body>
 
 
-    <!-- =====================================
-         PRINT HEADER
-    ===================================== -->
+<div class="print-header">
 
-    <div class="print-header">
+    <h1>Rasson Snooker Academy</h1>
 
-        <h1>
-            Rasson Snooker Academy
-        </h1>
+    <h2>Branch Income Report</h2>
 
-        <h2>
-            Branch Income Report
-        </h2>
+    <div>Branch: ${branch}</div>
 
-        <div class="branch">
-            Branch: ${branch}
-        </div>
+    <div>
 
-        <div class="date-range">
+        From: ${fromDate}
 
-            From:
-            ${fromDate || "-"}
+        &nbsp;&nbsp; → &nbsp;&nbsp;
 
-            &nbsp;&nbsp; → &nbsp;&nbsp;
-
-            To:
-            ${toDate || "-"}
-
-        </div>
+        To: ${toDate}
 
     </div>
 
-
-    <!-- =====================================
-         REPORT
-    ===================================== -->
-
-    <div id="printReportContent">
-
-        ${content}
-
-    </div>
+</div>
 
 
-    <!-- =====================================
-         PRINT FOOTER
-    ===================================== -->
+<div id="reportOutput">
 
-    <div
-        style="
-            margin-top:10px;
-            padding-top:6px;
-            border-top:1px solid #000;
-            text-align:center;
-            font-size:8px;
-        "
-    >
+    ${content}
 
-        Printed:
-        ${new Date().toLocaleString("en-PK")}
-
-    </div>
+</div>
 
 
-    <script>
+<div style="
 
-        window.onload = function() {
+    margin-top:10px;
 
-            setTimeout(function() {
+    padding-top:5px;
 
-                window.print();
+    border-top:1px solid black;
 
-            }, 500);
+    text-align:center;
 
-        };
+    font-size:8px;
 
+">
 
-        window.onafterprint = function() {
+    Printed:
 
-            window.close();
+    ${new Date().toLocaleString("en-PK", {
 
-        };
+        timeZone: "Asia/Karachi"
 
-    <\/script>
+    })}
+
+</div>
 
 
 </body>
 
 </html>
 
-    `);
+`;
+
+
+    win.document.open();
+
+    win.document.write(printHTML);
 
     win.document.close();
 
-}
 
+    setTimeout(() => {
+
+        win.focus();
+
+        win.print();
+
+    }, 700);
+
+}
 <!-- =====================================
          Load Inventory Function 
  ===================================== -->
