@@ -56,6 +56,8 @@ let fromDate = "";
 
 let toDate = "";
 
+let easyDayFilter = "all";
+
 
 // ======================================================
 // DATE HELPER
@@ -1480,6 +1482,35 @@ window.updateEasy = async () => {
 
 
 // ======================================================
+// DAY FILTER
+// ======================================================
+
+window.filterEasyByDay = function () {
+
+    const input =
+        document.getElementById(
+            "easyDayFilter"
+        );
+
+
+    easyDayFilter =
+        input
+            ? input.value
+            : "all";
+
+
+    console.log(
+        "📅 EASYPAISA DAY FILTER:",
+        easyDayFilter
+    );
+
+
+    renderTable();
+
+};
+
+
+// ======================================================
 // MONTH FILTER
 // ======================================================
 
@@ -1684,14 +1715,84 @@ window.filterEasyByDateRange = function () {
 
 
 // ======================================================
-// CHECK DATE RANGE
+// CHECK EASYPAISA FILTERS
 // ======================================================
 
 function isEasyInSelectedDateRange(
     easy
 ) {
 
+    // ==================================================
+    // CURRENT DAY FILTER
+    // ==================================================
+
     if (
+        easyDayFilter === "current"
+    ) {
+
+        const currentDayId =
+            String(
+                window.currentDayId || ""
+            ).trim();
+
+
+        const easyDayId =
+            getRecordDayId(
+                easy
+            );
+
+
+        // ==============================================
+        // PRIMARY — SAVED DAY ID
+        // ==============================================
+
+        if (
+            currentDayId &&
+            easyDayId
+        ) {
+
+            return (
+                easyDayId ===
+                currentDayId
+            );
+
+        }
+
+
+        // ==============================================
+        // LEGACY FALLBACK
+        // ==============================================
+
+        const easyDay =
+            getEasyOperationalDay(
+                easy
+            );
+
+
+        if (!easyDay) {
+
+            return false;
+
+        }
+
+
+        return (
+            String(
+                easyDay.dayId || ""
+            ).trim()
+            ===
+            currentDayId
+        );
+
+    }
+
+
+    // ==================================================
+    // ALL DAYS
+    // ==================================================
+
+    if (
+        easyDayFilter === "all" &&
         !fromDate &&
         !toDate
     ) {
@@ -1701,15 +1802,22 @@ function isEasyInSelectedDateRange(
     }
 
 
+    // ==================================================
+    // MONTH / DATE FILTER
+    // ==================================================
+
     const easyDay =
         getEasyOperationalDay(
             easy
         );
 
 
+    // ==================================================
+    // LEGACY RECORD
+    // ==================================================
+
     if (!easyDay) {
 
-        // Legacy fallback
         const easyDate =
             getRecordDate(
                 easy.created_at
@@ -1717,7 +1825,9 @@ function isEasyInSelectedDateRange(
 
 
         if (!easyDate) {
+
             return false;
+
         }
 
 
@@ -1762,6 +1872,91 @@ function isEasyInSelectedDateRange(
         return true;
 
     }
+
+
+    // ==================================================
+    // SAME OPERATIONAL MONTH
+    // ==================================================
+
+    const fromMonth =
+        fromDate
+            ? fromDate.slice(
+                0,
+                7
+            )
+            : null;
+
+
+    const toMonth =
+        toDate
+            ? toDate.slice(
+                0,
+                7
+            )
+            : null;
+
+
+    if (
+        fromMonth &&
+        toMonth &&
+        fromMonth === toMonth
+    ) {
+
+        return (
+            easyDay.operationalMonth ===
+            fromMonth
+        );
+
+    }
+
+
+    // ==================================================
+    // MULTI-MONTH DATE RANGE
+    // ==================================================
+
+    if (fromDate) {
+
+        const from =
+            new Date(
+                `${fromDate}T00:00:00`
+            );
+
+
+        if (
+            easyDay.startDate <
+            from
+        ) {
+
+            return false;
+
+        }
+
+    }
+
+
+    if (toDate) {
+
+        const to =
+            new Date(
+                `${toDate}T23:59:59.999`
+            );
+
+
+        if (
+            easyDay.startDate >
+            to
+        ) {
+
+            return false;
+
+        }
+
+    }
+
+
+    return true;
+
+}
 
 
     // ==============================================
@@ -2108,15 +2303,37 @@ async function initEasyPaisa() {
 
     try {
 
-        await loadCurrentDayId();
+await loadCurrentDayId();
 
-        await loadOperationalDays();
+await loadOperationalDays();
 
-        // Default current operational month
-        setCurrentMonthFilter();
 
-        startEasyListener();
+// ==============================================
+// DEFAULT DAY FILTER
+// ==============================================
 
+easyDayFilter = "all";
+
+const dayFilter =
+    document.getElementById(
+        "easyDayFilter"
+    );
+
+if (dayFilter) {
+
+    dayFilter.value =
+        "all";
+
+}
+
+
+// ==============================================
+// DEFAULT CURRENT OPERATIONAL MONTH
+// ==============================================
+
+setCurrentMonthFilter();
+
+startEasyListener();
 
         console.log(
             "✅ EASYPAISA OPERATIONAL ACCOUNTING READY",
