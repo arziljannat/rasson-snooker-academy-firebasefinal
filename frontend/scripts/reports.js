@@ -321,6 +321,74 @@ document.getElementById("viewReportBtn").onclick = async () => {
 
 };
 
+
+// ======================================================
+// 🔥 REPORT OPERATIONAL DATE HELPER
+// DAYS.DATE / DAY_ID PAR DEPEND NAHI KAREGA
+// SHIFTS COLLECTION KE START_MS KO PREFER KAREGA
+// ======================================================
+
+async function getShiftTimesForDay(dayId, branch) {
+
+    const result = {
+        shift1: null,
+        shift2: null
+    };
+
+    if (!dayId || !branch) {
+        return result;
+    }
+
+    try {
+
+        const q = query(
+            collection(window.db, "shifts"),
+            where("branch", "==", branch),
+            where("day_id", "==", dayId)
+        );
+
+        const snap =
+            await getDocs(q);
+
+        snap.forEach(docSnap => {
+
+            const s =
+                docSnap.data();
+
+            const shiftNumber =
+                Number(s.shift_number);
+
+            if (shiftNumber === 1) {
+
+                result.shift1 = s;
+
+            }
+
+            if (shiftNumber === 2) {
+
+                result.shift2 = s;
+
+            }
+
+        });
+
+    } catch (err) {
+
+        console.error(
+            "❌ REPORT SHIFT TIME LOAD ERROR:",
+            err
+        );
+
+    }
+
+    return result;
+}
+
+
+
+
+
+
 async function loadReport(days) {
 
     if (!days) {
@@ -336,6 +404,11 @@ async function loadReport(days) {
     let dates = getDates();
 
     if (!dates) return;
+
+    const branch =
+    String(
+        localStorage.getItem("branch") || ""
+    ).trim();
 
     let box =
         document.getElementById("reportOutput");
@@ -440,7 +513,7 @@ async function loadReport(days) {
         let rows = [];
 
 
-        Object.values(days || {}).forEach(day => {
+        for (const day of Object.values(days || {})) {
 
             const d =
                 day.raw || {};
@@ -479,71 +552,156 @@ calculatedDate:
           )
     }
 );
+        }
+const combined =
+    d.combined || {};
 
-            const s1 =
-                d.shift1 || {};
 
-            const s2 =
-                d.shift2 || {};
+// ==========================================
+// 🔥 LOAD ACTUAL SHIFT SNAPSHOTS
+// SHIFTS COLLECTION SE
+// ==========================================
 
-            const combined =
-                d.combined || {};
+const shiftTimes =
+    await getShiftTimesForDay(
+        d.day_id,
+        branch
+    );
+
+
+// ==========================================
+// SHIFT 1
+// ==========================================
+
+const s1 =
+    shiftTimes.shift1 ||
+    d.shift1 ||
+    {};
+
+
+// ==========================================
+// SHIFT 2
+// ==========================================
+
+const s2 =
+    shiftTimes.shift2 ||
+    d.shift2 ||
+    {};
 
 
 // ======================================
 // 🔥 OPERATIONAL DATE
-// DAY_ID TIMESTAMP FIRST
+// ACTUAL SHIFT 1 START_MS SE
 // ======================================
 
-let operationalDate;
+let operationalDate = null;
 
 
 // ======================================
-// PRIORITY:
-// 1. day_id timestamp
-// 2. shift1.startMs
-// 3. start_time
-// 4. created_at
-// 5. d.date
+// 1. SHIFT 1 START_MS
 // ======================================
-
-const dayIdNumber =
-    Number(d.day_id);
-
 
 if (
-    Number.isFinite(dayIdNumber) &&
-    dayIdNumber > 1000000000000
+    s1 &&
+    Number(s1.start_ms) > 1000000000000
 ) {
 
     operationalDate =
-        new Date(dayIdNumber);
+        new Date(
+            Number(s1.start_ms)
+        );
 
-} else if (s1.startMs) {
+}
+
+
+// ======================================
+// 2. SHIFT 1 startMs
+// OLD DATA SUPPORT
+// ======================================
+
+else if (
+    s1 &&
+    Number(s1.startMs) > 1000000000000
+) {
 
     operationalDate =
         new Date(
             Number(s1.startMs)
         );
 
-} else if (d.start_time) {
+}
+
+
+// ======================================
+// 3. SHIFT 2 START_MS
+// FALLBACK
+// ======================================
+
+else if (
+    s2 &&
+    Number(s2.start_ms) > 1000000000000
+) {
 
     operationalDate =
-        new Date(d.start_time);
+        new Date(
+            Number(s2.start_ms)
+        );
 
-} else if (d.created_at) {
+}
+
+
+// ======================================
+// 4. SHIFT 2 startMs
+// OLD DATA SUPPORT
+// ======================================
+
+else if (
+    s2 &&
+    Number(s2.startMs) > 1000000000000
+) {
 
     operationalDate =
-        new Date(d.created_at);
+        new Date(
+            Number(s2.startMs)
+        );
 
-} else if (d.date) {
+}
+
+
+// ======================================
+// 5. OLD DATA FALLBACK
+// ======================================
+
+else if (d.date) {
 
     operationalDate =
         new Date(d.date);
 
-} else {
+}
 
-    return;
+
+// ======================================
+// INVALID
+// ======================================
+
+if (
+    !operationalDate ||
+    isNaN(
+        operationalDate.getTime()
+    )
+) {
+
+    console.warn(
+        "⚠️ REPORT: No valid operational date",
+        {
+            dayId: d.day_id,
+            branch: d.branch,
+            shift1: s1,
+            shift2: s2
+        }
+    );
+
+    continue;
 
 }
 
@@ -690,15 +848,29 @@ if (
 
             let combinedTiming = "-";
 
-            if (
-                s1.startMs &&
-                s2.endMs
-            ) {
+if (
+    Number(s1.start_ms || s1.startMs || 0) > 0 &&
+    Number(s2.end_ms || s2.endMs || 0) > 0
+) {
 
-                combinedTiming =
-                    `${formatTime(s1.startMs)} → ${formatTime(s2.endMs)}`;
+    const startMs =
+        Number(
+            s1.start_ms ||
+            s1.startMs ||
+            0
+        );
 
-            }
+    const endMs =
+        Number(
+            s2.end_ms ||
+            s2.endMs ||
+            0
+        );
+
+    combinedTiming =
+        `${formatTime(startMs)} → ${formatTime(endMs)}`;
+
+}
 
 
             // ======================================
