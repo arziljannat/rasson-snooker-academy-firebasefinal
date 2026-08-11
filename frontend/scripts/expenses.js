@@ -8,7 +8,6 @@ import {
     deleteDoc,
     doc,
     updateDoc,
-    serverTimestamp,
     getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -16,175 +15,640 @@ console.log("EXPENSES FIREBASE LOADED");
 
 const db = window.db;
 
-const branch = (localStorage.getItem("branch") || "")
-    .toLowerCase()
-    .replace(/\s+/g, "");
-const role = (localStorage.getItem("role") || "").toLowerCase();
+const branch =
+    (localStorage.getItem("branch") || "")
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+const role =
+    (localStorage.getItem("role") || "")
+        .toLowerCase();
 
 let expenseData = [];
-let operationalDayMap = {};
+
+let operationalDays = {};
+
 let editId = null;
 
 let selectedType = "all";
-let selectedDay = "all";
-let fromDate = null;
-let toDate = null;
 
-// =========================
-// LOAD CURRENT DAY ID
-// =========================
+let selectedDay = "current";
+
+let selectedMonth = null;
+
+let selectedYear = null;
+
+
+// ======================================================
+// CURRENT DAY
+// ======================================================
+
 async function loadCurrentDayId() {
-
-    const snap = await getDocs(collection(db, "system"));
-
-    snap.forEach(d => {
-        const data = d.data();
-
-if (data.type === "current_day" && data.branch === branch) {
-
-    window.currentDayId =
-        data.day_id;
-
-    window.currentDayCreatedAt =
-        data.created_at || null;
-}
-    });
-
-    console.log("✅ CURRENT DAY ID LOADED:", window.currentDayId);
-}
-
-async function loadOperationalDays() {
 
     const snap =
         await getDocs(
-            collection(db, "day_history")
+            collection(
+                db,
+                "system"
+            )
         );
 
-    snap.forEach(doc => {
 
-        const data = doc.data();
+    snap.forEach(d => {
+
+        const data =
+            d.data();
+
+
+        const dataBranch =
+            String(
+                data.branch || ""
+            )
+            .toLowerCase()
+            .replace(/\s+/g, "");
+
 
         if (
-            (data.branch || "")
-            .toLowerCase()
-            .replace(/\s+/g, "")
-            !== branch
-        ) return;
+            data.type === "current_day" &&
+            dataBranch === branch
+        ) {
 
-operationalDayMap[
-    String(data.day_id)
-] = data;
+            window.currentDayId =
+                data.day_id;
+
+            window.currentDayCreatedAt =
+                data.created_at || null;
+
+        }
+
     });
+
 
     console.log(
-        "✅ OPERATIONAL DAYS:",
-        operationalDayMap
+        "✅ CURRENT OPERATIONAL DAY:",
+        window.currentDayId
     );
+
 }
-// =========================
-// TIME FORMAT
-// =========================
-function formatTime(timestamp) {
 
-    if (!timestamp) return "-";
 
-    let date;
+// ======================================================
+// DATE HELPER
+// ======================================================
 
-    if (timestamp.seconds) {
-        date = new Date(timestamp.seconds * 1000);
-    } else {
-        date = new Date(timestamp);
+function getRecordDate(value) {
+
+    if (!value) {
+        return null;
     }
 
-    return date.toLocaleString("en-PK", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Karachi"
-    });
+
+    if (
+        typeof value === "object" &&
+        value.seconds
+    ) {
+
+        const d =
+            new Date(
+                value.seconds * 1000
+            );
+
+        return isNaN(
+            d.getTime()
+        )
+            ? null
+            : d;
+
+    }
+
+
+    const d =
+        new Date(value);
+
+
+    return isNaN(
+        d.getTime()
+    )
+        ? null
+        : d;
+
 }
 
-// =========================
+
+// ======================================================
+// LOAD OPERATIONAL DAYS
+// SAME DAYS SOURCE AS DASHBOARD / REPORTS
+// ======================================================
+
+async function loadOperationalDays() {
+
+    operationalDays = {};
+
+
+    const snap =
+        await getDocs(
+            collection(
+                db,
+                "days"
+            )
+        );
+
+
+    snap.forEach(docSnap => {
+
+        const d =
+            docSnap.data();
+
+
+        const dayBranch =
+            String(
+                d.branch || ""
+            )
+            .toLowerCase()
+            .replace(/\s+/g, "");
+
+
+        if (
+            dayBranch !== branch
+        ) {
+            return;
+        }
+
+
+        const dayId =
+            String(
+                d.day_id ||
+                docSnap.id ||
+                ""
+            )
+            .trim();
+
+
+        if (!dayId) {
+            return;
+        }
+
+
+        // ==================================================
+        // OPERATIONAL DAY START
+        // ==================================================
+
+        let rawDate =
+            d.start_time ||
+            d.created_at ||
+            d.date;
+
+
+        // OLD DAY FIX
+        if (
+            !rawDate &&
+            d.shift1?.startMs
+        ) {
+
+            rawDate =
+                d.shift1.startMs;
+
+        }
+
+
+        if (
+            !rawDate &&
+            d.shift1?.start_ms
+        ) {
+
+            rawDate =
+                d.shift1.start_ms;
+
+        }
+
+
+        const startDate =
+            getRecordDate(
+                rawDate
+            );
+
+
+        if (!startDate) {
+            return;
+        }
+
+
+        // ==================================================
+        // CLOSED CHECK
+        // ==================================================
+
+        const isClosed =
+
+            d.is_closed === true ||
+
+            d.closed === true ||
+
+            d.day_closed === true ||
+
+            !!d.close_time ||
+
+            !!d.closeTime ||
+
+            !!d.end_time ||
+
+            !!d.endTime ||
+
+            !!d.shift2?.close_time ||
+
+            !!d.shift2?.closeTime ||
+
+            !!d.shift2?.endMs ||
+
+            !!d.shift2?.end_ms;
+
+
+        operationalDays[dayId] = {
+
+            raw: {
+                ...d,
+                is_closed:
+                    isClosed
+            },
+
+            startDate,
+
+            month:
+                startDate.getMonth(),
+
+            year:
+                startDate.getFullYear(),
+
+            day:
+                startDate.getDate(),
+
+            operationalMonth:
+                `${startDate.getFullYear()}-${String(
+                    startDate.getMonth() + 1
+                ).padStart(2, "0")}`
+
+        };
+
+    });
+
+
+    console.log(
+        "📅 OPERATIONAL DAYS LOADED:",
+        operationalDays
+    );
+
+}
+
+
+// ======================================================
+// CURRENT OPERATIONAL DAY
+// ======================================================
+
+function getCurrentOperationalDay() {
+
+    const currentId =
+        String(
+            window.currentDayId || ""
+        )
+        .trim();
+
+
+    if (
+        currentId &&
+        operationalDays[currentId]
+    ) {
+
+        return operationalDays[currentId];
+
+    }
+
+
+    // ==================================================
+    // FALLBACK — LATEST OPEN DAY
+    // ==================================================
+
+    const openDays =
+        Object.values(
+            operationalDays
+        )
+        .filter(day =>
+            day.raw?.is_closed !== true
+        )
+        .sort(
+            (a, b) =>
+                b.startDate.getTime() -
+                a.startDate.getTime()
+        );
+
+
+    if (
+        openDays.length
+    ) {
+
+        return openDays[0];
+
+    }
+
+
+    return null;
+
+}
+
+
+// ======================================================
+// RECORD DAY ID
+// ======================================================
+
+function getRecordDayId(record) {
+
+    return String(
+        record?.day_id ||
+        record?.dayId ||
+        record?.current_day_id ||
+        ""
+    )
+    .trim();
+
+}
+
+
+// ======================================================
+// RECORD OPERATIONAL MONTH
+// ======================================================
+
+function getExpenseOperationalMonth(expense) {
+
+    const dayId =
+        getRecordDayId(
+            expense
+        );
+
+
+    // PRIMARY
+    if (
+        dayId &&
+        operationalDays[dayId]
+    ) {
+
+        return operationalDays[dayId]
+            .operationalMonth;
+
+    }
+
+
+    // EXISTING SAVED FIELD
+    if (
+        expense.operational_month
+    ) {
+
+        return expense.operational_month;
+
+    }
+
+
+    // LEGACY FALLBACK
+    const date =
+        getRecordDate(
+            expense.created_at
+        );
+
+
+    if (!date) {
+        return null;
+    }
+
+
+    return (
+        date.getFullYear() +
+        "-" +
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0")
+    );
+
+}
+
+
+// ======================================================
+// TIME FORMAT
+// ======================================================
+
+function formatTime(timestamp) {
+
+    const date =
+        getRecordDate(
+            timestamp
+        );
+
+
+    if (!date) {
+        return "-";
+    }
+
+
+    return date.toLocaleString(
+        "en-PK",
+        {
+
+            day:
+                "2-digit",
+
+            month:
+                "2-digit",
+
+            year:
+                "numeric",
+
+            hour:
+                "2-digit",
+
+            minute:
+                "2-digit",
+
+            hour12:
+                true,
+
+            timeZone:
+                "Asia/Karachi"
+
+        }
+    );
+
+}
+
+
+// ======================================================
 // POPUP
-// =========================
+// ======================================================
+
 window.openAddPopup = () => {
-    document.getElementById("addPopup").classList.remove("hide");
+
+    document
+        .getElementById(
+            "addPopup"
+        )
+        .classList
+        .remove("hide");
+
 };
+
 
 window.closeAddPopup = () => {
-    document.getElementById("addPopup").classList.add("hide");
+
+    document
+        .getElementById(
+            "addPopup"
+        )
+        .classList
+        .add("hide");
+
 };
+
 
 window.closeEditPopup = () => {
-    document.getElementById("editPopup").classList.add("hide");
+
+    document
+        .getElementById(
+            "editPopup"
+        )
+        .classList
+        .add("hide");
+
 };
 
-// =========================
+
+// ======================================================
 // SAVE EXPENSE
-// =========================
+// ======================================================
+
 window.saveExpense = async () => {
 
-    const type = document.getElementById("newType").value;
-    const title = document.getElementById("newTitle").value;
-    const amount = Number(document.getElementById("newAmount").value);
-    const selectedDate =
-    document.getElementById("newDate").value;
-    const shift =
-document.getElementById("newShift").value;
+    const type =
+        document.getElementById(
+            "newType"
+        ).value;
 
-    if (!title || !amount) {
-        alert("Fill all fields");
+    const title =
+        document.getElementById(
+            "newTitle"
+        ).value;
+
+    const amount =
+        Number(
+            document.getElementById(
+                "newAmount"
+            ).value
+        );
+
+    const selectedDate =
+        document.getElementById(
+            "newDate"
+        ).value;
+
+    const shift =
+        document.getElementById(
+            "newShift"
+        ).value;
+
+
+    if (
+        !title ||
+        !amount
+    ) {
+
+        alert(
+            "Fill all fields"
+        );
+
         return;
     }
 
-await addDoc(collection(db, "expenses"), {
-    type,
-    title,
-    amount,
-    shift,
 
-    branch: String(branch)
-        .toLowerCase()
-        .replace(/\s+/g, ""),
+    // ==================================================
+    // CURRENT OPERATIONAL DAY REQUIRED
+    // ==================================================
 
-    day_id: window.currentDayId,
+    const currentDay =
+        getCurrentOperationalDay();
 
-    // operational day opening date
-    day_created_at:
-        window.currentDayCreatedAt || null,
 
-    operational_month:
-    (() => {
+    if (
+        !window.currentDayId ||
+        !currentDay
+    ) {
 
-        let d =
-            new Date(
-                window.currentDayCreatedAt
-            );
+        alert(
+            "Current Operational Day not found."
+        );
 
-        return `${d.getFullYear()}-${String(
-            d.getMonth() + 1
-        ).padStart(2, "0")}`;
+        return;
+    }
 
-    })(),
 
-    created_at: selectedDate
-        ? new Date(selectedDate).toISOString()
-        : new Date().toISOString()
-});
+    await addDoc(
+        collection(
+            db,
+            "expenses"
+        ),
+        {
 
-    document.getElementById("newTitle").value = "";
-    document.getElementById("newAmount").value = "";
-    document.getElementById("newDate").value = "";
+            type,
+
+            title,
+
+            amount,
+
+            shift,
+
+            branch:
+                branch,
+
+            // 🔥 PRIMARY OPERATIONAL DAY
+            day_id:
+                window.currentDayId,
+
+            // 🔥 OPERATIONAL DAY START
+            day_created_at:
+                currentDay.startDate,
+
+            // 🔥 OPERATIONAL MONTH
+            operational_month:
+                currentDay.operationalMonth,
+
+            // ACTUAL ENTRY TIME
+            created_at:
+                selectedDate
+                    ? new Date(
+                        selectedDate
+                    ).toISOString()
+                    : new Date()
+                        .toISOString()
+
+        }
+    );
+
+
+    document.getElementById(
+        "newTitle"
+    ).value = "";
+
+    document.getElementById(
+        "newAmount"
+    ).value = "";
+
+    document.getElementById(
+        "newDate"
+    ).value = "";
+
 
     closeAddPopup();
+
 };
 
-// =========================
+
+// ======================================================
 // EDIT
-// =========================
+// ======================================================
+
 window.editExpense = (
     id,
     title,
@@ -196,342 +660,740 @@ window.editExpense = (
 
     editId = id;
 
-    document.getElementById("editTitle").value = title;
-    document.getElementById("editAmount").value = amount;
-    document.getElementById("editType").value = type;
-    document.getElementById("editShift").value =
-    shift || "shift1";
+
+    document.getElementById(
+        "editTitle"
+    ).value =
+        title || "";
+
+
+    document.getElementById(
+        "editAmount"
+    ).value =
+        amount || 0;
+
+
+    document.getElementById(
+        "editType"
+    ).value =
+        type || "";
+
+
+    document.getElementById(
+        "editShift"
+    ).value =
+        shift || "shift1";
+
+
     if (created_at) {
 
-    let d;
+        const d =
+            getRecordDate(
+                created_at
+            );
 
-    if (created_at.seconds) {
 
-        d = new Date(created_at.seconds * 1000);
+        if (d) {
 
-    } else {
+            const localDate =
+                new Date(
+                    d.getTime() -
+                    d.getTimezoneOffset() *
+                    60000
+                );
 
-        d = new Date(created_at);
+
+            document.getElementById(
+                "editDate"
+            ).value =
+                localDate
+                    .toISOString()
+                    .slice(
+                        0,
+                        16
+                    );
+
+        }
+
     }
 
-    // ✅ INVALID DATE FIX
-    if (!isNaN(d.getTime())) {
 
-        const localDate =
-            new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    document
+        .getElementById(
+            "editPopup"
+        )
+        .classList
+        .remove("hide");
 
-        document.getElementById("editDate").value =
-            localDate.toISOString().slice(0, 16);
-
-    } else {
-
-        document.getElementById("editDate").value = "";
-    }
-}
-
-    document.getElementById("editPopup").classList.remove("hide");
 };
 
-// =========================
+
+// ======================================================
 // UPDATE
-// =========================
+// ======================================================
+
 window.updateExpense = async () => {
 
-    const title = document.getElementById("editTitle").value;
-    const amount = Number(document.getElementById("editAmount").value);
-    const type = document.getElementById("editType").value;
-    const shift =
-document.getElementById("editShift").value;
-    const editDate =
-    document.getElementById("editDate").value;
+    const title =
+        document.getElementById(
+            "editTitle"
+        ).value;
 
-    await updateDoc(doc(db, "expenses", editId), {
-    title,
-    amount,
-    type,
-    shift,
-    created_at: editDate
-        ? new Date(editDate).toISOString()
-        : new Date().toISOString()
-});
+    const amount =
+        Number(
+            document.getElementById(
+                "editAmount"
+            ).value
+        );
+
+    const type =
+        document.getElementById(
+            "editType"
+        ).value;
+
+    const shift =
+        document.getElementById(
+            "editShift"
+        ).value;
+
+    const editDate =
+        document.getElementById(
+            "editDate"
+        ).value;
+
+
+    if (
+        !title ||
+        !amount
+    ) {
+
+        alert(
+            "Fill all fields"
+        );
+
+        return;
+    }
+
+
+    // ==================================================
+    // IMPORTANT:
+    // DAY_ID CHANGE NAHI KARNA
+    // ==================================================
+
+    await updateDoc(
+        doc(
+            db,
+            "expenses",
+            editId
+        ),
+        {
+
+            title,
+
+            amount,
+
+            type,
+
+            shift,
+
+            created_at:
+                editDate
+                    ? new Date(
+                        editDate
+                    ).toISOString()
+                    : new Date()
+                        .toISOString()
+
+        }
+    );
+
 
     editId = null;
+
     closeEditPopup();
+
 };
 
-// =========================
+
+// ======================================================
 // DELETE
-// =========================
-window.deleteExpense = async (id) => {
+// ======================================================
 
-    if (!confirm("Delete this expense?")) return;
+window.deleteExpense = async (
+    id
+) => {
 
-    await deleteDoc(doc(db, "expenses", id));
+    if (
+        !confirm(
+            "Delete this expense?"
+        )
+    ) {
+        return;
+    }
+
+
+    await deleteDoc(
+        doc(
+            db,
+            "expenses",
+            id
+        )
+    );
+
 };
 
-// =========================
+
+// ======================================================
+// MONTH FILTER
+// ======================================================
+
+window.filterExpensesByMonth = () => {
+
+    const input =
+        document.getElementById(
+            "monthFilter"
+        );
+
+
+    if (
+        !input ||
+        !input.value
+    ) {
+        return;
+    }
+
+
+    const parts =
+        input.value.split("-");
+
+
+    selectedYear =
+        Number(
+            parts[0]
+        );
+
+    selectedMonth =
+        Number(
+            parts[1]
+        ) - 1;
+
+
+    renderTable();
+
+};
+
+
+// ======================================================
+// DEFAULT MONTH
+// OPERATIONAL DAY MONTH
+// ======================================================
+
+function setDefaultMonth() {
+
+    const currentDay =
+        getCurrentOperationalDay();
+
+
+    let year;
+    let month;
+
+
+    if (
+        currentDay?.startDate
+    ) {
+
+        year =
+            currentDay.startDate
+                .getFullYear();
+
+        month =
+            currentDay.startDate
+                .getMonth();
+
+    } else {
+
+        const now =
+            new Date();
+
+        year =
+            now.getFullYear();
+
+        month =
+            now.getMonth();
+
+    }
+
+
+    selectedYear =
+        year;
+
+    selectedMonth =
+        month;
+
+
+    const input =
+        document.getElementById(
+            "monthFilter"
+        );
+
+
+    if (input) {
+
+        input.value =
+            `${year}-${String(
+                month + 1
+            ).padStart(
+                2,
+                "0"
+            )}`;
+
+    }
+
+}
+
+
+// ======================================================
 // RENDER
-// =========================
+// ======================================================
+
 function renderTable() {
 
-    const body = document.getElementById("expensesBody");
+    const body =
+        document.getElementById(
+            "expensesBody"
+        );
+
+
+    if (!body) {
+        return;
+    }
+
+
     body.innerHTML = "";
+
 
     let total = 0;
 
+
     expenseData.forEach(e => {
 
-        // FILTER TYPE
-        if (selectedType !== "all" && e.type !== selectedType) return;
-
-        // FILTER DAY
-        if (selectedDay === "current" && e.day_id !== window.currentDayId) return;
-
-let expenseDate;
-
-if (e.created_at?.seconds) {
-
-    expenseDate =
-        new Date(
-            e.created_at.seconds * 1000
-        );
-
-} else {
-
-    expenseDate =
-        new Date(e.created_at);
-}
-
-// FROM DATE FILTER
-if (fromDate) {
-
-    let from =
-        new Date(fromDate);
-
-    from.setHours(0,0,0,0);
-
-    if (expenseDate < from) return;
-}
-
-// TO DATE FILTER
-if (toDate) {
-
-    let to =
-        new Date(toDate);
-
-    to.setHours(23,59,59,999);
-
-    if (expenseDate > to) return;
-}
-        
-        total += Number(e.amount || 0);
-
-let actions = "";
+        // ==================================================
+        // TYPE
+        // ==================================================
 
         if (
-    role === "admin" ||
-    role === "super_admin"
-)
-{
-            actions = `
-                <button class="btn-green"onclick="editExpense(
-'${e.id}',
-'${e.title}',
-${e.amount},
-'${e.type}',
-'${e.shift || "shift1"}',
-'${e.created_at || ""}'
-)">Edit</button>
-                <button class="btn-red" onclick="deleteExpense('${e.id}')">Delete</button>
-            `;
+            selectedType !== "all" &&
+            e.type !== selectedType
+        ) {
+
+            return;
+
         }
 
-body.innerHTML += `
-    <tr>
-        <td>${e.title || "-"}</td>
 
-        <td>${e.amount || 0}</td>
+        // ==================================================
+        // CURRENT OPERATIONAL DAY
+        // ==================================================
 
-        <td>${e.type || "-"}</td>
+        if (
+            selectedDay === "current"
+        ) {
 
-        <td>
-            ${
-                e.shift === "shift2"
-                ? "Shift 2"
-                : "Shift 1"
+            const recordDayId =
+                getRecordDayId(e);
+
+
+            if (
+                recordDayId
+            ) {
+
+                if (
+                    String(
+                        recordDayId
+                    ) !== String(
+                        window.currentDayId
+                    )
+                ) {
+
+                    return;
+
+                }
+
+            } else {
+
+                // Legacy record without day_id
+                const currentDay =
+                    getCurrentOperationalDay();
+
+
+                const expenseDate =
+                    getRecordDate(
+                        e.created_at
+                    );
+
+
+                if (
+                    !currentDay ||
+                    !expenseDate ||
+                    expenseDate <
+                    currentDay.startDate ||
+                    expenseDate >
+                    new Date()
+                ) {
+
+                    return;
+
+                }
+
             }
-        </td>
 
-        <td>
-            ${formatTime(e.created_at)}
-        </td>
+        }
 
-        <td>
-            ${actions}
-        </td>
-    </tr>
-`;
+
+        // ==================================================
+        // MONTH FILTER
+        // OPERATIONAL MONTH
+        // ==================================================
+
+        if (
+            selectedYear !== null &&
+            selectedMonth !== null
+        ) {
+
+            const selectedKey =
+                `${selectedYear}-${String(
+                    selectedMonth + 1
+                ).padStart(
+                    2,
+                    "0"
+                )}`;
+
+
+            const expenseMonth =
+                getExpenseOperationalMonth(
+                    e
+                );
+
+
+            if (
+                expenseMonth !==
+                selectedKey
+            ) {
+
+                return;
+
+            }
+
+        }
+
+
+        // ==================================================
+        // TOTAL
+        // ==================================================
+
+        total +=
+            Number(
+                e.amount || 0
+            );
+
+
+        // ==================================================
+        // ACTIONS
+        // ==================================================
+
+        let actions = "";
+
+
+        if (
+            role === "admin" ||
+            role === "super_admin"
+        ) {
+
+            const safeTitle =
+                String(
+                    e.title || ""
+                )
+                .replace(
+                    /'/g,
+                    "\\'"
+                );
+
+            const safeType =
+                String(
+                    e.type || ""
+                )
+                .replace(
+                    /'/g,
+                    "\\'"
+                );
+
+
+            actions = `
+
+                <button
+                    class="btn-green"
+                    onclick="editExpense(
+                        '${e.id}',
+                        '${safeTitle}',
+                        ${Number(e.amount || 0)},
+                        '${safeType}',
+                        '${e.shift || "shift1"}',
+                        '${e.created_at || ""}'
+                    )"
+                >
+                    Edit
+                </button>
+
+                <button
+                    class="btn-red"
+                    onclick="deleteExpense(
+                        '${e.id}'
+                    )"
+                >
+                    Delete
+                </button>
+
+            `;
+
+        }
+
+
+        body.innerHTML += `
+
+            <tr>
+
+                <td>
+                    ${e.title || "-"}
+                </td>
+
+                <td>
+                    ${e.amount || 0}
+                </td>
+
+                <td>
+                    ${e.type || "-"}
+                </td>
+
+                <td>
+                    ${
+                        e.shift === "shift2"
+                            ? "Shift 2"
+                            : "Shift 1"
+                    }
+                </td>
+
+                <td>
+                    ${formatTime(
+                        e.created_at
+                    )}
+                </td>
+
+                <td>
+                    ${actions}
+                </td>
+
+            </tr>
+
+        `;
+
     });
 
-    document.getElementById("todayTotal").innerText = total + " PKR";
+
+    document.getElementById(
+        "todayTotal"
+    ).innerText =
+        total + " PKR";
+
 }
 
-// =========================
-// FILTERS
-// =========================
+
+// ======================================================
+// TYPE FILTER
+// ======================================================
+
 window.filterByType = function () {
-    selectedType = document.getElementById("filterType").value;
+
+    selectedType =
+        document.getElementById(
+            "filterType"
+        ).value;
+
+
     renderTable();
+
 };
+
+
+// ======================================================
+// DAY FILTER
+// ======================================================
 
 window.filterByDay = function () {
-    selectedDay = document.getElementById("dayFilter").value;
-    renderTable();
-};
 
-window.filterByDateRange = function () {
+    selectedDay =
+        document.getElementById(
+            "dayFilter"
+        ).value;
 
-    fromDate =
-        document.getElementById("fromDate").value;
-
-    toDate =
-        document.getElementById("toDate").value;
 
     renderTable();
+
 };
 
 
-// =========================
+// ======================================================
 // SEARCH
-// =========================
+// ======================================================
+
 window.searchExpenses = function () {
 
     const search =
-        document.getElementById("searchInput")
+        document.getElementById(
+            "searchInput"
+        )
         .value
         .toLowerCase();
 
+
     const rows =
-        document.querySelectorAll("#expensesBody tr");
+        document.querySelectorAll(
+            "#expensesBody tr"
+        );
+
 
     rows.forEach(row => {
 
         const text =
-            row.innerText.toLowerCase();
+            row.innerText
+                .toLowerCase();
 
-        if (text.includes(search)) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
+
+        row.style.display =
+            text.includes(search)
+                ? ""
+                : "none";
+
     });
+
 };
 
-// =========================
-// LISTENER START
-// =========================
+
+// ======================================================
+// REALTIME LISTENER
+// ======================================================
+
 function startExpensesListener() {
 
-    if (!window.currentDayId) {
-        console.log("⏳ Waiting for currentDayId...");
-        setTimeout(startExpensesListener, 500);
-        return;
-    }
+    const q =
+        query(
 
-    console.log("✅ DAY ID READY:", window.currentDayId);
+            collection(
+                db,
+                "expenses"
+            ),
 
-    const q = query(
-    collection(db, "expenses"),
-    where("branch", "==", branch),
-    orderBy("created_at", "desc")
-);
+            where(
+                "branch",
+                "==",
+                branch
+            ),
 
-    onSnapshot(q, (snap) => {
+            orderBy(
+                "created_at",
+                "desc"
+            )
 
-        expenseData = [];
+        );
 
-        const now = new Date();
 
-        // ✅ DEFAULT CURRENT MONTH FILTER
+    onSnapshot(
+        q,
+        snap => {
 
-if (!fromDate && !toDate) {
+            expenseData = [];
 
-    fromDate =
-        `${now.getFullYear()}-${String(
-            now.getMonth() + 1
-        ).padStart(2, "0")}-01`;
 
-    toDate =
-        `${now.getFullYear()}-${String(
-            now.getMonth() + 1
-        ).padStart(2, "0")}-${new Date(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            0
-        ).getDate()}`;
+            snap.forEach(
+                docSnap => {
 
-    const fromInput =
-        document.getElementById("fromDate");
+                    expenseData.push({
 
-    const toInput =
-        document.getElementById("toDate");
+                        id:
+                            docSnap.id,
 
-    if (fromInput)
-        fromInput.value = fromDate;
+                        ...docSnap.data()
 
-    if (toInput)
-        toInput.value = toDate;
+                    });
+
+                }
+            );
+
+
+            renderTable();
+
+        },
+
+        error => {
+
+            console.error(
+                "❌ EXPENSE LISTENER ERROR:",
+                error
+            );
+
+        }
+    );
+
 }
 
 
-snap.forEach(d => {
-
-    let data = d.data();
-
-    expenseData.push({
-        id: d.id,
-        ...data
-    });
-});
-
-        renderTable();
-    });
-}
-
-// =========================
+// ======================================================
 // INIT
-// =========================
-if (
-    role !== "admin" &&
-    role !== "super_admin"
-) {
+// ======================================================
 
-    // HIDE MONTH FILTER
-    const monthBox =
-        document.getElementById("monthFilterBox");
+async function initExpenses() {
 
-    if (monthBox) {
-        monthBox.style.display = "none";
+    try {
+
+        // 1
+        await loadCurrentDayId();
+
+
+        // 2
+        await loadOperationalDays();
+
+
+        // 3
+        setDefaultMonth();
+
+
+        // 4
+        startExpensesListener();
+
+
+        console.log(
+            "✅ EXPENSES OPERATIONAL DAY READY",
+            {
+                currentDayId:
+                    window.currentDayId,
+
+                currentDay:
+                    getCurrentOperationalDay()
+
+            }
+        );
+
     }
 
-    // HIDE DATE INPUT
-    const newDate =
-        document.getElementById("newDate");
+    catch (error) {
 
-    if (newDate) {
-        newDate.style.display = "none";
+        console.error(
+            "❌ EXPENSE INIT ERROR:",
+            error
+        );
+
     }
 
-    // HIDE EDIT DATE INPUT
-    const editDate =
-        document.getElementById("editDate");
-
-    if (editDate) {
-        editDate.style.display = "none";
-    }
 }
 
-await loadCurrentDayId();
-await loadOperationalDays();
-startExpensesListener();
 
+initExpenses();
