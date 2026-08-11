@@ -13,9 +13,10 @@ body {
 }
 
 .report-container {
-    display: grid;
-    grid-template-columns: 260px auto;
+    display: flex;
+    flex-direction: column;
     gap: 25px;
+    width: 100%;
 }
 
 /* SIDEBAR */
@@ -25,8 +26,30 @@ body {
     box-shadow: 0 0 20px #00ff9d;
     border-radius: 15px;
     padding: 20px;
-    height: 500px;
+    height: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
+
+.report-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-title {
+    width: 100%;
+}
+
+.report-btn {
+    width: auto;
+    flex: 1;
+    min-width: 180px;
+    margin-bottom: 0;
+}
+
+
 
 .sidebar-title {
     color: #00ffcc;
