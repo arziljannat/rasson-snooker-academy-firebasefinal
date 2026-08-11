@@ -1715,73 +1715,50 @@ window.filterEasyByDateRange = function () {
 
 
 // ======================================================
-// CHECK EASYPAISA FILTERS
+// EASYPAISA FILTER
 // ======================================================
 
-function isEasyInSelectedDateRange(
-    easy
-) {
+function isEasyInSelectedDateRange(easy) {
 
     // ==================================================
-    // CURRENT DAY FILTER
+    // CURRENT DAY
     // ==================================================
 
-    if (
-        easyDayFilter === "current"
-    ) {
+    if (easyDayFilter === "current") {
 
         const currentDayId =
             String(
                 window.currentDayId || ""
             ).trim();
 
-
         const easyDayId =
-            getRecordDayId(
-                easy
-            );
+            getRecordDayId(easy);
 
-
-        // ==============================================
-        // PRIMARY — SAVED DAY ID
-        // ==============================================
-
+        // Primary: saved day_id
         if (
             currentDayId &&
             easyDayId
         ) {
 
             return (
-                easyDayId ===
-                currentDayId
+                easyDayId === currentDayId
             );
 
         }
 
-
-        // ==============================================
-        // LEGACY FALLBACK
-        // ==============================================
-
+        // Legacy fallback
         const easyDay =
-            getEasyOperationalDay(
-                easy
-            );
-
+            getEasyOperationalDay(easy);
 
         if (!easyDay) {
-
             return false;
-
         }
-
 
         return (
             String(
                 easyDay.dayId || ""
             ).trim()
-            ===
-            currentDayId
+            === currentDayId
         );
 
     }
@@ -1790,14 +1767,103 @@ function isEasyInSelectedDateRange(
     // ==================================================
     // ALL DAYS
     // ==================================================
+    // IMPORTANT:
+    // All Days = ALL entries of CURRENT
+    // OPERATIONAL MONTH
+    // ==================================================
 
-    if (
-        easyDayFilter === "all" &&
-        !fromDate &&
-        !toDate
-    ) {
+    if (easyDayFilter === "all") {
 
-        return true;
+        const currentDay =
+            getCurrentOperationalDay();
+
+        let currentOperationalMonth = null;
+
+
+        // ----------------------------------------------
+        // Current operational day month
+        // ----------------------------------------------
+
+        if (
+            currentDay &&
+            currentDay.operationalMonth
+        ) {
+
+            currentOperationalMonth =
+                currentDay.operationalMonth;
+
+        }
+
+
+        // ----------------------------------------------
+        // Fallback
+        // ----------------------------------------------
+
+        if (!currentOperationalMonth) {
+
+            currentOperationalMonth =
+                getMonthKey(
+                    new Date()
+                );
+
+        }
+
+
+        // ----------------------------------------------
+        // PRIMARY:
+        // EasyPaisa saved with operational_month
+        // ----------------------------------------------
+
+        if (
+            easy.operational_month
+        ) {
+
+            return (
+                easy.operational_month ===
+                currentOperationalMonth
+            );
+
+        }
+
+
+        // ----------------------------------------------
+        // SECONDARY:
+        // Find operational day
+        // ----------------------------------------------
+
+        const easyDay =
+            getEasyOperationalDay(easy);
+
+
+        if (easyDay) {
+
+            return (
+                easyDay.operationalMonth ===
+                currentOperationalMonth
+            );
+
+        }
+
+
+        // ----------------------------------------------
+        // LEGACY FALLBACK
+        // ----------------------------------------------
+
+        const easyDate =
+            getRecordDate(
+                easy.created_at
+            );
+
+
+        if (!easyDate) {
+            return false;
+        }
+
+
+        return (
+            getMonthKey(easyDate) ===
+            currentOperationalMonth
+        );
 
     }
 
@@ -1807,9 +1873,7 @@ function isEasyInSelectedDateRange(
     // ==================================================
 
     const easyDay =
-        getEasyOperationalDay(
-            easy
-        );
+        getEasyOperationalDay(easy);
 
 
     // ==================================================
@@ -1825,9 +1889,7 @@ function isEasyInSelectedDateRange(
 
 
         if (!easyDate) {
-
             return false;
-
         }
 
 
@@ -1880,19 +1942,13 @@ function isEasyInSelectedDateRange(
 
     const fromMonth =
         fromDate
-            ? fromDate.slice(
-                0,
-                7
-            )
+            ? fromDate.slice(0, 7)
             : null;
 
 
     const toMonth =
         toDate
-            ? toDate.slice(
-                0,
-                7
-            )
+            ? toDate.slice(0, 7)
             : null;
 
 
@@ -1911,7 +1967,7 @@ function isEasyInSelectedDateRange(
 
 
     // ==================================================
-    // MULTI-MONTH DATE RANGE
+    // MULTI MONTH DATE RANGE
     // ==================================================
 
     if (fromDate) {
@@ -1923,8 +1979,7 @@ function isEasyInSelectedDateRange(
 
 
         if (
-            easyDay.startDate <
-            from
+            easyDay.startDate < from
         ) {
 
             return false;
@@ -1943,8 +1998,7 @@ function isEasyInSelectedDateRange(
 
 
         if (
-            easyDay.startDate >
-            to
+            easyDay.startDate > to
         ) {
 
             return false;
