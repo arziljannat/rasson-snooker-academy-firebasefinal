@@ -168,41 +168,66 @@ async function loadOperationalDays() {
         if (!dayId) return;
 
 
-        // ======================================
-        // OPERATIONAL DATE
-        // SHIFT 1 START PREFERRED
-        // ======================================
-
-        const startMs =
-            Number(
-                d.shift1?.startMs || 0
-            );
+const startMs =
+    Number(
+        d.shift1?.startMs || 0
+    );
 
 
-        let date = null;
+let date = null;
 
 
-        if (startMs > 0) {
+// ======================================
+// OPERATIONAL DATE
+// PRIORITY:
+// 1. Shift 1 start
+// 2. day_id timestamp
+// 3. date
+// 4. start_time
+// 5. created_at
+// ======================================
 
-            date =
-                new Date(startMs);
+if (startMs > 0) {
 
-        } else if (d.date) {
+    date =
+        new Date(startMs);
 
-            date =
-                new Date(d.date);
+} else {
 
-        } else if (d.start_time) {
+    // ----------------------------------
+    // OLD / LEGACY DAYS
+    // day_id khud timestamp hota hai
+    // ----------------------------------
 
-            date =
-                new Date(d.start_time);
+    const dayIdNumber =
+        Number(d.day_id);
 
-        } else if (d.created_at) {
+    if (
+        Number.isFinite(dayIdNumber) &&
+        dayIdNumber > 1000000000000
+    ) {
 
-            date =
-                new Date(d.created_at);
+        date =
+            new Date(dayIdNumber);
 
-        }
+    } else if (d.date) {
+
+        date =
+            new Date(d.date);
+
+    } else if (d.start_time) {
+
+        date =
+            new Date(d.start_time);
+
+    } else if (d.created_at) {
+
+        date =
+            new Date(d.created_at);
+
+    }
+
+}
 
 
         // ======================================
@@ -438,6 +463,27 @@ async function loadReport(days) {
         created_at: d.created_at,
 
         calculatedDate:
+    d.shift1?.startMs
+        ? new Date(
+            Number(d.shift1.startMs)
+          ).toLocaleString(
+            "en-PK",
+            {
+                timeZone: "Asia/Karachi"
+            }
+          )
+        : (
+            Number(d.day_id) > 1000000000000
+                ? new Date(
+                    Number(d.day_id)
+                  ).toLocaleString(
+                    "en-PK",
+                    {
+                        timeZone: "Asia/Karachi"
+                    }
+                  )
+                : d.date || null
+          )
             d.shift1?.startMs
                 ? new Date(
                     Number(d.shift1.startMs)
@@ -465,36 +511,54 @@ async function loadReport(days) {
             // OPERATIONAL DATE
             // ======================================
 
-            let operationalDate;
-
-            if (s1.startMs) {
-
-                operationalDate =
-                    new Date(
-                        Number(s1.startMs)
-                    );
-
-            } else if (d.date) {
-
-                operationalDate =
-                    new Date(d.date);
-
-            } else {
-
-                return;
-
-            }
+let operationalDate;
 
 
-            if (
-                isNaN(
-                    operationalDate.getTime()
-                )
-            ) {
+// ======================================
+// OPERATIONAL DATE
+// PRIORITY:
+// 1. Shift 1 startMs
+// 2. day_id timestamp
+// 3. date
+// ======================================
 
-                return;
+if (s1.startMs) {
 
-            }
+    operationalDate =
+        new Date(
+            Number(s1.startMs)
+        );
+
+} else {
+
+    const dayIdNumber =
+        Number(d.day_id);
+
+
+    // ----------------------------------
+    // OLD / LEGACY DAY RECORD
+    // ----------------------------------
+
+    if (
+        Number.isFinite(dayIdNumber) &&
+        dayIdNumber > 1000000000000
+    ) {
+
+        operationalDate =
+            new Date(dayIdNumber);
+
+    } else if (d.date) {
+
+        operationalDate =
+            new Date(d.date);
+
+    } else {
+
+        return;
+
+    }
+
+}
 
 
             // ======================================
