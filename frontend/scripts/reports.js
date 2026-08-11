@@ -170,7 +170,7 @@ async function loadOperationalDays() {
 
 // ======================================
 // 🔥 OPERATIONAL DATE
-// CLOSED DAY KI SAVED DATE FIRST
+// DAY_ID TIMESTAMP FIRST
 // ======================================
 
 let date = null;
@@ -178,51 +178,48 @@ let date = null;
 
 // ======================================
 // PRIORITY:
-// 1. d.date
-// 2. day_id timestamp
+// 1. day_id timestamp
+// 2. shift1.startMs
 // 3. start_time
 // 4. created_at
-// 5. shift1.startMs
+// 5. d.date
 // ======================================
 
-if (d.date) {
+const dayIdNumber =
+    Number(d.day_id);
+
+
+if (
+    Number.isFinite(dayIdNumber) &&
+    dayIdNumber > 1000000000000
+) {
+
+    date =
+        new Date(dayIdNumber);
+
+} else if (
+    Number(d.shift1?.startMs || 0) > 0
+) {
+
+    date =
+        new Date(
+            Number(d.shift1.startMs)
+        );
+
+} else if (d.start_time) {
+
+    date =
+        new Date(d.start_time);
+
+} else if (d.created_at) {
+
+    date =
+        new Date(d.created_at);
+
+} else if (d.date) {
 
     date =
         new Date(d.date);
-
-} else {
-
-    const dayIdNumber =
-        Number(d.day_id);
-
-    if (
-        Number.isFinite(dayIdNumber) &&
-        dayIdNumber > 1000000000000
-    ) {
-
-        date =
-            new Date(dayIdNumber);
-
-    } else if (d.start_time) {
-
-        date =
-            new Date(d.start_time);
-
-    } else if (d.created_at) {
-
-        date =
-            new Date(d.created_at);
-
-    } else if (
-        Number(d.shift1?.startMs || 0) > 0
-    ) {
-
-        date =
-            new Date(
-                Number(d.shift1.startMs)
-            );
-
-    }
 
 }
 
@@ -458,7 +455,17 @@ console.log(
         start_time: d.start_time,
         created_at: d.created_at,
 
-        calculatedDate:
+calculatedDate:
+    Number(d.day_id) > 1000000000000
+        ? new Date(
+            Number(d.day_id)
+          ).toLocaleString(
+            "en-PK",
+            {
+                timeZone: "Asia/Karachi"
+            }
+          )
+        : (
             d.shift1?.startMs
                 ? new Date(
                     Number(d.shift1.startMs)
@@ -468,18 +475,8 @@ console.log(
                         timeZone: "Asia/Karachi"
                     }
                   )
-                : (
-                    Number(d.day_id) > 1000000000000
-                        ? new Date(
-                            Number(d.day_id)
-                          ).toLocaleString(
-                            "en-PK",
-                            {
-                                timeZone: "Asia/Karachi"
-                            }
-                          )
-                        : d.date || null
-                  )
+                : d.date || null
+          )
     }
 );
 
@@ -493,13 +490,9 @@ console.log(
                 d.combined || {};
 
 
-            // ======================================
-            // OPERATIONAL DATE
-            // ======================================
-
 // ======================================
 // 🔥 OPERATIONAL DATE
-// SAME DATE AS CLOSED DAY
+// DAY_ID TIMESTAMP FIRST
 // ======================================
 
 let operationalDate;
@@ -507,56 +500,52 @@ let operationalDate;
 
 // ======================================
 // PRIORITY:
-// 1. d.date
-// 2. day_id timestamp
+// 1. day_id timestamp
+// 2. shift1.startMs
 // 3. start_time
 // 4. created_at
-// 5. shift1.startMs
+// 5. d.date
 // ======================================
 
-if (d.date) {
+const dayIdNumber =
+    Number(d.day_id);
+
+
+if (
+    Number.isFinite(dayIdNumber) &&
+    dayIdNumber > 1000000000000
+) {
+
+    operationalDate =
+        new Date(dayIdNumber);
+
+} else if (s1.startMs) {
+
+    operationalDate =
+        new Date(
+            Number(s1.startMs)
+        );
+
+} else if (d.start_time) {
+
+    operationalDate =
+        new Date(d.start_time);
+
+} else if (d.created_at) {
+
+    operationalDate =
+        new Date(d.created_at);
+
+} else if (d.date) {
 
     operationalDate =
         new Date(d.date);
 
 } else {
 
-    const dayIdNumber =
-        Number(d.day_id);
-
-    if (
-        Number.isFinite(dayIdNumber) &&
-        dayIdNumber > 1000000000000
-    ) {
-
-        operationalDate =
-            new Date(dayIdNumber);
-
-    } else if (d.start_time) {
-
-        operationalDate =
-            new Date(d.start_time);
-
-    } else if (d.created_at) {
-
-        operationalDate =
-            new Date(d.created_at);
-
-    } else if (s1.startMs) {
-
-        operationalDate =
-            new Date(
-                Number(s1.startMs)
-            );
-
-    } else {
-
-        return;
-
-    }
+    return;
 
 }
-
 
             // ======================================
             // CALENDAR DATE FILTER
