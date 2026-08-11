@@ -108,7 +108,7 @@ let operationalDays = {};
 async function loadOperationalDays() {
 
     // ==========================================
-    // LOCAL RESULT
+    // RESULT
     // ==========================================
 
     const result = {};
@@ -135,17 +135,15 @@ async function loadOperationalDays() {
 
 
     // ==========================================
-    // LOAD OPERATIONAL DAYS
+    // LOAD ALL CLOSED OPERATIONAL DAYS
     // ==========================================
 
     const snap =
         await getDocs(
-
             query(
                 collection(window.db, "days"),
                 where("branch", "==", branch)
             )
-
         );
 
 
@@ -159,119 +157,226 @@ async function loadOperationalDays() {
             docSnap.data();
 
 
+        // ==========================================
+        // 🔥 DAY KEY
+        //
+        // New data:
+        //     d.day_id
+        //
+        // Old/legacy data:
+        //     Firestore document ID
+        // ==========================================
+
         const dayId =
             String(
-                d.day_id || ""
+                d.day_id ||
+                docSnap.id ||
+                ""
             ).trim();
 
 
-        if (!dayId) return;
+        if (!dayId) {
+            return;
+        }
 
 
-// ======================================
-// 🔥 OPERATIONAL DATE
-// DAY_ID TIMESTAMP FIRST
-// ======================================
+        // ==========================================
+        // 🔥 OPERATIONAL DATE
+        //
+        // Priority:
+        //
+        // 1. saved date
+        // 2. shift1.start_ms
+        // 3. shift1.startMs
+        // 4. start_time
+        // 5. created_at
+        // 6. day_id timestamp
+        // ==========================================
 
-let date = null;
-
-
-// ======================================
-// OPERATIONAL DATE
-// ======================================
-// Priority:
-// 1. Saved Shift 1 start
-// 2. Saved date
-// 3. start_time
-// 4. created_at
-// 5. day_id timestamp ONLY legacy fallback
-// ======================================
-
-const shift1StartMs =
-    Number(
-        d.shift1?.start_ms ||
-        d.shift1?.startMs ||
-        0
-    );
+        let date = null;
 
 
-if (
-    shift1StartMs > 1000000000000
-) {
+        // 1. SAVED DATE
 
-    date =
-        new Date(
-            shift1StartMs
-        );
+        if (d.date) {
 
-} else if (d.date) {
+            const testDate =
+                new Date(d.date);
 
-    date =
-        new Date(
-            d.date
-        );
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
 
-} else if (d.start_time) {
+                date = testDate;
 
-    date =
-        new Date(
+            }
+
+        }
+
+
+        // 2. SHIFT 1 start_ms
+
+        if (
+            !date &&
+            Number(
+                d.shift1?.start_ms || 0
+            ) > 1000000000000
+        ) {
+
+            date =
+                new Date(
+                    Number(
+                        d.shift1.start_ms
+                    )
+                );
+
+        }
+
+
+        // 3. SHIFT 1 startMs
+
+        if (
+            !date &&
+            Number(
+                d.shift1?.startMs || 0
+            ) > 1000000000000
+        ) {
+
+            date =
+                new Date(
+                    Number(
+                        d.shift1.startMs
+                    )
+                );
+
+        }
+
+
+        // 4. start_time
+
+        if (
+            !date &&
             d.start_time
-        );
+        ) {
 
-} else if (d.created_at) {
+            const testDate =
+                new Date(
+                    d.start_time
+                );
 
-    date =
-        new Date(
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
+
+                date = testDate;
+
+            }
+
+        }
+
+
+        // 5. created_at
+
+        if (
+            !date &&
             d.created_at
-        );
+        ) {
 
-} else {
+            const testDate =
+                new Date(
+                    d.created_at
+                );
 
-    const dayIdNumber =
-        Number(d.day_id);
+            if (
+                !isNaN(
+                    testDate.getTime()
+                )
+            ) {
+
+                date = testDate;
+
+            }
+
+        }
 
 
-    if (
-        Number.isFinite(dayIdNumber) &&
-        dayIdNumber > 1000000000000
-    ) {
+        // 6. DAY ID TIMESTAMP
 
-        date =
-            new Date(
-                dayIdNumber
-            );
+        if (
+            !date
+        ) {
 
-    }
+            const dayIdNumber =
+                Number(dayId);
 
-}
-        // ======================================
+
+            if (
+                Number.isFinite(
+                    dayIdNumber
+                ) &&
+                dayIdNumber >
+                    1000000000000
+            ) {
+
+                date =
+                    new Date(
+                        dayIdNumber
+                    );
+
+            }
+
+        }
+
+
+        // ==========================================
         // INVALID DATE
-        // ======================================
+        // ==========================================
 
         if (
             !date ||
-            isNaN(date.getTime())
+            isNaN(
+                date.getTime()
+            )
         ) {
 
             console.warn(
-                "⚠️ REPORT: invalid day date",
-                dayId,
-                d
+                "⚠️ REPORT: INVALID OPERATIONAL DAY",
+                {
+                    firestoreDocId:
+                        docSnap.id,
+
+                    dayId:
+                        d.day_id,
+
+                    date:
+                        d.date,
+
+                    branch:
+                        d.branch
+                }
             );
 
             return;
         }
 
 
-        // ======================================
+        // ==========================================
         // SAVE DAY
-        // ======================================
+        // ==========================================
 
         result[dayId] = {
 
             raw: d,
 
-            startDate: date
+            firestoreDocId:
+                docSnap.id,
+
+            startDate:
+                date
 
         };
 
@@ -284,9 +389,14 @@ if (
     );
 
 
+    console.log(
+        "📊 REPORT OPERATIONAL DAY COUNT:",
+        Object.keys(result).length
+    );
+
+
     return result;
 }
-
 
 buttons[2].onclick = () => {
 
@@ -349,135 +459,347 @@ document.getElementById("viewReportBtn").onclick = async () => {
 // SHIFTS COLLECTION KE START_MS KO PREFER KAREGA
 // ======================================================
 
-async function getShiftTimesForDay(dayId, branch) {
+async function getShiftTimesForDay(
+    day,
+    branch
+) {
 
     const result = {
         shift1: null,
         shift2: null
     };
 
-    if (!dayId || !branch) {
+
+    if (
+        !day ||
+        !branch
+    ) {
+
         return result;
+
     }
+
 
     try {
 
         // ==========================================
-        // DAY ID KE DONO POSSIBLE TYPES
-        // String + Number
+        // LOAD ALL SHIFTS FOR CURRENT BRANCH
         // ==========================================
 
-        const dayIdString =
-            String(dayId).trim();
+        const shiftsSnap =
+            await getDocs(
 
-        const dayIdNumber =
-            Number(dayIdString);
+                query(
+                    collection(
+                        window.db,
+                        "shifts"
+                    ),
+                    where(
+                        "branch",
+                        "==",
+                        branch
+                    )
+                )
 
-
-        // ==========================================
-        // QUERY 1
-        // STRING DAY ID
-        // ==========================================
-
-        const stringQuery =
-            query(
-                collection(window.db, "shifts"),
-                where("branch", "==", branch),
-                where("day_id", "==", dayIdString)
             );
 
 
-        const stringSnap =
-            await getDocs(stringQuery);
+        // ==========================================
+        // DAY INFORMATION
+        // ==========================================
 
-
-        stringSnap.forEach(docSnap => {
-
-            const s =
-                docSnap.data();
-
-            const shiftNumber =
-                Number(s.shift_number);
-
-
-            if (shiftNumber === 1) {
-                result.shift1 = s;
-            }
-
-
-            if (shiftNumber === 2) {
-                result.shift2 = s;
-            }
-
-        });
+        const d =
+            day.raw || {};
 
 
         // ==========================================
-        // QUERY 2
-        // NUMBER DAY ID
+        // TARGET OPERATIONAL DATE
         // ==========================================
+
+        let targetDate =
+            day.startDate
+                ? new Date(
+                    day.startDate
+                )
+                : null;
+
 
         if (
-            Number.isFinite(dayIdNumber)
+            !targetDate ||
+            isNaN(
+                targetDate.getTime()
+            )
         ) {
 
-            const numberQuery =
-                query(
-                    collection(window.db, "shifts"),
-                    where("branch", "==", branch),
-                    where("day_id", "==", dayIdNumber)
-                );
-
-
-            const numberSnap =
-                await getDocs(numberQuery);
-
-
-            numberSnap.forEach(docSnap => {
-
-                const s =
-                    docSnap.data();
-
-                const shiftNumber =
-                    Number(s.shift_number);
-
-
-                if (
-                    shiftNumber === 1 &&
-                    !result.shift1
-                ) {
-
-                    result.shift1 = s;
-
-                }
-
-
-                if (
-                    shiftNumber === 2 &&
-                    !result.shift2
-                ) {
-
-                    result.shift2 = s;
-
-                }
-
-            });
+            targetDate = null;
 
         }
 
 
         // ==========================================
-        // DEBUG
+        // TARGET DATE KEY
+        // PAKISTAN TIME
         // ==========================================
+
+        let targetKey = null;
+
+
+        if (targetDate) {
+
+            targetKey =
+                new Intl.DateTimeFormat(
+                    "en-CA",
+                    {
+                        timeZone:
+                            "Asia/Karachi",
+
+                        year:
+                            "numeric",
+
+                        month:
+                            "2-digit",
+
+                        day:
+                            "2-digit"
+                    }
+                ).format(
+                    targetDate
+                );
+
+        }
+
+
+        // ==========================================
+        // FALLBACK DAY ID
+        // ==========================================
+
+        const dayIdString =
+            String(
+                d.day_id ||
+                ""
+            ).trim();
+
+
+        const dayIdNumber =
+            Number(
+                dayIdString
+            );
+
+
+        // ==========================================
+        // MATCH EACH SHIFT
+        // ==========================================
+
+        shiftsSnap.forEach(
+            docSnap => {
+
+                const s =
+                    docSnap.data();
+
+
+                const shiftNumber =
+                    Number(
+                        s.shift_number
+                    );
+
+
+                if (
+                    shiftNumber !== 1 &&
+                    shiftNumber !== 2
+                ) {
+
+                    return;
+
+                }
+
+
+                // ======================================
+                // SHIFT DAY ID MATCH
+                // ======================================
+
+                const shiftDayId =
+                    String(
+                        s.day_id ||
+                        ""
+                    ).trim();
+
+
+                let matched =
+                    false;
+
+
+                // ======================================
+                // METHOD 1
+                // EXACT DAY ID
+                // ======================================
+
+                if (
+                    dayIdString &&
+                    shiftDayId &&
+                    shiftDayId ===
+                        dayIdString
+                ) {
+
+                    matched = true;
+
+                }
+
+
+                // ======================================
+                // METHOD 2
+                // NUMBER DAY ID
+                // ======================================
+
+                if (
+                    !matched &&
+                    Number.isFinite(
+                        dayIdNumber
+                    ) &&
+                    Number.isFinite(
+                        Number(
+                            shiftDayId
+                        )
+                    ) &&
+                    Number(
+                        shiftDayId
+                    ) ===
+                        dayIdNumber
+                ) {
+
+                    matched = true;
+
+                }
+
+
+                // ======================================
+                // METHOD 3
+                // START TIME DATE MATCH
+                //
+                // 🔥 MAIN FIX FOR OLD DATA
+                // ======================================
+
+                if (
+                    !matched &&
+                    targetKey
+                ) {
+
+                    const shiftStartMs =
+                        Number(
+                            s.start_ms ||
+                            s.startMs ||
+                            0
+                        );
+
+
+                    if (
+                        shiftStartMs >
+                        1000000000000
+                    ) {
+
+                        const shiftDate =
+                            new Date(
+                                shiftStartMs
+                            );
+
+
+                        const shiftKey =
+                            new Intl.DateTimeFormat(
+                                "en-CA",
+                                {
+                                    timeZone:
+                                        "Asia/Karachi",
+
+                                    year:
+                                        "numeric",
+
+                                    month:
+                                        "2-digit",
+
+                                    day:
+                                        "2-digit"
+                                }
+                            ).format(
+                                shiftDate
+                            );
+
+
+                        if (
+                            shiftKey ===
+                            targetKey
+                        ) {
+
+                            matched = true;
+
+                        }
+
+                    }
+
+                }
+
+
+                // ======================================
+                // SAVE MATCH
+                // ======================================
+
+                if (
+                    matched
+                ) {
+
+                    if (
+                        shiftNumber === 1
+                    ) {
+
+                        // Prefer first valid Shift 1
+
+                        if (
+                            !result.shift1
+                        ) {
+
+                            result.shift1 =
+                                s;
+
+                        }
+
+                    }
+
+
+                    if (
+                        shiftNumber === 2
+                    ) {
+
+                        if (
+                            !result.shift2
+                        ) {
+
+                            result.shift2 =
+                                s;
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
 
         console.log(
             "📊 REPORT SHIFT MATCH:",
             {
-                dayIdString,
-                dayIdNumber,
+                dayId:
+                    d.day_id,
+
+                targetDate:
+                    targetKey,
+
                 branch,
-                shift1Found: !!result.shift1,
-                shift2Found: !!result.shift2
+
+                shift1Found:
+                    !!result.shift1,
+
+                shift2Found:
+                    !!result.shift2
             }
         );
 
@@ -485,7 +807,7 @@ async function getShiftTimesForDay(dayId, branch) {
     } catch (err) {
 
         console.error(
-            "❌ REPORT SHIFT TIME LOAD ERROR:",
+            "❌ REPORT SHIFT LOAD ERROR:",
             err
         );
 
@@ -675,10 +997,9 @@ const combined =
 
 const shiftTimes =
     await getShiftTimesForDay(
-        d.day_id,
+        day,
         branch
     );
-
 
 // ==========================================
 // SHIFT 1
