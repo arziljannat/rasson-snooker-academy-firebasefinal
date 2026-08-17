@@ -4206,3 +4206,188 @@ and (max-width: 900px) {
     }
 
 }
+
+
+/* ============================================================
+   🔥 FINAL TABLE CENTERING
+   1-4 TABLES = CENTER
+   5 TABLES = ONE ROW
+   MORE THAN 5 = NEXT ROW
+   CAMERA = SEPARATE FULL ROW
+============================================================ */
+
+@media screen and (min-width: 901px) {
+
+    .tables-section .game-section-grid {
+
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        flex-wrap: wrap !important;
+
+        justify-content: center !important;
+
+        align-items: flex-start !important;
+
+        gap: 18px !important;
+
+        width: 100% !important;
+
+        max-width: 1600px !important;
+
+        margin: 0 auto !important;
+
+        padding: 0 !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    /* =========================
+       TABLE CARDS
+    ========================= */
+
+    .tables-section .table-box {
+
+        flex: 0 0 300px !important;
+
+        width: 300px !important;
+
+        min-width: 300px !important;
+
+        max-width: 300px !important;
+
+        margin: 0 !important;
+
+        box-sizing: border-box !important;
+    }
+
+
+    /* =========================
+       CAMERA
+       ADMIN ONLY — UNTOUCHED
+    ========================= */
+
+    .tables-section .rasson-camera-card {
+
+        flex: 0 0 100% !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        min-width: 0 !important;
+
+        margin: 0 !important;
+
+        box-sizing: border-box !important;
+
+        order: 999 !important;
+    }
+
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media screen and (min-width: 601px) and (max-width: 900px) {
+
+    .tables-section .game-section-grid {
+
+        display: flex !important;
+
+        flex-wrap: wrap !important;
+
+        justify-content: center !important;
+
+        align-items: flex-start !important;
+
+        gap: 18px !important;
+
+        width: 100% !important;
+
+    }
+
+
+    .tables-section .table-box {
+
+        flex: 0 0 280px !important;
+
+        width: 280px !important;
+
+        min-width: 280px !important;
+
+        max-width: 280px !important;
+
+    }
+
+
+    .tables-section .rasson-camera-card {
+
+        flex: 0 0 100% !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media screen and (max-width: 600px) {
+
+    .tables-section .game-section-grid {
+
+        display: flex !important;
+
+        flex-direction: column !important;
+
+        align-items: center !important;
+
+        justify-content: center !important;
+
+        gap: 18px !important;
+
+        width: 100% !important;
+
+        padding: 0 14px !important;
+
+        box-sizing: border-box !important;
+
+    }
+
+
+    .tables-section .table-box {
+
+        flex: 0 0 auto !important;
+
+        width: 100% !important;
+
+        max-width: 360px !important;
+
+        min-width: 0 !important;
+
+        margin: 0 auto !important;
+
+    }
+
+
+    .tables-section .rasson-camera-card {
+
+        flex: 0 0 100% !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+    }
+
+}
