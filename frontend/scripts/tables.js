@@ -5406,7 +5406,6 @@ const newShift2 = calculateShiftSnapshot(
 // ==========================================
 
 const shift1BookingAdvance =
-const shift1BookingAdvance =
     await getBookingAdvanceCollection(
         latestShift1.start_ms,
         latestShift1.end_ms,
