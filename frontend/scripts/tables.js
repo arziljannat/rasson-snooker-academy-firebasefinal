@@ -5508,34 +5508,27 @@ closingCash:
     Number(newShift2.closingCash || 0)
         };
 
-        // 🔥 TABLE SNAPSHOT
-        const tablesSnapshot = tables.map(t => ({
-            table_id: t.name,
-            history: t.history.map(h => ({ ...h }))
-        }));
 
         // 🔥 UPDATE DAY HISTORY
         snap.forEach(async (d) => {
 
-            await updateDoc(
-                doc(window.db, "days", d.id),
-                {
-
-                    tables: tablesSnapshot,
-
-                    shift1: {
-                        ...latestShift1,
-                        ...newShift1
-                    },
-
-                    shift2: {
-                        ...latestShift2,
-                        ...newShift2
-                    },
-
-                    combined
-                }
-            );
+        await updateDoc(
+            doc(window.db, "days", d.id),
+            {
+        
+                shift1: {
+                    ...latestShift1,
+                    ...newShift1
+                },
+        
+                shift2: {
+                    ...latestShift2,
+                    ...newShift2
+                },
+        
+                combined
+            }
+        );
 
           // 🔥 UPDATE LIVE SHIFT VARIABLES
                 shift1 = {
