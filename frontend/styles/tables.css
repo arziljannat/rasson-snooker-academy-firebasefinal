@@ -3655,3 +3655,85 @@ body * {
         font-size: 25px;
     }
 }
+
+
+/* ============================================================
+   🔥 MANUAL SALE POPUP — SAME SCROLL AS HISTORY
+============================================================ */
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media screen and (min-width: 601px) {
+
+    #manualSalePopup {
+        padding: 20px !important;
+        box-sizing: border-box !important;
+
+        align-items: center !important;
+        justify-content: center !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    #manualSalePopup .manual-sale-popup-box {
+
+        width: 420px !important;
+        max-width: 92vw !important;
+
+        height: auto !important;
+        max-height: 88vh !important;
+
+        margin: 0 auto !important;
+
+        box-sizing: border-box !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        align-items: stretch !important;
+    }
+
+}
+
+
+/* =========================
+   MOBILE / APK
+========================= */
+
+@media screen and (max-width: 600px) {
+
+    #manualSalePopup {
+
+        padding: 8px !important;
+
+        box-sizing: border-box !important;
+
+        align-items: center !important;
+        justify-content: center !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    #manualSalePopup .manual-sale-popup-box {
+
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
+
+        height: auto !important;
+        max-height: calc(100dvh - 20px) !important;
+
+        margin: 0 !important;
+
+        padding: 14px !important;
+
+        box-sizing: border-box !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+}
