@@ -3737,3 +3737,245 @@ body * {
     }
 
 }
+
+/* ============================================================
+   🔥 FINAL TABLE LAYOUT FIX
+   5 TABLES PER ROW
+   CAMERA WILL NOT BREAK TABLE ROW
+============================================================ */
+
+/* TABLES GRID ONLY */
+.tables-section .game-section-grid {
+
+    display: flex !important;
+
+    flex-wrap: wrap !important;
+
+    justify-content: center !important;
+
+    align-items: flex-start !important;
+
+    gap: 18px !important;
+
+    width: 100% !important;
+
+    max-width: 1600px !important;
+
+    margin: 0 auto !important;
+
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ============================================================
+   TABLE CARDS
+   Desktop:
+   5 cards can fit in one row
+============================================================ */
+
+.tables-section .table-box {
+
+    flex: 0 1 300px !important;
+
+    width: 300px !important;
+
+    min-width: 0 !important;
+
+    max-width: 300px !important;
+
+    box-sizing: border-box !important;
+
+    margin: 0 !important;
+}
+
+
+/* ============================================================
+   🔥 CAMERA CARD
+   CAMERA IS ADMIN ONLY.
+   MAKE IT A SEPARATE FULL ROW.
+   THIS DOES NOT CHANGE CAMERA PERMISSION.
+============================================================ */
+
+.tables-section .rasson-camera-card {
+
+    flex: 0 0 100% !important;
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    order: 999 !important;
+}
+
+
+/* ============================================================
+   LARGE DESKTOP
+   5 TABLES
+============================================================ */
+
+@media screen and (min-width: 1501px) {
+
+    .tables-section .table-box {
+
+        flex: 0 1 300px !important;
+
+        width: 300px !important;
+
+        max-width: 300px !important;
+    }
+
+}
+
+
+/* ============================================================
+   NORMAL DESKTOP / LAPTOP
+   5 TABLES WITH SMALLER CARDS
+   So 5 can still fit on screen
+============================================================ */
+
+@media screen and (min-width: 1201px)
+and (max-width: 1500px) {
+
+    .tables-section .table-box {
+
+        flex: 0 1 calc(
+            (100% - 72px) / 5
+        ) !important;
+
+        width: calc(
+            (100% - 72px) / 5
+        ) !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
+    }
+
+}
+
+
+/* ============================================================
+   TABLET
+   3 PER ROW
+============================================================ */
+
+@media screen and (min-width: 901px)
+and (max-width: 1200px) {
+
+    .tables-section .table-box {
+
+        flex: 0 1 calc(
+            (100% - 36px) / 3
+        ) !important;
+
+        width: calc(
+            (100% - 36px) / 3
+        ) !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
+    }
+
+}
+
+
+/* ============================================================
+   SMALL TABLET
+   2 PER ROW
+============================================================ */
+
+@media screen and (min-width: 601px)
+and (max-width: 900px) {
+
+    .tables-section .table-box {
+
+        flex: 0 1 calc(
+            (100% - 18px) / 2
+        ) !important;
+
+        width: calc(
+            (100% - 18px) / 2
+        ) !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+   1 PER ROW
+============================================================ */
+
+@media screen and (max-width: 600px) {
+
+    .tables-section .game-section-grid {
+
+        padding: 0 14px !important;
+
+        box-sizing: border-box !important;
+    }
+
+    .tables-section .table-box {
+
+        flex: 0 0 100% !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        min-width: 0 !important;
+    }
+
+    .tables-section .rasson-camera-card {
+
+        flex: 0 0 100% !important;
+
+        width: 100% !important;
+    }
+
+}
+
+
+/* ============================================================
+   🔥 HEADINGS BIGGER
+============================================================ */
+
+.game-section-title {
+
+    font-size: 28px !important;
+
+    font-weight: 900 !important;
+
+    letter-spacing: 2px !important;
+
+    text-align: center !important;
+
+    margin-bottom: 22px !important;
+}
+
+
+/* MOBILE HEADING */
+
+@media screen and (max-width: 600px) {
+
+    .game-section-title {
+
+        font-size: 24px !important;
+
+        margin-bottom: 16px !important;
+    }
+
+}
