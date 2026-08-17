@@ -62,6 +62,10 @@ async function initCurrentDay() {
 
 let firebaseExpenses = [];
 let firebaseEasy = [];
+
+// 🔥 MANUAL SALES
+let firebaseManualSales = [];
+
 // 🔥 AUTO REFRESH FUNCTION
 async function autoRefreshUI() {
     loadShiftsFromFirebase();
@@ -301,9 +305,13 @@ console.log("✅ DAY READY:", window.currentDayId);
 // Failure does NOT block existing Tables system
 await loadGlobalCustomersForTables();
 
-loadShiftsFromFirebase();
+    loadShiftsFromFirebase();
     listenExpensesRealtime();
     listenEasyRealtime();
+    
+    // 🔥 MANUAL SALES
+    listenManualSalesRealtime();
+    
     listenInventoryRealtime();
     listenTablesRealtime();
     //listenBookingNotifications();  
@@ -518,6 +526,39 @@ const q = query(
         console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
       // 🔥 AUTO REFRESH DAY HISTORY
 refreshCurrentDayHistory();
+    });
+}
+
+/// 🔥 MANUAL SALES FROM FIREBASE
+
+function listenManualSalesRealtime() {
+
+    const q = query(
+        collection(window.db, "manual_sales"),
+        where("branch", "==", BRANCH)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+        firebaseManualSales = [];
+
+        snapshot.forEach(docSnap => {
+
+            firebaseManualSales.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
+
+        });
+
+        console.log(
+            "🔥 FIREBASE MANUAL SALES:",
+            firebaseManualSales
+        );
+
+        // 🔥 AUTO REFRESH DAY HISTORY
+        refreshCurrentDayHistory();
+
     });
 }
 
