@@ -5363,46 +5363,58 @@ const shiftsQ = query(
 
         const shiftsSnap = await getDocs(shiftsQ);
 
-        let latestShift1 = null;
-        let latestShift2 = null;
-        
-        let latestShift1Doc = null;
-        let latestShift2Doc = null;
-        
-        shiftsSnap.forEach(docSnap => {
-        
-            const d = docSnap.data();
-        
-            if (Number(d.shift_number) === 1) {
-                latestShift1 = d;
-                latestShift1Doc = docSnap;
-            }
-        
-            if (Number(d.shift_number) === 2) {
-                latestShift2 = d;
-                latestShift2Doc = docSnap;
-            }
-        });
+let latestShift1 = null;
+let latestShift2 = null;
 
-        if (!latestShift1 || !latestShift2) {
-            console.log("⚠️ Shift data missing");
-            return;
-        }
+let latestShift1Doc = null;
+let latestShift2Doc = null;
+
+shiftsSnap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    if (Number(d.shift_number) === 1) {
+        latestShift1 = d;
+        latestShift1Doc = docSnap;
+    }
+
+    if (Number(d.shift_number) === 2) {
+        latestShift2 = d;
+        latestShift2Doc = docSnap;
+    }
+});
+
+
+// =====================================================
+// 🔥 AT LEAST ONE SHIFT REQUIRED
+// =====================================================
+
+if (!latestShift1 && !latestShift2) {
+
+    console.log("⚠️ No shift data found");
+
+    return;
+}
 
 // 🔥 RECALCULATE
-const newShift1 = calculateShiftSnapshot(
-    latestShift1.start_ms,
-    latestShift1.end_ms,
-    1,
-    dayId
-);
+const newShift1 = latestShift1
+    ? calculateShiftSnapshot(
+        latestShift1.start_ms,
+        latestShift1.end_ms,
+        1,
+        dayId
+    )
+    : null;
 
-const newShift2 = calculateShiftSnapshot(
-    latestShift2.start_ms,
-    latestShift2.end_ms,
-    2,
-    dayId
-);
+
+const newShift2 = latestShift2
+    ? calculateShiftSnapshot(
+        latestShift2.start_ms,
+        latestShift2.end_ms,
+        2,
+        dayId
+    )
+    : null;
 
 // ==========================================
 // 🔥 ADD BOOKING ADVANCE TO CORRECT SHIFT
@@ -5410,108 +5422,155 @@ const newShift2 = calculateShiftSnapshot(
 // se usi shift mein count hoga jisme receive hua
 // ==========================================
 
-const shift1BookingAdvance =
-    await getBookingAdvanceCollection(
+const shift1BookingAdvance = latestShift1
+    ? await getBookingAdvanceCollection(
         latestShift1.start_ms,
         latestShift1.end_ms,
         1,
         dayId
-    );
+    )
+    : 0;
 
-const shift2BookingAdvance =
-    await getBookingAdvanceCollection(
+
+const shift2BookingAdvance = latestShift2
+    ? await getBookingAdvanceCollection(
         latestShift2.start_ms,
         latestShift2.end_ms,
         2,
         dayId
-    );
+    )
+    : 0;
 
 // 🔥 ADVANCE COLLECTION SEPARATE
 // 🔥 ADVANCE SEPARATE RAKHO
-newShift1.advanceCollection =
-    shift1BookingAdvance;
+if (newShift1) {
+    newShift1.advanceCollection =
+        shift1BookingAdvance;
+}
 
-newShift2.advanceCollection =
-    shift2BookingAdvance;
+if (newShift2) {
+    newShift2.advanceCollection =
+        shift2BookingAdvance;
+}
 
 // 🔥 CLOSING CASH MEIN ADVANCE INCLUDE KARO
-newShift1.closingCash =
-    Number(newShift1.closingCash || 0) +
-    Number(shift1BookingAdvance || 0);
+if (newShift1) {
 
-newShift2.closingCash =
-    Number(newShift2.closingCash || 0) +
-    Number(shift2BookingAdvance || 0);
-        // 🔥 COMBINED
-        const combined = {
+    newShift1.closingCash =
+        Number(newShift1.closingCash || 0) +
+        Number(shift1BookingAdvance || 0);
 
-            gameTotal:
-                newShift1.gameTotal + newShift2.gameTotal,
+}
 
-                    // 🔥 MANUAL GAME
-          manualGameTotal:
-              Number(newShift1.manualGameTotal || 0) +
-              Number(newShift2.manualGameTotal || 0),
-          
-          manualGameCollection:
-              Number(newShift1.manualGameCollection || 0) +
-              Number(newShift2.manualGameCollection || 0),
-          
-          manualGameBalance:
-              Number(newShift1.manualGameBalance || 0) +
-              Number(newShift2.manualGameBalance || 0),
-          
-          // 🔥 MANUAL CANTEEN
-          manualCanteenTotal:
-              Number(newShift1.manualCanteenTotal || 0) +
-              Number(newShift2.manualCanteenTotal || 0),
-          
-          manualCanteenCollection:
-              Number(newShift1.manualCanteenCollection || 0) +
-              Number(newShift2.manualCanteenCollection || 0),
-          
-          manualCanteenBalance:
-              Number(newShift1.manualCanteenBalance || 0) +
-              Number(newShift2.manualCanteenBalance || 0),
-          
-          manualEasyPaisa:
-              Number(newShift1.manualEasyPaisa || 0) +
-              Number(newShift2.manualEasyPaisa || 0),
 
-            canteenTotal:
-                newShift1.canteenTotal + newShift2.canteenTotal,
+if (newShift2) {
 
-            gameCollection:
-                newShift1.gameCollection + newShift2.gameCollection,
+    newShift2.closingCash =
+        Number(newShift2.closingCash || 0) +
+        Number(shift2BookingAdvance || 0);
 
-            canteenCollection:
-                newShift1.canteenCollection + newShift2.canteenCollection,
+}
+// =====================================================
+// 🔥 COMBINED
+// =====================================================
 
-            advanceCollection:
-              Number(newShift1.advanceCollection || 0) +
-              Number(newShift2.advanceCollection || 0),
+const combined = {
 
-            gameBalance:
-                newShift1.gameBalance + newShift2.gameBalance,
+    gameTotal:
+        Number(newShift1?.gameTotal || 0) +
+        Number(newShift2?.gameTotal || 0),
 
-            canteenBalance:
-                newShift1.canteenBalance + newShift2.canteenBalance,
+    canteenTotal:
+        Number(newShift1?.canteenTotal || 0) +
+        Number(newShift2?.canteenTotal || 0),
 
-            expenses:
-                newShift1.expenses + newShift2.expenses,
 
-            easypaisa:
-            newShift1.easypaisa + newShift2.easypaisa,
-            
-            discount:
-            (newShift1.discount || 0)
-            +
-            (newShift2.discount || 0),
-            
-closingCash:
-    Number(newShift1.closingCash || 0) +
-    Number(newShift2.closingCash || 0)
-        };
+    // 🔥 MANUAL GAME
+
+    manualGameTotal:
+        Number(newShift1?.manualGameTotal || 0) +
+        Number(newShift2?.manualGameTotal || 0),
+
+    manualGameCollection:
+        Number(newShift1?.manualGameCollection || 0) +
+        Number(newShift2?.manualGameCollection || 0),
+
+    manualGameBalance:
+        Number(newShift1?.manualGameBalance || 0) +
+        Number(newShift2?.manualGameBalance || 0),
+
+
+    // 🔥 MANUAL CANTEEN
+
+    manualCanteenTotal:
+        Number(newShift1?.manualCanteenTotal || 0) +
+        Number(newShift2?.manualCanteenTotal || 0),
+
+    manualCanteenCollection:
+        Number(newShift1?.manualCanteenCollection || 0) +
+        Number(newShift2?.manualCanteenCollection || 0),
+
+    manualCanteenBalance:
+        Number(newShift1?.manualCanteenBalance || 0) +
+        Number(newShift2?.manualCanteenBalance || 0),
+
+
+    // 🔥 MANUAL EASYPAISA
+
+    manualEasyPaisa:
+        Number(newShift1?.manualEasyPaisa || 0) +
+        Number(newShift2?.manualEasyPaisa || 0),
+
+
+    // 🔥 NORMAL COLLECTION
+
+    gameCollection:
+        Number(newShift1?.gameCollection || 0) +
+        Number(newShift2?.gameCollection || 0),
+
+    canteenCollection:
+        Number(newShift1?.canteenCollection || 0) +
+        Number(newShift2?.canteenCollection || 0),
+
+
+    // 🔥 ADVANCE
+
+    advanceCollection:
+        Number(newShift1?.advanceCollection || 0) +
+        Number(newShift2?.advanceCollection || 0),
+
+
+    // 🔥 BALANCE
+
+    gameBalance:
+        Number(newShift1?.gameBalance || 0) +
+        Number(newShift2?.gameBalance || 0),
+
+    canteenBalance:
+        Number(newShift1?.canteenBalance || 0) +
+        Number(newShift2?.canteenBalance || 0),
+
+
+    // 🔥 OTHER
+
+    expenses:
+        Number(newShift1?.expenses || 0) +
+        Number(newShift2?.expenses || 0),
+
+    easypaisa:
+        Number(newShift1?.easypaisa || 0) +
+        Number(newShift2?.easypaisa || 0),
+
+    discount:
+        Number(newShift1?.discount || 0) +
+        Number(newShift2?.discount || 0),
+
+
+    closingCash:
+        Number(newShift1?.closingCash || 0) +
+        Number(newShift2?.closingCash || 0)
+
+};
 
 
 // 🔥 UPDATE DAY HISTORY
@@ -5521,17 +5580,22 @@ for (const d of snap.docs) {
         doc(window.db, "days", d.id),
         {
 
-            shift1: {
-                ...latestShift1,
-                ...newShift1
-            },
+            shift1: newShift1
+                ? {
+                    ...latestShift1,
+                    ...newShift1
+                }
+                : null,
 
-            shift2: {
-                ...latestShift2,
-                ...newShift2
-            },
+            shift2: newShift2
+                ? {
+                    ...latestShift2,
+                    ...newShift2
+                }
+                : null,
 
             combined
+
         }
     );
 }
@@ -5543,7 +5607,7 @@ for (const d of snap.docs) {
 // sab existing SHIFT SNAPSHOT mein bhi update honge.
 // =====================================================
 
-if (latestShift1Doc) {
+if (latestShift1Doc && newShift1) {
 
     await updateDoc(
         latestShift1Doc.ref,
@@ -5555,7 +5619,7 @@ if (latestShift1Doc) {
 }
 
 
-if (latestShift2Doc) {
+if (latestShift2Doc && newShift2) {
 
     await updateDoc(
         latestShift2Doc.ref,
@@ -5568,15 +5632,24 @@ if (latestShift2Doc) {
 
 
 // 🔥 UPDATE LIVE SHIFT VARIABLES
-shift1 = {
-    ...shift1,
-    ...newShift1
-};
+if (newShift1) {
 
-shift2 = {
-    ...shift2,
-    ...newShift2
-};
+    shift1 = {
+        ...shift1,
+        ...newShift1
+    };
+
+}
+
+
+if (newShift2) {
+
+    shift2 = {
+        ...shift2,
+        ...newShift2
+    };
+
+}
 
         console.log("✅ Day history updated");
       await loadShiftsFromFirebase();
