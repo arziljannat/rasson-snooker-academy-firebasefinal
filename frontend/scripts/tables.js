@@ -4580,13 +4580,6 @@ combined.closingCash =
     - (combined.easypaisa || 0); 
 
 
-    // 🔥🔥🔥 STEP 1: SAVE SNAPSHOT BEFORE RESET (MAIN FIX)
-    const tablesSnapshot = tables.map(t => ({
-    table_id: t.name,
-    history: t.history.map(h => ({ ...h }))
-}));
-
-
     // 🔥🔥🔥 STEP 2: FIREBASE SAVE (PEHLE SAVE KARO)
     try {
 
