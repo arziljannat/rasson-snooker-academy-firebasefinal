@@ -5618,38 +5618,17 @@ if (!targetShift) {
 
     popup.id = "manualSalePopup";
 
-    popup.style.cssText = `
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.65);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
-    `;
+popup.className = "popup";
 
     popup.innerHTML = `
 
-        <div style="
-            width: min(420px, 92vw);
-            background: #111;
-            color: #fff;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 15px 50px rgba(0,0,0,.6);
-        ">
+<div class="popup-box manual-sale-popup-box">>
 
-            <h2 style="
-                margin:0 0 18px;
-                text-align:center;
-            ">
-                Manual Sale
-            </h2>
+<h2>Manual Sale</h2>
 
             <label>Sale Type</label>
 
-            <select id="manualSaleType"
-                style="width:100%;padding:10px;margin:6px 0 14px;">
+                <select id="manualSaleType">
                 <option value="game">Game</option>
                 <option value="canteen">Canteen</option>
             </select>
@@ -5661,19 +5640,12 @@ if (!targetShift) {
                 id="manualSaleDayId"
                 value="${targetDayId}"
                 readonly
-                style="
-                    width:100%;
-                    padding:10px;
-                    margin:6px 0 14px;
-                    box-sizing:border-box;
-                "
             >
 
 
             <label>Shift</label>
 
-            <select id="manualSaleShift"
-                style="width:100%;padding:10px;margin:6px 0 14px;">
+            <select id="manualSaleShift">
 
                 <option value="1"
                     ${Number(targetShift) === 1 ? "selected" : ""}>
@@ -5696,12 +5668,6 @@ if (!targetShift) {
                 min="0"
                 step="0.01"
                 placeholder="Enter total sale"
-                style="
-                    width:100%;
-                    padding:10px;
-                    margin:6px 0 14px;
-                    box-sizing:border-box;
-                "
             >
 
 
@@ -5713,19 +5679,12 @@ if (!targetShift) {
                 min="0"
                 step="0.01"
                 placeholder="Enter received amount"
-                style="
-                    width:100%;
-                    padding:10px;
-                    margin:6px 0 14px;
-                    box-sizing:border-box;
-                "
             >
 
 
             <label>Payment Method</label>
 
-            <select id="manualSalePayment"
-                style="width:100%;padding:10px;margin:6px 0 14px;">
+                <select id="manualSalePayment">
 
                 <option value="cash">Cash</option>
                 <option value="easypaisa">EasyPaisa</option>
@@ -5739,43 +5698,26 @@ if (!targetShift) {
                 id="manualSaleNote"
                 type="text"
                 placeholder="Optional note"
-                style="
-                    width:100%;
-                    padding:10px;
-                    margin:6px 0 18px;
-                    box-sizing:border-box;
-                "
             >
 
 
-            <div style="
-                display:flex;
-                gap:10px;
-            ">
-
-                <button
-                    id="cancelManualSaleBtn"
-                    style="
-                        flex:1;
-                        padding:12px;
-                    "
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    id="saveManualSaleBtn"
-                    style="
-                        flex:1;
-                        padding:12px;
-                        font-weight:bold;
-                    "
-                >
-                    Save Sale
-                </button>
-
-            </div>
+              <div class="popup-buttons">
+              
+                  <button
+                      id="cancelManualSaleBtn"
+                      class="neon-btn red"
+                  >
+                      Cancel
+                  </button>
+              
+                  <button
+                      id="saveManualSaleBtn"
+                      class="neon-btn"
+                  >
+                      Save Sale
+                  </button>
+              
+              </div>
 
         </div>
     `;
@@ -6087,20 +6029,17 @@ function bindManualSaleButton() {
         return;
     }
 
-    const btn =
-        document.createElement("button");
+const btn =
+    document.createElement("button");
 
-    btn.id =
-        "manualSaleCurrentBtn";
+btn.id =
+    "manualSaleCurrentBtn";
 
-    btn.innerText =
-        "+ Manual Sale";
+btn.className =
+    "neon-btn add-table-btn";
 
-    btn.style.cssText = `
-        margin-left:10px;
-        padding:8px 14px;
-        cursor:pointer;
-    `;
+btn.innerText =
+    "+ Manual Sale";
 
     btn.onclick = () => {
 
