@@ -311,6 +311,7 @@ await loadGlobalCustomersForTables();
     
     // 🔥 MANUAL SALES
     listenManualSalesRealtime();
+    bindManualSaleButton();
     
     listenInventoryRealtime();
     listenTablesRealtime();
@@ -3989,8 +3990,12 @@ if (allHistory.length > 0) {
 }
 
 // 🔥 STEP 3: CALCULATE
-let shiftData = calculateShiftSnapshot(startMs, endMs);
-
+let shiftData =
+    calculateShiftSnapshot(
+        startMs,
+        endMs,
+        1
+    );
   // 🔥 BOOKING ADVANCE FOR SHIFT 1
 const bookingAdvanceCollection =
     await getBookingAdvanceCollection(
@@ -4057,6 +4062,28 @@ const docRef = await addDoc(collection(window.db, "shifts"), {
 
     game_total: shiftData.gameTotal,
     canteen_total: shiftData.canteenTotal,
+
+  // 🔥 MANUAL SALE BREAKDOWN
+manual_game_total:
+    shiftData.manualGameTotal || 0,
+
+manual_game_collection:
+    shiftData.manualGameCollection || 0,
+
+manual_game_balance:
+    shiftData.manualGameBalance || 0,
+
+manual_canteen_total:
+    shiftData.manualCanteenTotal || 0,
+
+manual_canteen_collection:
+    shiftData.manualCanteenCollection || 0,
+
+manual_canteen_balance:
+    shiftData.manualCanteenBalance || 0,
+
+manual_easypaisa:
+    shiftData.manualEasyPaisa || 0,
 
 game_collection: shiftData.gameCollection,
 canteen_collection: shiftData.canteenCollection,
@@ -4321,8 +4348,12 @@ if (!startMs) {
     let endMs = now;
 
     
-    let shiftData = calculateShiftSnapshot(startMs, endMs);
-
+let shiftData =
+    calculateShiftSnapshot(
+        startMs,
+        endMs,
+        2
+    );
 // 🔥 BOOKING ADVANCE FOR SHIFT 2
 const bookingAdvanceCollection =
     await getBookingAdvanceCollection(
@@ -4384,6 +4415,28 @@ await addDoc(collection(window.db, "shifts"), {
 
     game_total: shiftData.gameTotal,
 canteen_total: shiftData.canteenTotal,
+
+  // 🔥 MANUAL SALE BREAKDOWN
+manual_game_total:
+    shiftData.manualGameTotal || 0,
+
+manual_game_collection:
+    shiftData.manualGameCollection || 0,
+
+manual_game_balance:
+    shiftData.manualGameBalance || 0,
+
+manual_canteen_total:
+    shiftData.manualCanteenTotal || 0,
+
+manual_canteen_collection:
+    shiftData.manualCanteenCollection || 0,
+
+manual_canteen_balance:
+    shiftData.manualCanteenBalance || 0,
+
+manual_easypaisa:
+    shiftData.manualEasyPaisa || 0,
 
 game_collection: shiftData.gameCollection,
 canteen_collection: shiftData.canteenCollection,
@@ -4896,8 +4949,12 @@ function getTotalCollection() {
     return tables.reduce((sum, t) => sum + (t.liveAmount + t.canteenTotal), 0);
 }
 
-function calculateShiftSnapshot(startTime, endTime) {
-
+function calculateShiftSnapshot(
+    startTime,
+    endTime,
+    shiftNumber = null,
+    dayId = null
+) {
     let gameTotal = 0;
     let canteenTotal = 0;
     let gameCollection = 0;
@@ -4905,6 +4962,21 @@ function calculateShiftSnapshot(startTime, endTime) {
     let gameBalance = 0;
     let canteenBalance = 0;
     let discount = 0;
+
+        // =========================
+    // 🔥 MANUAL SALE ACCOUNTING
+    // =========================
+
+    let manualGameTotal = 0;
+    let manualCanteenTotal = 0;
+
+    let manualGameCollection = 0;
+    let manualCanteenCollection = 0;
+
+    let manualGameBalance = 0;
+    let manualCanteenBalance = 0;
+
+    let manualEasyPaisa = 0;
 
     tables.forEach(t => {
         t.history.forEach(h => {
@@ -4999,6 +5071,112 @@ if (h.paid && h.paidTime) {
         });
     });
 
+
+      // ==========================================
+    // 🔥 MANUAL SALES
+    // IMPORTANT:
+    // Manual Sale shift time se nahi,
+    // day_id + shift_number se identify hogi.
+    // ==========================================
+
+    const manualSalesForShift =
+        firebaseManualSales.filter(sale => {
+
+            return (
+            Number(sale.day_id) ===
+                Number(dayId ?? window.currentDayId) &&
+
+                Number(sale.shift_number) ===
+                    Number(shiftNumber)
+            );
+
+        });
+
+
+    manualSalesForShift.forEach(sale => {
+
+        const total =
+            Number(sale.total_amount || 0);
+
+        const received =
+            Number(sale.received_amount || 0);
+
+        const balance =
+            Math.max(
+                0,
+                total - received
+            );
+
+
+        // ======================================
+        // GAME MANUAL SALE
+        // ======================================
+
+        if (sale.sale_type === "game") {
+
+            manualGameTotal += total;
+
+            manualGameCollection += received;
+
+            manualGameBalance += balance;
+
+        }
+
+
+        // ======================================
+        // CANTEEN MANUAL SALE
+        // ======================================
+
+        if (sale.sale_type === "canteen") {
+
+            manualCanteenTotal += total;
+
+            manualCanteenCollection += received;
+
+            manualCanteenBalance += balance;
+
+        }
+
+
+        // ======================================
+        // EASYPAISA
+        // Received EasyPaisa ko separate rakho
+        // ======================================
+
+        if (
+            sale.payment_method ===
+            "easypaisa"
+        ) {
+
+            manualEasyPaisa += received;
+
+        }
+
+    });
+
+
+    // ==========================================
+    // 🔥 ADD MANUAL SALE TO NORMAL ACCOUNTING
+    // ==========================================
+
+    gameTotal += manualGameTotal;
+
+    canteenTotal += manualCanteenTotal;
+
+
+    gameCollection +=
+        manualGameCollection;
+
+    canteenCollection +=
+        manualCanteenCollection;
+
+
+    gameBalance +=
+        manualGameBalance;
+
+    canteenBalance +=
+        manualCanteenBalance;
+
     // =========================
     // 🔥 EXPENSES
     // =========================
@@ -5034,23 +5212,41 @@ if (h.paid && h.paidTime) {
     })
     .reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
+        // ==========================================
+      // 🔥 ADD MANUAL SALE EASYPAISA
+      // ==========================================
+      
+      easypaisa += manualEasyPaisa;
+
     // =========================
     // 🔥 FINAL BALANCE FIX
     // =========================
     let closingCash = (gameCollection + canteenCollection) - expenses - easypaisa;
 
-    return {
-        gameTotal,
-        canteenTotal,
-        gameCollection,
-        canteenCollection,
-        gameBalance,
-        canteenBalance,
-        expenses,
-        easypaisa,
-        discount,
-        closingCash
-    };
+        return {
+            gameTotal,
+            canteenTotal,
+            gameCollection,
+            canteenCollection,
+            gameBalance,
+            canteenBalance,
+        
+            // 🔥 MANUAL SALE BREAKDOWN
+            manualGameTotal,
+            manualGameCollection,
+            manualGameBalance,
+        
+            manualCanteenTotal,
+            manualCanteenCollection,
+            manualCanteenBalance,
+        
+            manualEasyPaisa,
+        
+            expenses,
+            easypaisa,
+            discount,
+            closingCash
+        };
 }
 
 
@@ -5117,12 +5313,16 @@ const shiftsQ = query(
 // 🔥 RECALCULATE
 const newShift1 = calculateShiftSnapshot(
     latestShift1.start_ms,
-    latestShift1.end_ms
+    latestShift1.end_ms,
+    1,
+    dayId
 );
 
 const newShift2 = calculateShiftSnapshot(
     latestShift2.start_ms,
-    latestShift2.end_ms
+    latestShift2.end_ms,
+    2,
+    dayId
 );
 
 // ==========================================
@@ -5166,6 +5366,36 @@ newShift2.closingCash =
 
             gameTotal:
                 newShift1.gameTotal + newShift2.gameTotal,
+
+                    // 🔥 MANUAL GAME
+          manualGameTotal:
+              Number(newShift1.manualGameTotal || 0) +
+              Number(newShift2.manualGameTotal || 0),
+          
+          manualGameCollection:
+              Number(newShift1.manualGameCollection || 0) +
+              Number(newShift2.manualGameCollection || 0),
+          
+          manualGameBalance:
+              Number(newShift1.manualGameBalance || 0) +
+              Number(newShift2.manualGameBalance || 0),
+          
+          // 🔥 MANUAL CANTEEN
+          manualCanteenTotal:
+              Number(newShift1.manualCanteenTotal || 0) +
+              Number(newShift2.manualCanteenTotal || 0),
+          
+          manualCanteenCollection:
+              Number(newShift1.manualCanteenCollection || 0) +
+              Number(newShift2.manualCanteenCollection || 0),
+          
+          manualCanteenBalance:
+              Number(newShift1.manualCanteenBalance || 0) +
+              Number(newShift2.manualCanteenBalance || 0),
+          
+          manualEasyPaisa:
+              Number(newShift1.manualEasyPaisa || 0) +
+              Number(newShift2.manualEasyPaisa || 0),
 
             canteenTotal:
                 newShift1.canteenTotal + newShift2.canteenTotal,
@@ -5267,6 +5497,400 @@ latestDaysSnap.forEach(docSnap => {
 
 
 /******************************************************
+ * 🔥 MANUAL SALE — ADMIN ONLY
+ ******************************************************/
+function openManualSalePopup(targetDayId = null, targetShift = null) {
+
+    if (ROLE !== "admin") {
+        alert("Only admin can add Manual Sale ❌");
+        return;
+    }
+
+    targetDayId =
+        targetDayId ||
+        window.selectedClosedDayId ||
+        window.currentDayId;
+
+    // Current shift identify karo
+    if (!targetShift) {
+
+        if (shift1 && !shift2) {
+            targetShift = 1;
+        }
+        else if (shift1 && shift2) {
+            targetShift = 2;
+        }
+        else {
+            targetShift = 1;
+        }
+    }
+
+    // Agar popup already bana hua hai to remove karo
+    const oldPopup =
+        document.getElementById("manualSalePopup");
+
+    if (oldPopup) {
+        oldPopup.remove();
+    }
+
+    const popup = document.createElement("div");
+
+    popup.id = "manualSalePopup";
+
+    popup.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+    `;
+
+    popup.innerHTML = `
+
+        <div style="
+            width: min(420px, 92vw);
+            background: #111;
+            color: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,.6);
+        ">
+
+            <h2 style="
+                margin:0 0 18px;
+                text-align:center;
+            ">
+                Manual Sale
+            </h2>
+
+            <label>Sale Type</label>
+
+            <select id="manualSaleType"
+                style="width:100%;padding:10px;margin:6px 0 14px;">
+                <option value="game">Game</option>
+                <option value="canteen">Canteen</option>
+            </select>
+
+
+            <label>Day</label>
+
+            <input
+                id="manualSaleDayId"
+                value="${targetDayId}"
+                readonly
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin:6px 0 14px;
+                    box-sizing:border-box;
+                "
+            >
+
+
+            <label>Shift</label>
+
+            <select id="manualSaleShift"
+                style="width:100%;padding:10px;margin:6px 0 14px;">
+
+                <option value="1"
+                    ${Number(targetShift) === 1 ? "selected" : ""}>
+                    Shift 1
+                </option>
+
+                <option value="2"
+                    ${Number(targetShift) === 2 ? "selected" : ""}>
+                    Shift 2
+                </option>
+
+            </select>
+
+
+            <label>Total Sale</label>
+
+            <input
+                id="manualSaleTotal"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Enter total sale"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin:6px 0 14px;
+                    box-sizing:border-box;
+                "
+            >
+
+
+            <label>Received Amount</label>
+
+            <input
+                id="manualSaleReceived"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Enter received amount"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin:6px 0 14px;
+                    box-sizing:border-box;
+                "
+            >
+
+
+            <label>Payment Method</label>
+
+            <select id="manualSalePayment"
+                style="width:100%;padding:10px;margin:6px 0 14px;">
+
+                <option value="cash">Cash</option>
+                <option value="easypaisa">EasyPaisa</option>
+
+            </select>
+
+
+            <label>Note</label>
+
+            <input
+                id="manualSaleNote"
+                type="text"
+                placeholder="Optional note"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin:6px 0 18px;
+                    box-sizing:border-box;
+                "
+            >
+
+
+            <div style="
+                display:flex;
+                gap:10px;
+            ">
+
+                <button
+                    id="cancelManualSaleBtn"
+                    style="
+                        flex:1;
+                        padding:12px;
+                    "
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    id="saveManualSaleBtn"
+                    style="
+                        flex:1;
+                        padding:12px;
+                        font-weight:bold;
+                    "
+                >
+                    Save Sale
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+
+    // CANCEL
+    document.getElementById(
+        "cancelManualSaleBtn"
+    ).onclick = () => {
+        popup.remove();
+    };
+
+
+    // SAVE
+    document.getElementById(
+        "saveManualSaleBtn"
+    ).onclick = async () => {
+
+        try {
+
+            if (ROLE !== "admin") {
+                alert("Only admin can add Manual Sale ❌");
+                return;
+            }
+
+
+            const saleType =
+                document.getElementById(
+                    "manualSaleType"
+                ).value;
+
+
+            const dayId =
+                Number(
+                    document.getElementById(
+                        "manualSaleDayId"
+                    ).value
+                );
+
+
+            const shiftNumber =
+                Number(
+                    document.getElementById(
+                        "manualSaleShift"
+                    ).value
+                );
+
+
+            const totalAmount =
+                Number(
+                    document.getElementById(
+                        "manualSaleTotal"
+                    ).value
+                );
+
+
+            const receivedAmount =
+                Number(
+                    document.getElementById(
+                        "manualSaleReceived"
+                    ).value
+                );
+
+
+            const paymentMethod =
+                document.getElementById(
+                    "manualSalePayment"
+                ).value;
+
+
+            const note =
+                document.getElementById(
+                    "manualSaleNote"
+                ).value.trim();
+
+
+            // =========================
+            // VALIDATION
+            // =========================
+
+            if (!dayId) {
+                alert("Day ID missing ❌");
+                return;
+            }
+
+
+            if (![1, 2].includes(shiftNumber)) {
+                alert("Invalid shift ❌");
+                return;
+            }
+
+
+            if (
+                !Number.isFinite(totalAmount) ||
+                totalAmount <= 0
+            ) {
+                alert("Enter valid Total Sale ❌");
+                return;
+            }
+
+
+            if (
+                !Number.isFinite(receivedAmount) ||
+                receivedAmount < 0
+            ) {
+                alert("Enter valid Received Amount ❌");
+                return;
+            }
+
+
+            if (receivedAmount > totalAmount) {
+                alert(
+                    "Received amount cannot be greater than Total Sale ❌"
+                );
+                return;
+            }
+
+
+            const balanceAmount =
+                totalAmount - receivedAmount;
+
+
+            // =========================
+            // FIREBASE SAVE
+            // =========================
+
+            await addDoc(
+                collection(
+                    window.db,
+                    "manual_sales"
+                ),
+                {
+
+                    branch: BRANCH,
+
+                    day_id: dayId,
+
+                    shift_number: shiftNumber,
+
+                    sale_type: saleType,
+
+                    total_amount: totalAmount,
+
+                    received_amount: receivedAmount,
+
+                    balance_amount: balanceAmount,
+
+                    payment_method: paymentMethod,
+
+                    note: note,
+
+                    created_by: ROLE,
+
+                    created_at:
+                        new Date().toISOString()
+
+                }
+            );
+
+
+            alert(
+                "Manual Sale added successfully ✅"
+            );
+
+
+            popup.remove();
+
+
+            // 🔥 REFRESH
+            await refreshCurrentDayHistory(
+                dayId
+            );
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ MANUAL SALE SAVE ERROR:",
+                error
+            );
+
+            alert(
+                "Manual Sale save failed ❌"
+            );
+
+        }
+
+    };
+
+}
+
+
+/******************************************************
  * HISTORY BUTTON BINDING
  ******************************************************/
 function bindHistoryButtons() {
@@ -5312,6 +5936,70 @@ function bindHistoryButtons() {
 
     });
 }
+
+/******************************************************
+ * 🔥 MANUAL SALE BUTTON — CURRENT DAY
+ ******************************************************/
+function bindManualSaleButton() {
+
+    const existing =
+        document.getElementById(
+            "manualSaleCurrentBtn"
+        );
+
+    if (existing) {
+        return;
+    }
+
+    if (ROLE !== "admin") {
+        return;
+    }
+
+    const shiftBtn =
+        document.getElementById(
+            "shiftCloseBtn"
+        );
+
+    if (!shiftBtn) {
+        return;
+    }
+
+    const btn =
+        document.createElement("button");
+
+    btn.id =
+        "manualSaleCurrentBtn";
+
+    btn.innerText =
+        "+ Manual Sale";
+
+    btn.style.cssText = `
+        margin-left:10px;
+        padding:8px 14px;
+        cursor:pointer;
+    `;
+
+    btn.onclick = () => {
+
+        let targetShift = 1;
+
+        if (shift1 && !shift2) {
+            targetShift = 1;
+        }
+        else if (shift1 && shift2) {
+            targetShift = 2;
+        }
+
+        openManualSalePopup(
+            window.currentDayId,
+            targetShift
+        );
+
+    };
+
+    shiftBtn.parentElement.appendChild(btn);
+}
+
 /******************************************************
  * 🟢 OPEN DAY HISTORY POPUP
  ******************************************************/
