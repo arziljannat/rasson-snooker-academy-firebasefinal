@@ -5365,17 +5365,22 @@ const shiftsQ = query(
 
         let latestShift1 = null;
         let latestShift2 = null;
-
+        
+        let latestShift1Doc = null;
+        let latestShift2Doc = null;
+        
         shiftsSnap.forEach(docSnap => {
-
+        
             const d = docSnap.data();
-
-            if (d.shift_number === 1) {
+        
+            if (Number(d.shift_number) === 1) {
                 latestShift1 = d;
+                latestShift1Doc = docSnap;
             }
-
-            if (d.shift_number === 2) {
+        
+            if (Number(d.shift_number) === 2) {
                 latestShift2 = d;
+                latestShift2Doc = docSnap;
             }
         });
 
@@ -5509,38 +5514,69 @@ closingCash:
         };
 
 
-        // 🔥 UPDATE DAY HISTORY
-        snap.forEach(async (d) => {
+// 🔥 UPDATE DAY HISTORY
+for (const d of snap.docs) {
 
-        await updateDoc(
-            doc(window.db, "days", d.id),
-            {
-        
-                shift1: {
-                    ...latestShift1,
-                    ...newShift1
-                },
-        
-                shift2: {
-                    ...latestShift2,
-                    ...newShift2
-                },
-        
-                combined
-            }
-        );
+    await updateDoc(
+        doc(window.db, "days", d.id),
+        {
 
-          // 🔥 UPDATE LIVE SHIFT VARIABLES
-                shift1 = {
-                      ...shift1,
-                      ...newShift1
-                              };
+            shift1: {
+                ...latestShift1,
+                ...newShift1
+            },
 
-                shift2 = {
-                      ...shift2,
-                      ...newShift2
-                              };
-        });
+            shift2: {
+                ...latestShift2,
+                ...newShift2
+            },
+
+            combined
+        }
+    );
+}
+
+
+// =====================================================
+// 🔥 UPDATE EXISTING SHIFT SNAPSHOTS
+// Manual Sale / Manual Game / Manual Canteen / EasyPaisa
+// sab existing SHIFT SNAPSHOT mein bhi update honge.
+// =====================================================
+
+if (latestShift1Doc) {
+
+    await updateDoc(
+        latestShift1Doc.ref,
+        {
+            ...newShift1
+        }
+    );
+
+}
+
+
+if (latestShift2Doc) {
+
+    await updateDoc(
+        latestShift2Doc.ref,
+        {
+            ...newShift2
+        }
+    );
+
+}
+
+
+// 🔥 UPDATE LIVE SHIFT VARIABLES
+shift1 = {
+    ...shift1,
+    ...newShift1
+};
+
+shift2 = {
+    ...shift2,
+    ...newShift2
+};
 
         console.log("✅ Day history updated");
       await loadShiftsFromFirebase();
