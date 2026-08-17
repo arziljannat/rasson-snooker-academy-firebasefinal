@@ -3710,19 +3710,32 @@ body * {
 }
 
 /* ============================================================
-   🔥 FINAL TABLE LAYOUT
-   5 TABLES PER ROW
-   CAMERA SEPARATE ROW
+   🔥 SMART TABLE LAYOUT
+   ============================================================
+
+   1 TABLE  = CENTER
+   2 TABLES = CENTER
+   3 TABLES = CENTER
+   4 TABLES = CENTER
+   5 TABLES = 5 IN ONE ROW
+
+   6 TABLES = 3 + 3
+   7 TABLES = 4 + 3
+   8 TABLES = 4 + 4
+   9 TABLES = 5 + 4
+   10+     = MAX 5 PER ROW
+
+   CAMERA = SEPARATE FULL ROW
 ============================================================ */
 
-/* TABLES SECTION */
+
+/* ============================================================
+   MAIN TABLE GRID
+============================================================ */
+
 .tables-section .game-section-grid {
 
     display: grid !important;
-
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-
-    gap: 18px !important;
 
     width: 100% !important;
 
@@ -3732,31 +3745,173 @@ body * {
 
     padding: 0 !important;
 
+    gap: 18px !important;
+
     box-sizing: border-box !important;
 
+    justify-content: center !important;
+
     align-items: start !important;
+
 }
 
 
-/* TABLE CARDS */
+/* ============================================================
+   TABLE CARD SIZE
+============================================================ */
+
 .tables-section .table-box {
 
-    width: 100% !important;
+    width: 300px !important;
 
-    min-width: 0 !important;
+    min-width: 300px !important;
 
-    max-width: none !important;
+    max-width: 300px !important;
+
+    margin: 0 !important;
 
     box-sizing: border-box !important;
 
-    margin: 0 !important;
+}
+
+
+/* ============================================================
+   1 TABLE
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(1))
+:not(:has(> .table-box:nth-child(2))) {
+
+    grid-template-columns: 300px !important;
+
+}
+
+
+/* ============================================================
+   2 TABLES
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(2))
+:not(:has(> .table-box:nth-child(3))) {
+
+    grid-template-columns:
+        repeat(2, 300px) !important;
+
+}
+
+
+/* ============================================================
+   3 TABLES
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(3))
+:not(:has(> .table-box:nth-child(4))) {
+
+    grid-template-columns:
+        repeat(3, 300px) !important;
+
+}
+
+
+/* ============================================================
+   4 TABLES
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(4))
+:not(:has(> .table-box:nth-child(5))) {
+
+    grid-template-columns:
+        repeat(4, 300px) !important;
+
+}
+
+
+/* ============================================================
+   5 TABLES
+   5 IN ONE ROW
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(5))
+:not(:has(> .table-box:nth-child(6))) {
+
+    grid-template-columns:
+        repeat(5, 300px) !important;
+
+}
+
+
+/* ============================================================
+   6 TABLES
+   3 + 3
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(6))
+:not(:has(> .table-box:nth-child(7))) {
+
+    grid-template-columns:
+        repeat(3, 300px) !important;
+
+}
+
+
+/* ============================================================
+   7 TABLES
+   4 + 3
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(7))
+:not(:has(> .table-box:nth-child(8))) {
+
+    grid-template-columns:
+        repeat(4, 300px) !important;
+
+}
+
+
+/* ============================================================
+   8 TABLES
+   4 + 4
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(8))
+:not(:has(> .table-box:nth-child(9))) {
+
+    grid-template-columns:
+        repeat(4, 300px) !important;
+
+}
+
+
+/* ============================================================
+   9 TABLES
+   5 + 4
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(9))
+:not(:has(> .table-box:nth-child(10))) {
+
+    grid-template-columns:
+        repeat(5, 300px) !important;
+
+}
+
+
+/* ============================================================
+   10 OR MORE TABLES
+   MAXIMUM 5 PER ROW
+============================================================ */
+
+.tables-section .game-section-grid:has(> .table-box:nth-child(10)) {
+
+    grid-template-columns:
+        repeat(5, 300px) !important;
+
 }
 
 
 /* ============================================================
    CAMERA
-   ADMIN ONLY — PERMISSION KO TOUCH NAHI KAR RAHE
-   CAMERA KO TABLES SE ALAG FULL ROW
+   CAMERA KI PERMISSION / JS KO TOUCH NAHI KAR RAHE
 ============================================================ */
 
 .tables-section .rasson-camera-card {
@@ -3774,6 +3929,7 @@ body * {
     margin: 0 !important;
 
     order: 999 !important;
+
 }
 
 
@@ -3781,7 +3937,7 @@ body * {
    TABLE HEADING
 ============================================================ */
 
-.game-section-title {
+.tables-section .game-section-title {
 
     font-size: 28px !important;
 
@@ -3792,39 +3948,38 @@ body * {
     text-align: center !important;
 
     margin-bottom: 22px !important;
-}
-
-
-/* ============================================================
-   1200px - 1500px
-   5 TABLES
-============================================================ */
-
-@media screen and (min-width: 1201px)
-and (max-width: 1500px) {
-
-    .tables-section .game-section-grid {
-
-        grid-template-columns:
-            repeat(5, minmax(0, 1fr)) !important;
-
-    }
 
 }
 
 
 /* ============================================================
-   901px - 1200px
-   3 TABLES
+   MEDIUM DESKTOP
 ============================================================ */
 
 @media screen and (min-width: 901px)
-and (max-width: 1200px) {
+and (max-width: 1600px) {
 
     .tables-section .game-section-grid {
 
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr)) !important;
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        padding-left: 10px !important;
+
+        padding-right: 10px !important;
+
+        box-sizing: border-box !important;
+
+    }
+
+    .tables-section .table-box {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
 
     }
 
@@ -3832,8 +3987,7 @@ and (max-width: 1200px) {
 
 
 /* ============================================================
-   601px - 900px
-   2 TABLES
+   TABLET
 ============================================================ */
 
 @media screen and (min-width: 601px)
@@ -3841,8 +3995,32 @@ and (max-width: 900px) {
 
     .tables-section .game-section-grid {
 
+        display: grid !important;
+
         grid-template-columns:
             repeat(2, minmax(0, 1fr)) !important;
+
+        width: 100% !important;
+
+        max-width: 700px !important;
+
+        margin: 0 auto !important;
+
+        padding: 0 14px !important;
+
+        gap: 18px !important;
+
+        box-sizing: border-box !important;
+
+    }
+
+    .tables-section .table-box {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
 
     }
 
@@ -3851,23 +4029,35 @@ and (max-width: 900px) {
 
 /* ============================================================
    MOBILE
-   1 TABLE
 ============================================================ */
 
 @media screen and (max-width: 600px) {
 
     .tables-section .game-section-grid {
 
-        grid-template-columns:
-            1fr !important;
+        display: grid !important;
+
+        grid-template-columns: 1fr !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        margin: 0 auto !important;
 
         padding: 0 14px !important;
+
+        gap: 18px !important;
+
+        box-sizing: border-box !important;
 
     }
 
     .tables-section .table-box {
 
         width: 100% !important;
+
+        min-width: 0 !important;
 
         max-width: 100% !important;
 
@@ -3881,36 +4071,7 @@ and (max-width: 900px) {
 
     }
 
-    .game-section-title {
-
-        font-size: 24px !important;
-
-        margin-bottom: 16px !important;
-
-    }
-
 }
-
-    .tables-section .table-box {
-
-        flex: 0 0 100% !important;
-
-        width: 100% !important;
-
-        max-width: 100% !important;
-
-        min-width: 0 !important;
-    }
-
-    .tables-section .rasson-camera-card {
-
-        flex: 0 0 100% !important;
-
-        width: 100% !important;
-    }
-
-}
-
 
 /* ============================================================
    🔥 HEADINGS BIGGER
@@ -4207,338 +4368,4 @@ and (max-width: 900px) {
 
 }
 
-/* ============================================================
-   🔥 FINAL SMART TABLE LAYOUT
-   ============================================================
 
-   1 TABLE  = 1 CENTER
-   2 TABLES = 2 CENTER
-   3 TABLES = 3 CENTER
-   4 TABLES = 4 CENTER
-   5 TABLES = 5 IN ONE ROW
-
-   6 TABLES = 3 + 3
-   7 TABLES = 4 + 3
-   8 TABLES = 4 + 4
-   9 TABLES = 5 + 4
-   10 TABLES = 5 + 5
-
-   CAMERA = SEPARATE ROW
-============================================================ */
-
-
-/* ============================================================
-   MAIN TABLE CONTAINER
-============================================================ */
-
-.tables-section .game-section-grid {
-
-    display: grid !important;
-
-    width: 100% !important;
-
-    max-width: 1600px !important;
-
-    margin: 0 auto !important;
-
-    padding: 0 !important;
-
-    gap: 18px !important;
-
-    justify-content: center !important;
-
-    align-items: start !important;
-
-    box-sizing: border-box !important;
-}
-
-
-/* ============================================================
-   NORMAL TABLE CARD
-============================================================ */
-
-.tables-section .table-box {
-
-    width: 300px !important;
-
-    min-width: 300px !important;
-
-    max-width: 300px !important;
-
-    margin: 0 !important;
-
-    box-sizing: border-box !important;
-}
-
-
-/* ============================================================
-   1 TABLE
-============================================================ */
-
-.tables-section .game-section-grid:not(:has(.table-box:nth-child(2))) {
-
-    grid-template-columns: 300px !important;
-
-}
-
-
-/* ============================================================
-   2 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(2))
-:not(:has(.table-box:nth-child(3))) {
-
-    grid-template-columns:
-        repeat(2, 300px) !important;
-
-}
-
-
-/* ============================================================
-   3 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(3))
-:not(:has(.table-box:nth-child(4))) {
-
-    grid-template-columns:
-        repeat(3, 300px) !important;
-
-}
-
-
-/* ============================================================
-   4 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(4))
-:not(:has(.table-box:nth-child(5))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   5 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(5))
-:not(:has(.table-box:nth-child(6))) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
-
-}
-
-
-/* ============================================================
-   6 TABLES
-   3 + 3
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(6))
-:not(:has(.table-box:nth-child(7))) {
-
-    grid-template-columns:
-        repeat(3, 300px) !important;
-
-}
-
-
-/* ============================================================
-   7 TABLES
-   4 + 3
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(7))
-:not(:has(.table-box:nth-child(8))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   8 TABLES
-   4 + 4
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(8))
-:not(:has(.table-box:nth-child(9))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   9 TABLES
-   5 + 4
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(9))
-:not(:has(.table-box:nth-child(10))) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
-
-}
-
-
-/* ============================================================
-   10 OR MORE
-   MAX 5 PER ROW
-============================================================ */
-
-.tables-section .game-section-grid:has(.table-box:nth-child(10)) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
-
-}
-
-
-/* ============================================================
-   CAMERA
-   ADMIN-ONLY CAMERA LOGIC UNTOUCHED
-   CAMERA WILL STAY SEPARATE
-============================================================ */
-
-.tables-section .rasson-camera-card {
-
-    grid-column: 1 / -1 !important;
-
-    width: 100% !important;
-
-    max-width: 100% !important;
-
-    min-width: 0 !important;
-
-    box-sizing: border-box !important;
-
-    margin: 0 !important;
-}
-
-
-/* ============================================================
-   TABLE HEADING
-============================================================ */
-
-.tables-section .game-section-title {
-
-    font-size: 28px !important;
-
-    font-weight: 900 !important;
-
-    letter-spacing: 2px !important;
-
-    text-align: center !important;
-
-    margin-bottom: 22px !important;
-
-}
-
-
-/* ============================================================
-   TABLET
-============================================================ */
-
-@media screen and (min-width: 601px)
-and (max-width: 1200px) {
-
-    .tables-section .game-section-grid {
-
-        display: flex !important;
-
-        flex-wrap: wrap !important;
-
-        justify-content: center !important;
-
-        align-items: flex-start !important;
-
-        gap: 18px !important;
-
-        width: 100% !important;
-
-        max-width: 100% !important;
-
-    }
-
-    .tables-section .table-box {
-
-        width: 280px !important;
-
-        min-width: 280px !important;
-
-        max-width: 280px !important;
-
-        flex: 0 0 280px !important;
-
-    }
-
-}
-
-
-/* ============================================================
-   MOBILE
-============================================================ */
-
-@media screen and (max-width: 600px) {
-
-    .tables-section .game-section-grid {
-
-        display: flex !important;
-
-        flex-direction: column !important;
-
-        align-items: center !important;
-
-        justify-content: center !important;
-
-        gap: 18px !important;
-
-        width: 100% !important;
-
-        padding: 0 14px !important;
-
-        box-sizing: border-box !important;
-
-    }
-
-
-    .tables-section .table-box {
-
-        width: 100% !important;
-
-        max-width: 360px !important;
-
-        min-width: 0 !important;
-
-        margin: 0 auto !important;
-
-    }
-
-
-    .tables-section .rasson-camera-card {
-
-        width: 100% !important;
-
-        max-width: 100% !important;
-
-    }
-
-
-    .tables-section .game-section-title {
-
-        font-size: 24px !important;
-
-        margin-bottom: 16px !important;
-
-    }
-
-}
