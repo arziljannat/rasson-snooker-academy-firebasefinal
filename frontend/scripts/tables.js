@@ -6672,31 +6672,77 @@ function loadDaySummaryFirebase() {
                     <span>${c.closingCash || 0}</span>
                 </div>
 
+
+                <!-- ============================================= -->
+                <!-- ✅ MAIN FIX — PAKISTAN TIMEZONE -->
+                <!-- ============================================= -->
+
+                <div class="summary-section-title">
+                    📅 DAY / SHIFT TIMING
+                </div>
+
+                <div class="summary-row">
+                    <span>📅 Date</span>
+                    <span>${d.date || "-"}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🕘 Shift 1 Start → Shift 2 End</span>
+
+                    <span>
+                        ${
+                            s1.startMs
+                                ? new Date(
+                                    s1.startMs
+                                ).toLocaleTimeString(
+                                    'en-PK',
+                                    {
+                                        timeZone:
+                                            'Asia/Karachi',
+                                        hour:
+                                            '2-digit',
+                                        minute:
+                                            '2-digit',
+                                        hour12:
+                                            true
+                                    }
+                                )
+                                : "-"
+                        }
+
+                        →
+
+                        ${
+                            s2.endMs
+                                ? new Date(
+                                    s2.endMs
+                                ).toLocaleTimeString(
+                                    'en-PK',
+                                    {
+                                        timeZone:
+                                            'Asia/Karachi',
+                                        hour:
+                                            '2-digit',
+                                        minute:
+                                            '2-digit',
+                                        hour12:
+                                            true
+                                    }
+                                )
+                                : "-"
+                        }
+                    </span>
+                </div>
+
             </div>
 
         </td>
     </tr>
-
-        <!-- ✅ MAIN FIX -->
-        <td>
-    ${d.date}<br>
-    (${s1.startMs ? new Date(s1.startMs).toLocaleTimeString('en-PK', {
-    timeZone: 'Asia/Karachi',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-}) : "-"}
-     →
-     ${s2.endMs ? new Date(s2.endMs).toLocaleTimeString('en-PK', {
-    timeZone: 'Asia/Karachi',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-}) : "-"})
-</td>
-    </tr>
 `;
 }
+
+  
+
 
 function addManualSaleButtonToDayHistory() {
 
