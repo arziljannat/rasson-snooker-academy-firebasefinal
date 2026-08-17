@@ -4814,7 +4814,12 @@ tables.forEach(t => {
 // =====================================================
 // 🔥 BOOKING ADVANCE COLLECTION FOR SHIFT - FIXED
 // =====================================================
-async function getBookingAdvanceCollection(startTime, endTime, shiftNumber) {
+async function getBookingAdvanceCollection(
+    startTime,
+    endTime,
+    shiftNumber,
+    targetDayId = null
+) {
 
     let totalAdvance = 0;
 
@@ -4847,7 +4852,7 @@ async function getBookingAdvanceCollection(startTime, endTime, shiftNumber) {
             // Sirf current operational day
             if (
                 String(s.day_id || "") !==
-                String(window.currentDayId || "")
+                String(targetDayId ?? window.currentDayId)
             ) {
                 return;
             }
@@ -5401,17 +5406,20 @@ const newShift2 = calculateShiftSnapshot(
 // ==========================================
 
 const shift1BookingAdvance =
+const shift1BookingAdvance =
     await getBookingAdvanceCollection(
         latestShift1.start_ms,
         latestShift1.end_ms,
-        1
+        1,
+        dayId
     );
 
 const shift2BookingAdvance =
     await getBookingAdvanceCollection(
         latestShift2.start_ms,
         latestShift2.end_ms,
-        2
+        2,
+        dayId
     );
 
 // 🔥 ADVANCE COLLECTION SEPARATE
