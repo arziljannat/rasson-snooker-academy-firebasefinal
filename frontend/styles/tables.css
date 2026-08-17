@@ -3418,3 +3418,118 @@ body * {
     }
 
 }
+
+
+/* ============================================================
+   DAY HISTORY SUMMARY HEADINGS
+============================================================ */
+
+.day-history-main-heading {
+    width: 100% !important;
+
+    text-align: center !important;
+
+    color: #00ffcc !important;
+
+    font-size: 22px !important;
+
+    font-weight: 900 !important;
+
+    margin: 25px 0 12px 0 !important;
+
+    padding: 10px 15px !important;
+
+    border: 2px solid #00ff88 !important;
+
+    border-radius: 10px !important;
+
+    background: rgba(0,255,136,0.06) !important;
+
+    box-shadow:
+        0 0 12px rgba(0,255,136,0.25),
+        inset 0 0 10px rgba(0,255,136,0.08) !important;
+
+    letter-spacing: 1px !important;
+}
+
+
+/* INNER SECTION HEADINGS */
+
+#dayHistoryPopup .summary-heading {
+
+    width: 100% !important;
+
+    text-align: center !important;
+
+    font-size: 19px !important;
+
+    font-weight: 900 !important;
+
+    color: #ffffff !important;
+
+    padding: 10px !important;
+
+    margin: 5px 0 8px 0 !important;
+
+    border-bottom: 2px solid #00ff88 !important;
+
+    text-shadow:
+        0 0 8px #00ffcc !important;
+}
+
+
+#dayHistoryPopup .summary-section-title {
+
+    width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    text-align: left !important;
+
+    font-size: 14px !important;
+
+    font-weight: 900 !important;
+
+    color: #00ffcc !important;
+
+    padding: 8px 12px !important;
+
+    margin-top: 14px !important;
+
+    margin-bottom: 5px !important;
+
+    border-left: 4px solid #00ff88 !important;
+
+    background: rgba(0,255,136,0.08) !important;
+
+    border-radius: 6px !important;
+}
+
+
+/* MOBILE */
+
+@media screen and (max-width:600px) {
+
+    .day-history-main-heading {
+
+        font-size: 18px !important;
+
+        padding: 8px !important;
+
+        margin: 18px 0 10px 0 !important;
+
+    }
+
+    #dayHistoryPopup .summary-heading {
+
+        font-size: 16px !important;
+
+    }
+
+    #dayHistoryPopup .summary-section-title {
+
+        font-size: 13px !important;
+
+    }
+
+}
