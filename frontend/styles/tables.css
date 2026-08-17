@@ -1641,33 +1641,6 @@ body * {
     margin:0 0 18px;
 }
 
-/* -------- TABLES -------- */
-
-.tables-section .game-section-grid{
-
-    display:flex !important;
-    flex-wrap:wrap !important;
-
-    justify-content:center !important;
-
-    gap:18px !important;
-
-    max-width:1600px !important;
-
-    margin:auto !important;
-}
-
-/* 5 cards per row */
-
-.tables-section .table-box{
-
-    flex:1 1 280px !important;
-
-    max-width:300px !important;
-
-    min-width:260px !important;
-
-}
 
 
 /* -------- ROOMS -------- */
@@ -3710,27 +3683,14 @@ body * {
 }
 
 /* ============================================================
-   🔥 SMART TABLE LAYOUT
-   ============================================================
-
-   1 TABLE  = CENTER
-   2 TABLES = CENTER
-   3 TABLES = CENTER
-   4 TABLES = CENTER
-   5 TABLES = 5 IN ONE ROW
-
-   6 TABLES = 3 + 3
-   7 TABLES = 4 + 3
-   8 TABLES = 4 + 4
-   9 TABLES = 5 + 4
-   10+     = MAX 5 PER ROW
-
-   CAMERA = SEPARATE FULL ROW
+   🔥 FINAL TABLE LAYOUT — PERMANENT FIX
+   MAX 5 TABLES PER ROW
+   ALL BRANCHES SAME LAYOUT
 ============================================================ */
 
 
 /* ============================================================
-   MAIN TABLE GRID
+   TABLES SECTION
 ============================================================ */
 
 .tables-section .game-section-grid {
@@ -3743,28 +3703,46 @@ body * {
 
     margin: 0 auto !important;
 
-    padding: 0 !important;
-
-    gap: 18px !important;
+    padding: 0 10px !important;
 
     box-sizing: border-box !important;
 
-    justify-content: center !important;
+    gap: 18px !important;
 
     align-items: start !important;
+
+    justify-content: center !important;
+
+    /*
+       IMPORTANT:
+
+       Auto-fit karega:
+       1 table  = 1 column
+       2 tables = 2 columns
+       3 tables = 3 columns
+       4 tables = 4 columns
+       5 tables = 5 columns
+
+       6+ tables ke liye neeche max-width
+       aur fixed card size ki wajah se
+       maximum 5 per row.
+    */
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(260px, 300px)) !important;
 
 }
 
 
 /* ============================================================
-   TABLE CARD SIZE
+   TABLE CARD
 ============================================================ */
 
 .tables-section .table-box {
 
-    width: 300px !important;
+    width: 100% !important;
 
-    min-width: 300px !important;
+    min-width: 0 !important;
 
     max-width: 300px !important;
 
@@ -3772,151 +3750,17 @@ body * {
 
     box-sizing: border-box !important;
 
-}
-
-
-/* ============================================================
-   1 TABLE
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(1))
-:not(:has(> .table-box:nth-child(2))) {
-
-    grid-template-columns: 300px !important;
-
-}
-
-
-/* ============================================================
-   2 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(2))
-:not(:has(> .table-box:nth-child(3))) {
-
-    grid-template-columns:
-        repeat(2, 300px) !important;
-
-}
-
-
-/* ============================================================
-   3 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(3))
-:not(:has(> .table-box:nth-child(4))) {
-
-    grid-template-columns:
-        repeat(3, 300px) !important;
-
-}
-
-
-/* ============================================================
-   4 TABLES
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(4))
-:not(:has(> .table-box:nth-child(5))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   5 TABLES
-   5 IN ONE ROW
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(5))
-:not(:has(> .table-box:nth-child(6))) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
-
-}
-
-
-/* ============================================================
-   6 TABLES
-   3 + 3
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(6))
-:not(:has(> .table-box:nth-child(7))) {
-
-    grid-template-columns:
-        repeat(3, 300px) !important;
-
-}
-
-
-/* ============================================================
-   7 TABLES
-   4 + 3
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(7))
-:not(:has(> .table-box:nth-child(8))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   8 TABLES
-   4 + 4
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(8))
-:not(:has(> .table-box:nth-child(9))) {
-
-    grid-template-columns:
-        repeat(4, 300px) !important;
-
-}
-
-
-/* ============================================================
-   9 TABLES
-   5 + 4
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(9))
-:not(:has(> .table-box:nth-child(10))) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
-
-}
-
-
-/* ============================================================
-   10 OR MORE TABLES
-   MAXIMUM 5 PER ROW
-============================================================ */
-
-.tables-section .game-section-grid:has(> .table-box:nth-child(10)) {
-
-    grid-template-columns:
-        repeat(5, 300px) !important;
+    justify-self: center !important;
 
 }
 
 
 /* ============================================================
    CAMERA
-   CAMERA KI PERMISSION / JS KO TOUCH NAHI KAR RAHE
+   CAMERA TABLE GRID KO DISTURB NAHI KAREGA
 ============================================================ */
 
 .tables-section .rasson-camera-card {
-
-    grid-column: 1 / -1 !important;
 
     width: 100% !important;
 
@@ -3924,62 +3768,66 @@ body * {
 
     min-width: 0 !important;
 
-    box-sizing: border-box !important;
-
     margin: 0 !important;
 
-    order: 999 !important;
+    box-sizing: border-box !important;
 
 }
 
 
 /* ============================================================
-   TABLE HEADING
+   DESKTOP
 ============================================================ */
 
-.tables-section .game-section-title {
-
-    font-size: 28px !important;
-
-    font-weight: 900 !important;
-
-    letter-spacing: 2px !important;
-
-    text-align: center !important;
-
-    margin-bottom: 22px !important;
-
-}
-
-
-/* ============================================================
-   MEDIUM DESKTOP
-============================================================ */
-
-@media screen and (min-width: 901px)
-and (max-width: 1600px) {
+@media screen and (min-width: 1201px) {
 
     .tables-section .game-section-grid {
 
-        width: 100% !important;
+        grid-template-columns:
+            repeat(auto-fit, minmax(260px, 300px)) !important;
 
-        max-width: 100% !important;
+        max-width: 1600px !important;
 
-        padding-left: 10px !important;
-
-        padding-right: 10px !important;
-
-        box-sizing: border-box !important;
+        gap: 18px !important;
 
     }
+
+}
+
+
+/* ============================================================
+   LAPTOP
+   901px — 1200px
+
+   4 TABLES MAX PER ROW
+============================================================ */
+
+@media screen and (min-width: 901px)
+and (max-width: 1200px) {
+
+    .tables-section .game-section-grid {
+
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr)) !important;
+
+        width: 100% !important;
+
+        max-width: 1200px !important;
+
+        padding: 0 12px !important;
+
+        gap: 15px !important;
+
+    }
+
 
     .tables-section .table-box {
 
         width: 100% !important;
 
-        min-width: 0 !important;
-
         max-width: none !important;
+
+        min-width: 0 !important;
 
     }
 
@@ -3988,14 +3836,15 @@ and (max-width: 1600px) {
 
 /* ============================================================
    TABLET
+   601px — 900px
+
+   2 TABLES PER ROW
 ============================================================ */
 
 @media screen and (min-width: 601px)
 and (max-width: 900px) {
 
     .tables-section .game-section-grid {
-
-        display: grid !important;
 
         grid-template-columns:
             repeat(2, minmax(0, 1fr)) !important;
@@ -4004,23 +3853,20 @@ and (max-width: 900px) {
 
         max-width: 700px !important;
 
-        margin: 0 auto !important;
-
-        padding: 0 14px !important;
+        padding: 0 12px !important;
 
         gap: 18px !important;
 
-        box-sizing: border-box !important;
-
     }
+
 
     .tables-section .table-box {
 
         width: 100% !important;
 
-        min-width: 0 !important;
-
         max-width: none !important;
+
+        min-width: 0 !important;
 
     }
 
@@ -4029,6 +3875,9 @@ and (max-width: 900px) {
 
 /* ============================================================
    MOBILE
+   600px AND BELOW
+
+   1 TABLE PER ROW
 ============================================================ */
 
 @media screen and (max-width: 600px) {
@@ -4037,13 +3886,12 @@ and (max-width: 900px) {
 
         display: grid !important;
 
-        grid-template-columns: 1fr !important;
+        grid-template-columns:
+            minmax(0, 1fr) !important;
 
         width: 100% !important;
 
         max-width: 100% !important;
-
-        margin: 0 auto !important;
 
         padding: 0 14px !important;
 
@@ -4053,21 +3901,25 @@ and (max-width: 900px) {
 
     }
 
+
     .tables-section .table-box {
 
         width: 100% !important;
 
+        max-width: 100% !important;
+
         min-width: 0 !important;
 
-        max-width: 100% !important;
+        justify-self: stretch !important;
 
     }
 
+
     .tables-section .rasson-camera-card {
 
-        grid-column: 1 / -1 !important;
-
         width: 100% !important;
+
+        max-width: 100% !important;
 
     }
 
