@@ -1779,35 +1779,6 @@ body * {
 
 /* MOBILE */
 
-@media(max-width:1500px){
-
-.tables-section .table-box{
-
-    flex:0 0 calc((100% - 54px)/4) !important;
-
-}
-
-}
-
-@media(max-width:1200px){
-
-.tables-section .table-box{
-
-    flex:0 0 calc((100% - 36px)/3) !important;
-
-}
-
-}
-
-@media(max-width:900px){
-
-.tables-section .table-box{
-
-    flex:0 0 calc((100% - 18px)/2) !important;
-
-}
-
-}
 
 @media(max-width:600px){
 
@@ -3739,21 +3710,17 @@ body * {
 }
 
 /* ============================================================
-   🔥 FINAL TABLE LAYOUT FIX
+   🔥 FINAL TABLE LAYOUT
    5 TABLES PER ROW
-   CAMERA WILL NOT BREAK TABLE ROW
+   CAMERA SEPARATE ROW
 ============================================================ */
 
-/* TABLES GRID ONLY */
+/* TABLES SECTION */
 .tables-section .game-section-grid {
 
-    display: flex !important;
+    display: grid !important;
 
-    flex-wrap: wrap !important;
-
-    justify-content: center !important;
-
-    align-items: flex-start !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
 
     gap: 18px !important;
 
@@ -3766,24 +3733,19 @@ body * {
     padding: 0 !important;
 
     box-sizing: border-box !important;
+
+    align-items: start !important;
 }
 
 
-/* ============================================================
-   TABLE CARDS
-   Desktop:
-   5 cards can fit in one row
-============================================================ */
-
+/* TABLE CARDS */
 .tables-section .table-box {
 
-    flex: 0 1 300px !important;
-
-    width: 300px !important;
+    width: 100% !important;
 
     min-width: 0 !important;
 
-    max-width: 300px !important;
+    max-width: none !important;
 
     box-sizing: border-box !important;
 
@@ -3792,15 +3754,14 @@ body * {
 
 
 /* ============================================================
-   🔥 CAMERA CARD
-   CAMERA IS ADMIN ONLY.
-   MAKE IT A SEPARATE FULL ROW.
-   THIS DOES NOT CHANGE CAMERA PERMISSION.
+   CAMERA
+   ADMIN ONLY — PERMISSION KO TOUCH NAHI KAR RAHE
+   CAMERA KO TABLES SE ALAG FULL ROW
 ============================================================ */
 
 .tables-section .rasson-camera-card {
 
-    flex: 0 0 100% !important;
+    grid-column: 1 / -1 !important;
 
     width: 100% !important;
 
@@ -3808,107 +3769,81 @@ body * {
 
     min-width: 0 !important;
 
-    margin: 0 !important;
-
     box-sizing: border-box !important;
+
+    margin: 0 !important;
 
     order: 999 !important;
 }
 
 
 /* ============================================================
-   LARGE DESKTOP
-   5 TABLES
+   TABLE HEADING
 ============================================================ */
 
-@media screen and (min-width: 1501px) {
+.game-section-title {
 
-    .tables-section .table-box {
+    font-size: 28px !important;
 
-        flex: 0 1 300px !important;
+    font-weight: 900 !important;
 
-        width: 300px !important;
+    letter-spacing: 2px !important;
 
-        max-width: 300px !important;
-    }
+    text-align: center !important;
 
+    margin-bottom: 22px !important;
 }
 
 
 /* ============================================================
-   NORMAL DESKTOP / LAPTOP
-   5 TABLES WITH SMALLER CARDS
-   So 5 can still fit on screen
+   1200px - 1500px
+   5 TABLES
 ============================================================ */
 
 @media screen and (min-width: 1201px)
 and (max-width: 1500px) {
 
-    .tables-section .table-box {
+    .tables-section .game-section-grid {
 
-        flex: 0 1 calc(
-            (100% - 72px) / 5
-        ) !important;
+        grid-template-columns:
+            repeat(5, minmax(0, 1fr)) !important;
 
-        width: calc(
-            (100% - 72px) / 5
-        ) !important;
-
-        min-width: 0 !important;
-
-        max-width: none !important;
     }
 
 }
 
 
 /* ============================================================
-   TABLET
-   3 PER ROW
+   901px - 1200px
+   3 TABLES
 ============================================================ */
 
 @media screen and (min-width: 901px)
 and (max-width: 1200px) {
 
-    .tables-section .table-box {
+    .tables-section .game-section-grid {
 
-        flex: 0 1 calc(
-            (100% - 36px) / 3
-        ) !important;
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr)) !important;
 
-        width: calc(
-            (100% - 36px) / 3
-        ) !important;
-
-        min-width: 0 !important;
-
-        max-width: none !important;
     }
 
 }
 
 
 /* ============================================================
-   SMALL TABLET
-   2 PER ROW
+   601px - 900px
+   2 TABLES
 ============================================================ */
 
 @media screen and (min-width: 601px)
 and (max-width: 900px) {
 
-    .tables-section .table-box {
+    .tables-section .game-section-grid {
 
-        flex: 0 1 calc(
-            (100% - 18px) / 2
-        ) !important;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
 
-        width: calc(
-            (100% - 18px) / 2
-        ) !important;
-
-        min-width: 0 !important;
-
-        max-width: none !important;
     }
 
 }
@@ -3916,17 +3851,45 @@ and (max-width: 900px) {
 
 /* ============================================================
    MOBILE
-   1 PER ROW
+   1 TABLE
 ============================================================ */
 
 @media screen and (max-width: 600px) {
 
     .tables-section .game-section-grid {
 
+        grid-template-columns:
+            1fr !important;
+
         padding: 0 14px !important;
 
-        box-sizing: border-box !important;
     }
+
+    .tables-section .table-box {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+    }
+
+    .tables-section .rasson-camera-card {
+
+        grid-column: 1 / -1 !important;
+
+        width: 100% !important;
+
+    }
+
+    .game-section-title {
+
+        font-size: 24px !important;
+
+        margin-bottom: 16px !important;
+
+    }
+
+}
 
     .tables-section .table-box {
 
