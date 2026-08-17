@@ -162,6 +162,28 @@ onSnapshot(q, (snapshot) => {
 gameCollection: d.game_collection,
 canteenCollection: d.canteen_collection,
 
+              // 🔥 MANUAL SALE BREAKDOWN
+manualGameTotal:
+    d.manual_game_total || 0,
+
+manualGameCollection:
+    d.manual_game_collection || 0,
+
+manualGameBalance:
+    d.manual_game_balance || 0,
+
+manualCanteenTotal:
+    d.manual_canteen_total || 0,
+
+manualCanteenCollection:
+    d.manual_canteen_collection || 0,
+
+manualCanteenBalance:
+    d.manual_canteen_balance || 0,
+
+manualEasyPaisa:
+    d.manual_easypaisa || 0,
+
 advanceCollection: d.advance_collection || 0,
 
 expenses: d.expenses,
@@ -183,6 +205,28 @@ expenses: d.expenses,
                 canteenTotal: d.canteen_total,
 gameCollection: d.game_collection,
 canteenCollection: d.canteen_collection,
+
+              // 🔥 MANUAL SALE BREAKDOWN
+manualGameTotal:
+    d.manual_game_total || 0,
+
+manualGameCollection:
+    d.manual_game_collection || 0,
+
+manualGameBalance:
+    d.manual_game_balance || 0,
+
+manualCanteenTotal:
+    d.manual_canteen_total || 0,
+
+manualCanteenCollection:
+    d.manual_canteen_collection || 0,
+
+manualCanteenBalance:
+    d.manual_canteen_balance || 0,
+
+manualEasyPaisa:
+    d.manual_easypaisa || 0,
 
 advanceCollection: d.advance_collection || 0,
 
@@ -4478,6 +4522,38 @@ async function closeDay() {
         gameTotal: (s1.gameTotal || 0) + (s2.gameTotal || 0),
         canteenTotal: (s1.canteenTotal || 0) + (s2.canteenTotal || 0),
 
+        // ==========================================
+// 🔥 MANUAL SALE BREAKDOWN
+// ==========================================
+
+manualGameTotal:
+    Number(s1.manualGameTotal || 0) +
+    Number(s2.manualGameTotal || 0),
+
+manualGameCollection:
+    Number(s1.manualGameCollection || 0) +
+    Number(s2.manualGameCollection || 0),
+
+manualGameBalance:
+    Number(s1.manualGameBalance || 0) +
+    Number(s2.manualGameBalance || 0),
+
+manualCanteenTotal:
+    Number(s1.manualCanteenTotal || 0) +
+    Number(s2.manualCanteenTotal || 0),
+
+manualCanteenCollection:
+    Number(s1.manualCanteenCollection || 0) +
+    Number(s2.manualCanteenCollection || 0),
+
+manualCanteenBalance:
+    Number(s1.manualCanteenBalance || 0) +
+    Number(s2.manualCanteenBalance || 0),
+
+manualEasyPaisa:
+    Number(s1.manualEasyPaisa || 0) +
+    Number(s2.manualEasyPaisa || 0),
+      
         gameCollection: (s1.gameCollection || 0) + (s2.gameCollection || 0),
         canteenCollection: (s1.canteenCollection || 0) + (s2.canteenCollection || 0),
 
@@ -5511,19 +5587,30 @@ function openManualSalePopup(targetDayId = null, targetShift = null) {
         window.selectedClosedDayId ||
         window.currentDayId;
 
-    // Current shift identify karo
-    if (!targetShift) {
+ // =====================================================
+// 🔥 SHIFT SELECTION
+// Old Day History ke liye admin khud Shift select karega.
+// Current Day ke liye current running shift default hoga.
+// =====================================================
 
-        if (shift1 && !shift2) {
-            targetShift = 1;
-        }
-        else if (shift1 && shift2) {
-            targetShift = 2;
-        }
-        else {
-            targetShift = 1;
-        }
+if (!targetShift) {
+
+    if (
+        Number(targetDayId) ===
+        Number(window.currentDayId)
+    ) {
+
+        targetShift =
+            getCurrentShiftNumber();
+
+    } else {
+
+        // OLD CLOSED DAY
+        // Popup mein Shift 1 default rakho.
+        targetShift = 1;
+
     }
+}
 
     // Agar popup already bana hua hai to remove karo
     const oldPopup =
@@ -5866,9 +5953,51 @@ function openManualSalePopup(targetDayId = null, targetShift = null) {
 
 
             // 🔥 REFRESH
-            await refreshCurrentDayHistory(
-                dayId
-            );
+await refreshCurrentDayHistory(
+    dayId
+);
+
+// 🔥 REFRESH DAY HISTORY CACHE
+const latestDaysQ =
+    query(
+        collection(
+            window.db,
+            "days"
+        ),
+        where(
+            "branch",
+            "==",
+            BRANCH
+        )
+    );
+
+const latestDaysSnap =
+    await getDocs(
+        latestDaysQ
+    );
+
+window._daysData = [];
+
+latestDaysSnap.forEach(
+    docSnap => {
+
+        window._daysData.push(
+            docSnap.data()
+        );
+
+    }
+);
+
+// 🔥 SHOW UPDATED SELECTED DAY
+if (
+    document.getElementById(
+        "dayHistoryDateSelect"
+    )
+) {
+
+    loadDaySummaryFirebase();
+
+}
 
 
         }
@@ -6106,157 +6235,447 @@ if (daySelect) {
     }
 }
 
-    loadDaySummaryFirebase();
+loadDaySummaryFirebase();
 
-    document.getElementById("dayHistoryDateSelect").onchange = loadDaySummaryFirebase;
+addManualSaleButtonToDayHistory();
+
+document.getElementById(
+    "dayHistoryDateSelect"
+).onchange = () => {
+
+    const index =
+        document.getElementById(
+            "dayHistoryDateSelect"
+        ).selectedIndex;
+
+    const selectedDay =
+        window._daysData[index];
+
+    if (selectedDay?.day_id) {
+
+        window.selectedClosedDayId =
+            selectedDay.day_id;
+
+    }
+
+    loadDaySummaryFirebase();
+};
 
     showPopup("dayHistoryPopup");
 }
 function loadDaySummaryFirebase() {
 
-    let index = document.getElementById("dayHistoryDateSelect").selectedIndex;
-    let d = window._daysData[index];
+    const index =
+        document.getElementById(
+            "dayHistoryDateSelect"
+        ).selectedIndex;
+
+    const d =
+        window._daysData[index];
 
     if (!d) return;
 
-    let s1 = d.shift1 || {};
-    let s2 = d.shift2 || {};
-    let c = d.combined || {};
-
-document.getElementById("dayShift1Body").innerHTML = `
-<tr>
-<td colspan="7">
-    <div class="summary-box">
-
-        <div class="summary-row">
-            <span>🎮 Game</span>
-            <span>${s1.gameTotal || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>🍔 Canteen</span>
-            <span>${s1.canteenTotal || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>💰 Game Collection</span>
-            <span>${s1.gameCollection || 0}</span>
-        </div>
-
-        <div class="summary-row">
-    <span>💵 Advance Collection</span>
-    <span>${s1.advanceCollection || 0}</span>
-</div>
+    const s1 = d.shift1 || {};
+    const s2 = d.shift2 || {};
+    const c  = d.combined || {};
 
 
-        <div class="summary-row">
-            <span>🧾 Canteen Collection</span>
-            <span>${s1.canteenCollection || 0}</span>
-        </div>
+    // =====================================================
+    // 🔥 SHIFT 1
+    // =====================================================
 
-        <div class="summary-row">
-            <span>⚖️ Balance</span>
-            <span>${(s1.gameBalance || 0) + (s1.canteenBalance || 0)}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>💸 Expenses</span>
-            <span>${s1.expenses || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>📲 EasyPaisa</span>
-            <span>${s1.easypaisa || 0}</span>
-        </div>
-      
-              <div class="summary-row">
-          <span>🎁 Discount</span>
-          <span>${s1.discount || 0}</span>
-      </div>
-
-        <div class="summary-row total">
-            <span>💵 Cash</span>
-            <span>${s1.closingCash || 0}</span>
-        </div>
-
-    </div>
-</td>
-</tr>
-`;
-
-document.getElementById("dayShift2Body").innerHTML = `
-<tr>
-<td colspan="7">
-    <div class="summary-box">
-
-        <div class="summary-row">
-            <span>🎮 Game</span>
-            <span>${s2.gameTotal || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>🍔 Canteen</span>
-            <span>${s2.canteenTotal || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>💰 Game Collection</span>
-            <span>${s2.gameCollection || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>💵 Advance Collection</span>
-            <span>${s2.advanceCollection || 0}</span>
-        </div>
-        
-
-        <div class="summary-row">
-            <span>🧾 Canteen Collection</span>
-            <span>${s2.canteenCollection || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>⚖️ Balance</span>
-            <span>${(s2.gameBalance || 0) + (s2.canteenBalance || 0)}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>💸 Expenses</span>
-            <span>${s2.expenses || 0}</span>
-        </div>
-
-        <div class="summary-row">
-            <span>📲 EasyPaisa</span>
-            <span>${s2.easypaisa || 0}</span>
-        </div>
-
-        <div class="summary-row">
-    <span>🎁 Discount</span>
-    <span>${s2.discount || 0}</span>
-</div>
-
-        <div class="summary-row total">
-            <span>💵 Cash</span>
-            <span>${s2.closingCash || 0}</span>
-        </div>
-
-    </div>
-</td>
-</tr>
-`;
-
-    document.getElementById("dayCombinedBody").innerHTML = `
+    document.getElementById(
+        "dayShift1Body"
+    ).innerHTML = `
     <tr>
-        <td>${c.gameTotal || 0}</td>
-        <td>${c.canteenTotal || 0}</td>
-        <td>${c.gameCollection || 0}</td>
-        <td>${c.canteenCollection || 0}</td>
-        <td>${c.gameBalance || 0}</td>
-        <td>${c.canteenBalance || 0}</td>
-        <td>${c.expenses || 0}</td>
-        <td>${c.easypaisa || 0}</td>
-        <td>${c.discount || 0}</td>
-        <td>${c.closingCash || 0}</td>
+        <td colspan="7">
+
+            <div class="summary-box">
+
+                <div class="summary-heading">
+                    🌞 SHIFT 1
+                </div>
+
+
+                <div class="summary-section-title">
+                    🎱 NORMAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Game Total</span>
+                    <span>${s1.gameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Canteen Total</span>
+                    <span>${s1.canteenTotal || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📝 MANUAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Manual Game Total</span>
+                    <span>${s1.manualGameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Game Collection</span>
+                    <span>${s1.manualGameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Game Balance</span>
+                    <span>${s1.manualGameBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Manual Canteen Total</span>
+                    <span>${s1.manualCanteenTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Canteen Collection</span>
+                    <span>${s1.manualCanteenCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Canteen Balance</span>
+                    <span>${s1.manualCanteenBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 Manual EasyPaisa</span>
+                    <span>${s1.manualEasyPaisa || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    💵 COLLECTION
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Game Collection</span>
+                    <span>${s1.gameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💵 Advance Collection</span>
+                    <span>${s1.advanceCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🧾 Canteen Collection</span>
+                    <span>${s1.canteenCollection || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📊 OTHER
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Balance</span>
+                    <span>
+                        ${
+                            Number(s1.gameBalance || 0) +
+                            Number(s1.canteenBalance || 0)
+                        }
+                    </span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💸 Expenses</span>
+                    <span>${s1.expenses || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 EasyPaisa</span>
+                    <span>${s1.easypaisa || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🎁 Discount</span>
+                    <span>${s1.discount || 0}</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>💵 Cash</span>
+                    <span>${s1.closingCash || 0}</span>
+                </div>
+
+            </div>
+
+        </td>
+    </tr>
+    `;
+
+
+    // =====================================================
+    // 🔥 SHIFT 2
+    // =====================================================
+
+    document.getElementById(
+        "dayShift2Body"
+    ).innerHTML = `
+    <tr>
+        <td colspan="7">
+
+            <div class="summary-box">
+
+                <div class="summary-heading">
+                    🌙 SHIFT 2
+                </div>
+
+
+                <div class="summary-section-title">
+                    🎱 NORMAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Game Total</span>
+                    <span>${s2.gameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Canteen Total</span>
+                    <span>${s2.canteenTotal || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📝 MANUAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Manual Game Total</span>
+                    <span>${s2.manualGameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Game Collection</span>
+                    <span>${s2.manualGameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Game Balance</span>
+                    <span>${s2.manualGameBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Manual Canteen Total</span>
+                    <span>${s2.manualCanteenTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Canteen Collection</span>
+                    <span>${s2.manualCanteenCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Canteen Balance</span>
+                    <span>${s2.manualCanteenBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 Manual EasyPaisa</span>
+                    <span>${s2.manualEasyPaisa || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    💵 COLLECTION
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Game Collection</span>
+                    <span>${s2.gameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💵 Advance Collection</span>
+                    <span>${s2.advanceCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🧾 Canteen Collection</span>
+                    <span>${s2.canteenCollection || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📊 OTHER
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Balance</span>
+                    <span>
+                        ${
+                            Number(s2.gameBalance || 0) +
+                            Number(s2.canteenBalance || 0)
+                        }
+                    </span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💸 Expenses</span>
+                    <span>${s2.expenses || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 EasyPaisa</span>
+                    <span>${s2.easypaisa || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🎁 Discount</span>
+                    <span>${s2.discount || 0}</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>💵 Cash</span>
+                    <span>${s2.closingCash || 0}</span>
+                </div>
+
+            </div>
+
+        </td>
+    </tr>
+    `;
+
+
+    // =====================================================
+    // 🔥 COMBINED
+    // =====================================================
+
+    document.getElementById(
+        "dayCombinedBody"
+    ).innerHTML = `
+    <tr>
+        <td colspan="7">
+
+            <div class="summary-box">
+
+                <div class="summary-heading">
+                    📊 COMBINED — SHIFT 1 + SHIFT 2
+                </div>
+
+
+                <div class="summary-section-title">
+                    🎱 NORMAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Game Total</span>
+                    <span>${c.gameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Canteen Total</span>
+                    <span>${c.canteenTotal || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📝 MANUAL SALES
+                </div>
+
+                <div class="summary-row">
+                    <span>🎮 Manual Game Total</span>
+                    <span>${c.manualGameTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Game Collection</span>
+                    <span>${c.manualGameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Game Balance</span>
+                    <span>${c.manualGameBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🍔 Manual Canteen Total</span>
+                    <span>${c.manualCanteenTotal || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Manual Canteen Collection</span>
+                    <span>${c.manualCanteenCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Manual Canteen Balance</span>
+                    <span>${c.manualCanteenBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 Manual EasyPaisa</span>
+                    <span>${c.manualEasyPaisa || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    💵 COLLECTION
+                </div>
+
+                <div class="summary-row">
+                    <span>💰 Game Collection</span>
+                    <span>${c.gameCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💵 Advance Collection</span>
+                    <span>${c.advanceCollection || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🧾 Canteen Collection</span>
+                    <span>${c.canteenCollection || 0}</span>
+                </div>
+
+
+                <div class="summary-section-title">
+                    📊 OTHER
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Game Balance</span>
+                    <span>${c.gameBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>⚖️ Canteen Balance</span>
+                    <span>${c.canteenBalance || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>💸 Expenses</span>
+                    <span>${c.expenses || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>📲 EasyPaisa</span>
+                    <span>${c.easypaisa || 0}</span>
+                </div>
+
+                <div class="summary-row">
+                    <span>🎁 Discount</span>
+                    <span>${c.discount || 0}</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>💵 Cash</span>
+                    <span>${c.closingCash || 0}</span>
+                </div>
+
+            </div>
+
+        </td>
+    </tr>
 
         <!-- ✅ MAIN FIX -->
         <td>
@@ -6277,6 +6696,88 @@ document.getElementById("dayShift2Body").innerHTML = `
 </td>
     </tr>
 `;
+}
+
+function addManualSaleButtonToDayHistory() {
+
+    if (ROLE !== "admin") {
+        return;
+    }
+
+    const popup =
+        document.getElementById(
+            "dayHistoryPopup"
+        );
+
+    if (!popup) {
+        return;
+    }
+
+    let btn =
+        document.getElementById(
+            "manualSaleHistoryBtn"
+        );
+
+    if (btn) {
+        return;
+    }
+
+    btn =
+        document.createElement("button");
+
+    btn.id =
+        "manualSaleHistoryBtn";
+
+    btn.innerText =
+        "+ Manual Sale";
+
+    btn.style.cssText = `
+        margin: 10px;
+        padding: 10px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 8px;
+    `;
+
+    btn.onclick = () => {
+
+        const index =
+            document.getElementById(
+                "dayHistoryDateSelect"
+            ).selectedIndex;
+
+        const selectedDay =
+            window._daysData[index];
+
+        if (!selectedDay?.day_id) {
+
+            alert(
+                "Please select a Day first ❌"
+            );
+
+            return;
+        }
+
+        window.selectedClosedDayId =
+            selectedDay.day_id;
+
+        openManualSalePopup(
+            selectedDay.day_id
+        );
+    };
+
+
+    const dateSelect =
+        document.getElementById(
+            "dayHistoryDateSelect"
+        );
+
+    if (dateSelect) {
+
+        dateSelect.parentElement
+            .appendChild(btn);
+
+    }
 }
 
 /******************************************************
