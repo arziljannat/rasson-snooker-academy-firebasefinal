@@ -5621,7 +5621,7 @@ popup.className = "popup";
 
     popup.innerHTML = `
 
-<div class="popup-box manual-sale-popup-box">>
+<div class="popup-box manual-sale-popup-box">
 
 <h2>Manual Sale</h2>
 
