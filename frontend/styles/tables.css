@@ -3533,3 +3533,125 @@ body * {
     }
 
 }
+
+/* =========================================================
+   MANUAL SALE POPUP
+========================================================= */
+
+#manualSalePopup {
+    z-index: 1500 !important;
+}
+
+#manualSalePopup .manual-sale-popup-box {
+
+    width: 420px !important;
+    max-width: 95vw !important;
+
+    box-sizing: border-box;
+
+    animation: manualSalePopupShow .25s ease;
+}
+
+#manualSalePopup .manual-sale-popup-box h2 {
+
+    margin: 0 0 18px;
+
+    text-align: center;
+
+    color: #ffffff;
+
+    font-size: 28px;
+
+    font-weight: 900;
+
+    text-shadow:
+        0 0 8px rgba(0,255,204,.7);
+}
+
+#manualSalePopup .manual-sale-popup-box label {
+
+    display: block;
+
+    color: #00ffcc;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    margin-bottom: 6px;
+}
+
+#manualSalePopup .manual-sale-popup-box input,
+#manualSalePopup .manual-sale-popup-box select {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-bottom: 14px;
+}
+
+#manualSalePopup .popup-buttons {
+
+    display: flex;
+
+    gap: 15px;
+
+    width: 100%;
+
+    margin-top: 5px;
+}
+
+#manualSalePopup .popup-buttons button {
+
+    flex: 1;
+
+    margin: 0;
+
+    min-width: 0;
+
+    height: 46px;
+
+    font-weight: 800;
+}
+
+@keyframes manualSalePopupShow {
+
+    from {
+        opacity: 0;
+        transform: scale(.94);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* MOBILE */
+
+@media screen and (max-width: 600px) {
+
+    #manualSalePopup {
+        padding: 10px !important;
+        box-sizing: border-box;
+    }
+
+    #manualSalePopup .manual-sale-popup-box {
+
+        width: calc(100vw - 20px) !important;
+
+        max-width: calc(100vw - 20px) !important;
+
+        max-height: calc(100dvh - 20px) !important;
+
+        overflow-y: auto !important;
+
+        padding: 20px 18px !important;
+    }
+
+    #manualSalePopup .manual-sale-popup-box h2 {
+        font-size: 25px;
+    }
+}
