@@ -3702,16 +3702,21 @@ const bookingAdvance =
 
 liveData.advanceCollection = bookingAdvance;
 
+// 🔥 FINAL CLOSING CASH
+// Normal + Manual collections + Advance - Expenses - EasyPaisa
+
 liveData.closingCash =
     (
-        liveData.gameCollection +
-        liveData.canteenCollection +
-        liveData.advanceCollection
+        Number(liveData.gameCollection || 0) +
+        Number(liveData.canteenCollection || 0) +
+        Number(liveData.manualGameCollection || 0) +
+        Number(liveData.manualCanteenCollection || 0) +
+        Number(liveData.advanceCollection || 0)
     )
     -
-    liveData.expenses
+    Number(liveData.expenses || 0)
     -
-    liveData.easypaisa;
+    Number(liveData.easypaisa || 0);
 
         s1 = {
 
@@ -3772,16 +3777,21 @@ const bookingAdvance =
 
 liveData.advanceCollection = bookingAdvance;
 
+// 🔥 FINAL CLOSING CASH
+// Normal + Manual collections + Advance - Expenses - EasyPaisa
+
 liveData.closingCash =
     (
-        liveData.gameCollection +
-        liveData.canteenCollection +
-        liveData.advanceCollection
+        Number(liveData.gameCollection || 0) +
+        Number(liveData.canteenCollection || 0) +
+        Number(liveData.manualGameCollection || 0) +
+        Number(liveData.manualCanteenCollection || 0) +
+        Number(liveData.advanceCollection || 0)
     )
     -
-    liveData.expenses
+    Number(liveData.expenses || 0)
     -
-    liveData.easypaisa;
+    Number(liveData.easypaisa || 0);
 
 
         s2 = {
@@ -4074,17 +4084,20 @@ const bookingAdvanceCollection =
 shiftData.advanceCollection =
     bookingAdvanceCollection;
 
-// 🔥 RECALCULATE CLOSING CASH
+// 🔥 FINAL CLOSING CASH — SHIFT 1
+
 shiftData.closingCash =
     (
-        shiftData.gameCollection +
-        shiftData.canteenCollection +
-        shiftData.advanceCollection
+        Number(shiftData.gameCollection || 0) +
+        Number(shiftData.canteenCollection || 0) +
+        Number(shiftData.manualGameCollection || 0) +
+        Number(shiftData.manualCanteenCollection || 0) +
+        Number(shiftData.advanceCollection || 0)
     )
     -
-    shiftData.expenses
+    Number(shiftData.expenses || 0)
     -
-    shiftData.easypaisa;
+    Number(shiftData.easypaisa || 0);
 
     shift1 = {
         shift: 1,
@@ -4432,19 +4445,20 @@ const bookingAdvanceCollection =
 shiftData.advanceCollection =
     bookingAdvanceCollection;
 
-// 🔥 GAME COLLECTION KO TOUCH NAHI KARNA
+// 🔥 FINAL CLOSING CASH — SHIFT 2
 
-// 🔥 CLOSING CASH MEIN ADVANCE INCLUDE HOGA
 shiftData.closingCash =
     (
-        shiftData.gameCollection +
-        shiftData.canteenCollection +
-        shiftData.advanceCollection
+        Number(shiftData.gameCollection || 0) +
+        Number(shiftData.canteenCollection || 0) +
+        Number(shiftData.manualGameCollection || 0) +
+        Number(shiftData.manualCanteenCollection || 0) +
+        Number(shiftData.advanceCollection || 0)
     )
     -
-    shiftData.expenses
+    Number(shiftData.expenses || 0)
     -
-    shiftData.easypaisa;
+    Number(shiftData.easypaisa || 0);
   
 
     shift2 = {
