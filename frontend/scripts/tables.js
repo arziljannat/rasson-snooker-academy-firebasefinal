@@ -5467,9 +5467,8 @@ if (newShift2) {
         shift2BookingAdvance;
 }
 
-      // =====================================================
-// 🔥 FINAL CLOSING CASH RECALCULATION
-// Manual Game / Manual Canteen collection bhi cash hain
+// =====================================================
+// 🔥 FINAL CLOSING CASH
 // =====================================================
 
 if (newShift1) {
@@ -5480,7 +5479,7 @@ if (newShift1) {
             Number(newShift1.canteenCollection || 0) +
             Number(newShift1.manualGameCollection || 0) +
             Number(newShift1.manualCanteenCollection || 0) +
-            Number(newShift1.advanceCollection || 0)
+            Number(shift1BookingAdvance || 0)
         )
         -
         Number(newShift1.expenses || 0)
@@ -5497,7 +5496,7 @@ if (newShift2) {
             Number(newShift2.canteenCollection || 0) +
             Number(newShift2.manualGameCollection || 0) +
             Number(newShift2.manualCanteenCollection || 0) +
-            Number(newShift2.advanceCollection || 0)
+            Number(shift2BookingAdvance || 0)
         )
         -
         Number(newShift2.expenses || 0)
