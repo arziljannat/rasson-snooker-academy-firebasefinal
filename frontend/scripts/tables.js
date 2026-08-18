@@ -3680,11 +3680,13 @@ console.log("=================================");
         }
 
 
-        const liveData =
-            calculateShiftSnapshot(
-                startMs,
-                now
-            );
+const liveData =
+    calculateShiftSnapshot(
+        startMs,
+        now,
+        1,
+        window.currentDayId
+    );
 
 
         // ======================================
@@ -3749,11 +3751,13 @@ liveData.closingCash =
         }
 
 
-        const liveData =
-            calculateShiftSnapshot(
-                startMs,
-                now
-            );
+const liveData =
+    calculateShiftSnapshot(
+        startMs,
+        now,
+        2,
+        window.currentDayId
+    );
 
 
         // ======================================
