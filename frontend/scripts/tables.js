@@ -5467,21 +5467,42 @@ if (newShift2) {
         shift2BookingAdvance;
 }
 
-// 🔥 CLOSING CASH MEIN ADVANCE INCLUDE KARO
+      // =====================================================
+// 🔥 FINAL CLOSING CASH RECALCULATION
+// Manual Game / Manual Canteen collection bhi cash hain
+// =====================================================
+
 if (newShift1) {
 
     newShift1.closingCash =
-        Number(newShift1.closingCash || 0) +
-        Number(shift1BookingAdvance || 0);
+        (
+            Number(newShift1.gameCollection || 0) +
+            Number(newShift1.canteenCollection || 0) +
+            Number(newShift1.manualGameCollection || 0) +
+            Number(newShift1.manualCanteenCollection || 0) +
+            Number(newShift1.advanceCollection || 0)
+        )
+        -
+        Number(newShift1.expenses || 0)
+        -
+        Number(newShift1.easypaisa || 0);
 
 }
-
 
 if (newShift2) {
 
     newShift2.closingCash =
-        Number(newShift2.closingCash || 0) +
-        Number(shift2BookingAdvance || 0);
+        (
+            Number(newShift2.gameCollection || 0) +
+            Number(newShift2.canteenCollection || 0) +
+            Number(newShift2.manualGameCollection || 0) +
+            Number(newShift2.manualCanteenCollection || 0) +
+            Number(newShift2.advanceCollection || 0)
+        )
+        -
+        Number(newShift2.expenses || 0)
+        -
+        Number(newShift2.easypaisa || 0);
 
 }
 // =====================================================
