@@ -3885,15 +3885,17 @@ summaryBody.innerHTML = `
     <td>Shift 1</td>
 
     <td>${s1?.gameTotal || 0}</td>
-
+    
     <td>${s1?.canteenTotal || 0}</td>
-
-    <td>${s1?.manualGameTotal || 0}</td>
-
-    <td>${s1?.manualCanteenTotal || 0}</td>
-
+    
     <td>${s1?.gameCollection || 0}</td>
-
+    
+    <td>${s1?.manualGameTotal || 0}</td>
+    
+    <td>${s1?.manualCanteenTotal || 0}</td>
+    
+    <td>${s1?.manualEasyPaisa || 0}</td>
+    
     <td>${s1?.advanceCollection || 0}</td>
 
     <td>${s1?.canteenCollection || 0}</td>
@@ -3923,14 +3925,18 @@ summaryBody.innerHTML = `
 
     <td>${s2?.gameTotal || 0}</td>
 
+    <td>${s2?.gameTotal || 0}</td>
+    
     <td>${s2?.canteenTotal || 0}</td>
-
-    <td>${s2?.manualGameTotal || 0}</td>
-
-    <td>${s2?.manualCanteenTotal || 0}</td>
-
+    
     <td>${s2?.gameCollection || 0}</td>
-
+    
+    <td>${s2?.manualGameTotal || 0}</td>
+    
+    <td>${s2?.manualCanteenTotal || 0}</td>
+    
+    <td>${s2?.manualEasyPaisa || 0}</td>
+    
     <td>${s2?.advanceCollection || 0}</td>
 
     <td>${s2?.canteenCollection || 0}</td>
@@ -3964,11 +3970,11 @@ ${combined ? `
 
     <td>${Number(s1?.canteenTotal || 0) + Number(s2?.canteenTotal || 0)}</td>
 
+    <td>${Number(s1?.gameCollection || 0) + Number(s2?.gameCollection || 0)}</td>
+
     <td>${Number(s1?.manualGameTotal || 0) + Number(s2?.manualGameTotal || 0)}</td>
 
     <td>${Number(s1?.manualCanteenTotal || 0) + Number(s2?.manualCanteenTotal || 0)}</td>
-
-    <td>${Number(s1?.gameCollection || 0) + Number(s2?.gameCollection || 0)}</td>
 
     <td>${Number(s1?.advanceCollection || 0) + Number(s2?.advanceCollection || 0)}</td>
 
