@@ -4512,7 +4512,19 @@ alert("Shift 2 closed successfully ✅");
  ******************************************************/
 async function closeDay() {
 
-   const today = new Date().toLocaleDateString("en-CA"); // ✅ FIX
+    // =====================================================
+    // 🔒 PREVENT DOUBLE DAY CLOSE
+    // =====================================================
+
+    if (window._dayCloseInProgress) {
+        console.warn("⚠️ Day Close already running...");
+        return;
+    }
+
+    window._dayCloseInProgress = true;
+
+    const today =
+        new Date().toLocaleDateString("en-CA"); // ✅ FIX
     let s1 = shift1;
     let s2 = shift2;
 
@@ -4696,7 +4708,7 @@ printDayHistoryThermal({
         closingCash: printData.closingCash
     }
 });
-} catch (err) {
+catch (err) {
 
     console.error(
         "❌ ERROR SAVING DAY DATA:",
@@ -4707,6 +4719,9 @@ printDayHistoryThermal({
         "Error saving day data ❌\n\n" +
         (err?.message || err)
     );
+
+    // 🔓 RELEASE DAY CLOSE LOCK
+    window._dayCloseInProgress = false;
 
     return;
 }
@@ -4788,15 +4803,11 @@ tables.forEach(t => {
     shift2 = null;
 
 alert("Day Closed Successfully & Saved in Day History!");
+
 setTimeout(autoRefreshUI, 1200);
 
-    } finally {
-
-        // 🔓 DAY CLOSE LOCK RELEASE
-        window._dayCloseInProgress = false;
-    }
+window._dayCloseInProgress = false;
 }
-
 
 
 /******************************************************
