@@ -4595,7 +4595,12 @@ combined.closingCash =
 // 🔥 SAFE DATA CLEAN (VERY IMPORTANT)
 const safeShift1 = JSON.parse(JSON.stringify(s1 || {}));
 const safeShift2 = JSON.parse(JSON.stringify(s2 || {}));
-const safeTables = JSON.parse(JSON.stringify(tablesSnapshot || {}));
+const safeTables = JSON.parse(JSON.stringify(
+    tables.map(t => ({
+        table_id: t.name,
+        history: t.history || []
+    }))
+));
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
 const q = query(
@@ -4717,7 +4722,17 @@ printDayHistoryThermal({
     }
 });
 } catch (err) {
-    alert("Error saving day data ❌");
+
+    console.error(
+        "❌ ERROR SAVING DAY DATA:",
+        err
+    );
+
+    alert(
+        "Error saving day data ❌\n\n" +
+        (err?.message || err)
+    );
+
     return;
 }
 
