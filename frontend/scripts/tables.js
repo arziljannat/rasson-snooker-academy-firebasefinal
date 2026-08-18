@@ -4708,7 +4708,8 @@ printDayHistoryThermal({
         closingCash: printData.closingCash
     }
 });
-catch (err) {
+
+} catch (err) {
 
     console.error(
         "❌ ERROR SAVING DAY DATA:",
