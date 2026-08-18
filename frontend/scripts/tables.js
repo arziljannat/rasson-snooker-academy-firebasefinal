@@ -5237,27 +5237,6 @@ if (h.paid && h.paidTime) {
     });
 
 
-    // ==========================================
-    // 🔥 ADD MANUAL SALE TO NORMAL ACCOUNTING
-    // ==========================================
-
-    gameTotal += manualGameTotal;
-
-    canteenTotal += manualCanteenTotal;
-
-
-    gameCollection +=
-        manualGameCollection;
-
-    canteenCollection +=
-        manualCanteenCollection;
-
-
-    gameBalance +=
-        manualGameBalance;
-
-    canteenBalance +=
-        manualCanteenBalance;
 
     // =========================
     // 🔥 EXPENSES
@@ -5300,10 +5279,19 @@ if (h.paid && h.paidTime) {
       
       easypaisa += manualEasyPaisa;
 
+  
     // =========================
-    // 🔥 FINAL BALANCE FIX
-    // =========================
-    let closingCash = (gameCollection + canteenCollection) - expenses - easypaisa;
+// 🔥 FINAL BALANCE FIX
+// =========================
+let closingCash =
+    (
+        gameCollection +
+        canteenCollection +
+        manualGameCollection +
+        manualCanteenCollection
+    )
+    - expenses
+    - easypaisa;
 
         return {
             gameTotal,
