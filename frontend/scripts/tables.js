@@ -3888,6 +3888,10 @@ summaryBody.innerHTML = `
 
     <td>${s1?.canteenTotal || 0}</td>
 
+    <td>${s1?.manualGameTotal || 0}</td>
+
+    <td>${s1?.manualCanteenTotal || 0}</td>
+
     <td>${s1?.gameCollection || 0}</td>
 
     <td>${s1?.advanceCollection || 0}</td>
@@ -3920,6 +3924,10 @@ summaryBody.innerHTML = `
     <td>${s2?.gameTotal || 0}</td>
 
     <td>${s2?.canteenTotal || 0}</td>
+
+    <td>${s2?.manualGameTotal || 0}</td>
+
+    <td>${s2?.manualCanteenTotal || 0}</td>
 
     <td>${s2?.gameCollection || 0}</td>
 
@@ -3955,6 +3963,10 @@ ${combined ? `
     <td>${Number(s1?.gameTotal || 0) + Number(s2?.gameTotal || 0)}</td>
 
     <td>${Number(s1?.canteenTotal || 0) + Number(s2?.canteenTotal || 0)}</td>
+
+    <td>${Number(s1?.manualGameTotal || 0) + Number(s2?.manualGameTotal || 0)}</td>
+
+    <td>${Number(s1?.manualCanteenTotal || 0) + Number(s2?.manualCanteenTotal || 0)}</td>
 
     <td>${Number(s1?.gameCollection || 0) + Number(s2?.gameCollection || 0)}</td>
 
