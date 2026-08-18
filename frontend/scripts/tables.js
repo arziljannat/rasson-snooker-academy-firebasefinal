@@ -3934,8 +3934,6 @@ summaryBody.innerHTML = `
     <td>Shift 2</td>
 
     <td>${s2?.gameTotal || 0}</td>
-
-    <td>${s2?.gameTotal || 0}</td>
     
     <td>${s2?.canteenTotal || 0}</td>
     
