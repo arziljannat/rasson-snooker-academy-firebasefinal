@@ -4607,58 +4607,29 @@ const safeTables = JSON.parse(JSON.stringify(
 ));
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
-const q = query(
+// =====================================================
+// 🔒 DUPLICATE DAY CLOSE PROTECTION
+// =====================================================
+
+const existingDayQuery = query(
     collection(window.db, "days"),
     where("branch", "==", BRANCH),
-    where("day_id", "==", window.currentDayId)
+    where("day_id", "==", Number(window.currentDayId))
 );
 
-const snap = await getDocs(q);
+const existingDaySnap =
+    await getDocs(existingDayQuery);
 
-// 🔥 ONLY BLOCK IF DAY REALLY EXISTS
-let alreadyClosed = false;
+if (!existingDaySnap.empty) {
 
-snap.forEach(docSnap => {
-
-    const d = docSnap.data();
-
-    // ✅ SAME DAY ONLY
-    if (String(d.day_id) === String(window.currentDayId)) {
-        alreadyClosed = true;
-    }
-});
-
-if (alreadyClosed) {
-
-    // 🔥 BUTTON RESET
-    document.getElementById("shiftCloseBtn").innerText = "Shift 1 Close";
-
-    // 🔥 RESET LOCAL SHIFTS
-    shift1 = null;
-    shift2 = null;
-
-    // 🔥 FORCE NEW DAY
-    const newDayId = Date.now();
-
-    const systemQ = query(
-        collection(window.db, "system"),
-        where("branch", "==", BRANCH),
-        where("type", "==", "current_day")
+    console.warn(
+        "⚠️ DAY ALREADY EXISTS:",
+        window.currentDayId
     );
 
-    const systemSnap = await getDocs(systemQ);
-
-    for (const d of systemSnap.docs) {
-
-        await updateDoc(doc(window.db, "system", d.id), {
-            day_id: newDayId,
-            created_at: new Date().toISOString()
-        });
-    }
-
-    window.currentDayId = newDayId;
-
-    alert("Previous day already closed ✅ New day started.");
+    alert(
+        "This day is already closed ❌"
+    );
 
     hidePopup("shiftSummaryPopup");
 
@@ -4816,8 +4787,14 @@ tables.forEach(t => {
     shift1 = null;
     shift2 = null;
 
-    alert("Day Closed Successfully & Saved in Day History!");
-  setTimeout(autoRefreshUI, 1200);
+alert("Day Closed Successfully & Saved in Day History!");
+setTimeout(autoRefreshUI, 1200);
+
+    } finally {
+
+        // 🔓 DAY CLOSE LOCK RELEASE
+        window._dayCloseInProgress = false;
+    }
 }
 
 
