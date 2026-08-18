@@ -3986,6 +3986,8 @@ ${combined ? `
 
     <td>${Number(s1?.manualCanteenTotal || 0) + Number(s2?.manualCanteenTotal || 0)}</td>
 
+    <td>${Number(s1?.manualEasyPaisa || 0) + Number(s2?.manualEasyPaisa || 0)}</td>
+
     <td>${Number(s1?.advanceCollection || 0) + Number(s2?.advanceCollection || 0)}</td>
 
     <td>${Number(s1?.canteenCollection || 0) + Number(s2?.canteenCollection || 0)}</td>
