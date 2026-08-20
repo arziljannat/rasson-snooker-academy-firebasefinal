@@ -4054,16 +4054,36 @@ if (!startMs || startMs <= 0) {
 // 🔥 STEP 1: FIRST REBUILD HISTORY
 await rebuildHistoryFromSessions();
 
-// 🔥 STEP 2: THEN GET HISTORY
-let allHistory = tables.flatMap(t => t.history);
+// 🔥 STEP 2: SHIFT 1 START TIME
+// Shift 1 hamesha current business day ke start se chalega.
+// First table session ko shift start nahi banayenge.
 
-if (allHistory.length > 0) {
-    let firstSession = allHistory.sort((a,b) => a.checkin - b.checkin)[0];
+const nowDate = new Date(endMs);
 
-    if (firstSession && firstSession.checkin) {
-        startMs = firstSession.checkin;
-    }
+// Rasson business day starts at 09:00 AM
+const shift1Start = new Date(nowDate);
+
+shift1Start.setHours(9, 0, 0, 0);
+
+startMs = shift1Start.getTime();
+
+// 🔥 SAFETY:
+// Agar current time 09:00 AM se pehle ho,
+// previous business day's 09:00 AM use hoga.
+if (startMs > endMs) {
+    startMs -= 24 * 60 * 60 * 1000;
 }
+
+console.log("🔥 SHIFT 1 FIXED START:", {
+    startMs,
+    startTime: new Date(startMs).toLocaleString("en-PK", {
+        timeZone: "Asia/Karachi"
+    }),
+    endMs,
+    endTime: new Date(endMs).toLocaleString("en-PK", {
+        timeZone: "Asia/Karachi"
+    })
+});
 
 // 🔥 STEP 3: CALCULATE
 let shiftData =
@@ -5270,40 +5290,98 @@ if (h.paid && h.paidTime) {
 
 
 
-    // =========================
-    // 🔥 EXPENSES
-    // =========================
-    let expenses = firebaseExpenses
-    .filter(e => {
+// =========================
+// 🔥 EXPENSES — DAY + SHIFT SAFE
+// =========================
+let expenses = firebaseExpenses
+.filter(e => {
 
-        let time = 0;
+    // Time
+    let time = 0;
 
-        if (e.created_at?.seconds) {
-            time = e.created_at.seconds * 1000;
-        } else if (e.created_at) {
-            time = new Date(e.created_at).getTime();
-        }
+    if (e.created_at?.seconds) {
+        time = e.created_at.seconds * 1000;
+    } else if (e.created_at) {
+        time = new Date(e.created_at).getTime();
+    }
 
-        return time >= startTime && time <= endTime;
-    })
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-    // =========================
-    // 🔥 EASYPAISA
-    // =========================
-  let easypaisa = firebaseEasy
-    .filter(e => {
+    if (!time) return false;
 
-        let time = 0;
+    // Time range
+    if (time < startTime || time > endTime) {
+        return false;
+    }
 
-        if (e.created_at?.seconds) {
-            time = e.created_at.seconds * 1000;
-        } else if (e.created_at) {
-            time = new Date(e.created_at).getTime();
-        }
+    // 🔥 If expense has day_id, it MUST belong to current day
+    if (
+        e.day_id !== undefined &&
+        e.day_id !== null &&
+        Number(e.day_id) !== Number(dayId ?? window.currentDayId)
+    ) {
+        return false;
+    }
 
-        return time >= startTime && time <= endTime;
-    })
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    // 🔥 If expense has shift_number, it MUST belong to current shift
+    if (
+        e.shift_number !== undefined &&
+        e.shift_number !== null &&
+        Number(e.shift_number) !== Number(shiftNumber)
+    ) {
+        return false;
+    }
+
+    return true;
+})
+.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+);
+// =========================
+// 🔥 EASYPAISA — DAY + SHIFT SAFE
+// =========================
+let easypaisa = firebaseEasy
+.filter(e => {
+
+    // Time
+    let time = 0;
+
+    if (e.created_at?.seconds) {
+        time = e.created_at.seconds * 1000;
+    } else if (e.created_at) {
+        time = new Date(e.created_at).getTime();
+    }
+
+    if (!time) return false;
+
+    // Time range
+    if (time < startTime || time > endTime) {
+        return false;
+    }
+
+    // 🔥 If EasyPaisa has day_id, it MUST belong to current day
+    if (
+        e.day_id !== undefined &&
+        e.day_id !== null &&
+        Number(e.day_id) !== Number(dayId ?? window.currentDayId)
+    ) {
+        return false;
+    }
+
+    // 🔥 If EasyPaisa has shift_number, it MUST belong to current shift
+    if (
+        e.shift_number !== undefined &&
+        e.shift_number !== null &&
+        Number(e.shift_number) !== Number(shiftNumber)
+    ) {
+        return false;
+    }
+
+    return true;
+})
+.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+);
 
         // ==========================================
       // 🔥 ADD MANUAL SALE EASYPAISA
