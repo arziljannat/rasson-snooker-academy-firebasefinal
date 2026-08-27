@@ -4580,10 +4580,17 @@ async function closeDay() {
     let s1 = shift1;
     let s2 = shift2;
 
-    if (!s1 || !s2) {
-        alert("Please close Shift 1 and Shift 2 before Day Close.");
-        return;
-    }
+if (!s1 || !s2) {
+
+    alert(
+        "Please close Shift 1 and Shift 2 before Day Close."
+    );
+
+    // 🔓 RELEASE DAY CLOSE LOCK
+    window._dayCloseInProgress = false;
+
+    return;
+}
 
     // --------------- BUILD COMBINED SUMMARY --------------------
     let combined = {
@@ -4672,30 +4679,148 @@ const safeTables = JSON.parse(JSON.stringify(
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 
 // =====================================================
-// 🔒 DUPLICATE DAY CLOSE PROTECTION
+// 🔒 DUPLICATE DAY CLOSE PROTECTION + RECOVERY
 // =====================================================
+
+const oldDayId =
+    Number(window.currentDayId);
 
 const existingDayQuery = query(
     collection(window.db, "days"),
     where("branch", "==", BRANCH),
-    where("day_id", "==", Number(window.currentDayId))
+    where("day_id", "==", oldDayId)
 );
 
 const existingDaySnap =
     await getDocs(existingDayQuery);
 
+
+// =====================================================
+// 🟢 DAY ALREADY SAVED
+// =====================================================
+
 if (!existingDaySnap.empty) {
 
     console.warn(
-        "⚠️ DAY ALREADY EXISTS:",
-        window.currentDayId
+        "⚠️ DAY ALREADY SAVED — RECOVERING NEW DAY:",
+        oldDayId
     );
 
-    alert(
-        "This day is already closed ❌"
+    // -----------------------------------------------
+    // 🔥 IMPORTANT
+    // Old day already exists in History.
+    // Isko dobara save NAHI karna.
+    // -----------------------------------------------
+
+    const newDayId = Date.now();
+
+    // 🔥 GET CENTRAL CURRENT DAY RECORDS
+    const currentDayQuery = query(
+        collection(window.db, "system"),
+        where("branch", "==", BRANCH),
+        where("type", "==", "current_day")
     );
+
+    const currentDaySnap =
+        await getDocs(currentDayQuery);
+
+
+    // -----------------------------------------------
+    // 🔥 MOVE CENTRAL DAY TO NEW ID
+    // -----------------------------------------------
+
+    if (!currentDaySnap.empty) {
+
+        for (const d of currentDaySnap.docs) {
+
+            await updateDoc(
+                doc(window.db, "system", d.id),
+                {
+                    day_id: newDayId,
+                    created_at:
+                        new Date().toISOString()
+                }
+            );
+
+        }
+
+    } else {
+
+        // Agar current_day record missing ho
+        await addDoc(
+            collection(window.db, "system"),
+            {
+                type: "current_day",
+                branch: BRANCH,
+                day_id: newDayId,
+                created_at:
+                    new Date().toISOString()
+            }
+        );
+
+    }
+
+
+    // -----------------------------------------------
+    // 🔥 LOCAL DAY UPDATE
+    // -----------------------------------------------
+
+    window.currentDayId =
+        newDayId;
+
+
+    console.log(
+        "✅ DAY CLOSE RECOVERY COMPLETE:",
+        newDayId
+    );
+
+
+    // -----------------------------------------------
+    // 🔥 RESET LOCAL SHIFT VARIABLES
+    // -----------------------------------------------
+
+    shift1 = null;
+    shift2 = null;
+
+
+    // -----------------------------------------------
+    // 🔥 RELOAD SHIFTS FOR NEW DAY
+    // -----------------------------------------------
+
+    loadShiftsFromFirebase();
+
+
+    // -----------------------------------------------
+    // 🔥 CLOSE POPUP
+    // -----------------------------------------------
 
     hidePopup("shiftSummaryPopup");
+
+
+    // -----------------------------------------------
+    // 🔥 UPDATE BUTTON
+    // -----------------------------------------------
+
+    const shiftBtn =
+        document.getElementById("shiftCloseBtn");
+
+    if (shiftBtn) {
+        shiftBtn.innerText =
+            "Shift 1 Close";
+    }
+
+
+    // -----------------------------------------------
+    // 🔓 RELEASE LOCK
+    // -----------------------------------------------
+
+    window._dayCloseInProgress = false;
+
+
+    alert(
+        "Day was already saved.\n" +
+        "New day started successfully ✅"
+    );
 
     return;
 }
@@ -4780,25 +4905,76 @@ printDayHistoryThermal({
 }
 
 
-    // 🔥 UPDATE CENTRAL DAY (FIREBASE)
+// =====================================================
+// 🔥 UPDATE CENTRAL DAY — SAFE + FULLY AWAITED
+// =====================================================
+
 const q = query(
     collection(window.db, "system"),
     where("branch", "==", BRANCH),
     where("type", "==", "current_day")
 );
 
-const snap = await getDocs(q);
+const snap =
+    await getDocs(q);
 
-const newDayId = Date.now();
+const newDayId =
+    Date.now();
 
-snap.forEach(async (d) => {
-    await updateDoc(doc(window.db, "system", d.id), {
-        day_id: newDayId,
-        created_at: new Date().toISOString()
-    });
-});
 
-window.currentDayId = newDayId;
+// =====================================================
+// 🆕 CURRENT DAY RECORD MISSING
+// =====================================================
+
+if (snap.empty) {
+
+    await addDoc(
+        collection(window.db, "system"),
+        {
+            type: "current_day",
+            branch: BRANCH,
+            day_id: newDayId,
+            created_at:
+                new Date().toISOString()
+        }
+    );
+
+}
+
+
+// =====================================================
+// 🔥 CURRENT DAY RECORD EXISTS
+// =====================================================
+
+else {
+
+    for (const d of snap.docs) {
+
+        await updateDoc(
+            doc(window.db, "system", d.id),
+            {
+                day_id: newDayId,
+                created_at:
+                    new Date().toISOString()
+            }
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// 🔥 LOCAL CURRENT DAY
+// =====================================================
+
+window.currentDayId =
+    newDayId;
+
+console.log(
+    "✅ CENTRAL DAY MOVED TO:",
+    newDayId
+);
 
 // ======================================================
 // 🔥 DAY CLOSE — PRESERVE RUNNING TABLES
