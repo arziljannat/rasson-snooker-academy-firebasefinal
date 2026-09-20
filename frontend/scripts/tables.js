@@ -2742,6 +2742,119 @@ async function deleteTableConfirm() {
 }
 
 /******************************************************
+ * BULK MARK SELECTED HISTORY AS PAID
+ ******************************************************/
+async function markSelectedHistoryPaid(tableId, indexes) {
+
+    if (ROLE !== "admin" && ROLE !== "staff") {
+        alert("Only admin/staff can mark paid ❌");
+        return;
+    }
+
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
+    if (!t) {
+        alert("Table not found ❌");
+        return;
+    }
+
+    const selected = indexes
+        .map(index => t.history[Number(index)])
+        .filter(h => h && h.paid !== true && h.sessionId);
+
+    if (selected.length === 0) {
+        alert("Select unpaid history first ❌");
+        return;
+    }
+
+    const confirmed = confirm(
+        `Mark ${selected.length} selected games as PAID?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+
+        const batch = writeBatch(window.db);
+        const paidAt = new Date().toISOString();
+
+        for (const h of selected) {
+
+            const sessionRef = doc(
+                window.db,
+                "sessions",
+                h.sessionId
+            );
+
+            const sessionSnap = await getDoc(sessionRef);
+
+            if (!sessionSnap.exists()) continue;
+
+            const sessionData = sessionSnap.data();
+
+            if (sessionData.paid === true) continue;
+
+            const fullGameAmount = Number(
+                sessionData.final_game_amount ??
+                sessionData.final_amount ??
+                h.amount ??
+                0
+            );
+
+            const bookingAdvance =
+                sessionData.booking_id &&
+                sessionData.booking_advance_payment_status === "paid"
+                    ? Number(sessionData.booking_advance || 0)
+                    : 0;
+
+            const isBooking =
+                sessionData.from_booking === true ||
+                !!sessionData.booking_id;
+
+            const collectedGameAmount = isBooking
+                ? Math.max(0, fullGameAmount - bookingAdvance)
+                : fullGameAmount;
+
+            batch.update(sessionRef, {
+
+                paid: true,
+
+                paid_time: paidAt,
+
+                game_collection_amount:
+                    collectedGameAmount
+
+            });
+        }
+
+        await batch.commit();
+
+        await rebuildHistoryFromSessions();
+
+        renderTables();
+
+        openHistory(tableId);
+
+        alert(
+            `${selected.length} games marked as paid ✅`
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ BULK PAYMENT ERROR:",
+            error
+        );
+
+        alert("Bulk payment failed ❌");
+    }
+}
+
+
+
+/******************************************************
  * OPEN HISTORY POPUP (FULL FIX)
  ******************************************************/
 function openHistory(id) {
@@ -2965,6 +3078,21 @@ t.history.sort((a, b) => {
             ? `<button class="paid-btn" disabled>PAID</button>`
             : `<button class="unpaid-btn" onclick="openBillFromHistory('${id}', ${index})">UNPAID</button>`
     }
+    
+</td>
+
+<td>
+${
+    !h.paid
+        ? `
+<input
+    type="checkbox"
+    class="historyPayCheck"
+    value="${index}"
+>
+`
+        : `<span style="opacity:0.4;">✓</span>`
+}
 </td>
 
 <td>
@@ -2991,6 +3119,38 @@ value="${index}"
         () => document.getElementById("historyPopup").classList.add("hidden");
 
   const deleteBtn = document.getElementById("deleteSelectedHistoryBtn");
+
+  const payBtn =
+    document.getElementById("paySelectedHistoryBtn");
+
+if (ROLE === "admin" || ROLE === "staff") {
+
+    payBtn.classList.remove("hidden");
+
+    payBtn.onclick = async () => {
+
+        const checks = document.querySelectorAll(
+            ".historyPayCheck:checked"
+        );
+
+        if (checks.length === 0) {
+            alert("Select unpaid history first ❌");
+            return;
+        }
+
+        const indexes = [...checks].map(
+            checkbox => Number(checkbox.value)
+        );
+
+        await markSelectedHistoryPaid(id, indexes);
+
+    };
+
+} else {
+
+    payBtn.classList.add("hidden");
+
+}
 
 // 🔥 only admin
 if (ROLE === "admin") {
