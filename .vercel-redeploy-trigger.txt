@@ -1,0 +1,2 @@
+Stable rollback deployment trigger
+Restored to commit 4d78aee7297fd9462171b5c236aa6927c1d69052
