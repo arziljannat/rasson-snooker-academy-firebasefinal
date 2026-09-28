@@ -531,47 +531,22 @@ refreshCurrentDayHistory();
 
 function listenEasyRealtime() {
 
-    // 🔥 EASYPAISA BRANCH-SAFE LISTENER
-    // Rasson4 / rasson 4 / RASSON4 ko same branch samjho.
-    // Direct where("branch","==",BRANCH) ki wajah se formatting mismatch
-    // par entry Shift Snapshot / Day Close se miss ho sakti thi.
-    const q = query(
-        collection(window.db, "easypaisa")
-    );
+const q = query(
+    collection(window.db, "easypaisa"),
+    where("branch", "==", BRANCH)
+);
 
     onSnapshot(q, (snapshot) => {
 
         firebaseEasy = [];
 
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-
-            const recordBranch =
-                String(data.branch || "")
-                    .trim()
-                    .toLowerCase()
-                    .replace(/\s+/g, "");
-
-            const currentBranch =
-                String(BRANCH || "")
-                    .trim()
-                    .toLowerCase()
-                    .replace(/\s+/g, "");
-
-            if (recordBranch !== currentBranch) {
-                return;
-            }
-
-            firebaseEasy.push(data);
+        snapshot.forEach(doc => {
+            firebaseEasy.push(doc.data());
         });
 
-        console.log(
-            "🔥 FIREBASE EASYPAISA:",
-            firebaseEasy
-        );
-
-        // 🔥 AUTO REFRESH DAY HISTORY
-        refreshCurrentDayHistory();
+        console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
+      // 🔥 AUTO REFRESH DAY HISTORY
+refreshCurrentDayHistory();
     });
 }
 
@@ -5697,11 +5672,24 @@ let easypaisa = firebaseEasy
         return false;
     }
 
-    // 🔥 EASYPAISA DAY IS DETERMINED BY THE SHIFT TIME RANGE.
-    // Older entries may contain a stale/wrong day_id because duplicate
-    // system/current_day records existed. Since this function is already
-    // calculating a specific shift, created_at within that shift is the
-    // authoritative source. This also repairs historical Day Close data.
+    // 🔥 If EasyPaisa has day_id, it MUST belong to current day
+    if (
+        e.day_id !== undefined &&
+        e.day_id !== null &&
+        Number(e.day_id) !== Number(dayId ?? window.currentDayId)
+    ) {
+        return false;
+    }
+
+    // 🔥 If EasyPaisa has shift_number, it MUST belong to current shift
+    if (
+        e.shift_number !== undefined &&
+        e.shift_number !== null &&
+        Number(e.shift_number) !== Number(shiftNumber)
+    ) {
+        return false;
+    }
+
     return true;
 })
 .reduce(
@@ -6697,89 +6685,36 @@ sel.innerHTML += `<option>${operationalDate.getFullYear()}-${String(operationalD
 });
 
     window._daysData = days;
-
-  // 🔥 RECALCULATE SELECTED DAY BEFORE SHOWING HISTORY.
-  // This repairs old Day Close snapshots too (including EasyPaisa)
-  // without changing the accounting formula.
-  if (window._daysData[0]?.day_id) {
-
-      window.selectedClosedDayId =
-          window._daysData[0].day_id;
-
-      await refreshCurrentDayHistory(
-          window._daysData[0].day_id
-      );
-
-      // Reload latest saved day snapshots after recalculation.
-      const latestDaysSnap = await getDocs(
-          query(
-              collection(window.db, "days"),
-              where("branch", "==", BRANCH)
-          )
-      );
-
-      window._daysData = [];
-
-      latestDaysSnap.forEach(docSnap => {
-          window._daysData.push(docSnap.data());
-      });
-
-      window._daysData.sort((a, b) => {
-          return new Date(b.created_at) - new Date(a.created_at);
-      });
-  }
-
   // 🔥 SAVE SELECTED CLOSED DAY
-  const daySelect =
-      document.getElementById(
-          "dayHistoryDateSelect"
-      );
+const daySelect =
+document.getElementById(
+    "dayHistoryDateSelect"
+);
 
-  if (daySelect) {
+if (daySelect) {
 
-      daySelect.onchange = async () => {
+    daySelect.onchange = () => {
 
-          const index =
-              daySelect.selectedIndex;
+        const index =
+            daySelect.selectedIndex;
 
-          const selectedDay =
-              window._daysData[index];
+        const selectedDay =
+            window._daysData[index];
 
-          if (selectedDay?.day_id) {
+        if (selectedDay?.day_id) {
 
-              window.selectedClosedDayId =
-                  selectedDay.day_id;
+            window.selectedClosedDayId =
+                selectedDay.day_id;
+        }
+    };
 
-              // 🔥 Recalculate this exact day before displaying it.
-              await refreshCurrentDayHistory(
-                  selectedDay.day_id
-              );
+    // 🔥 DEFAULT FIRST
+    if (window._daysData[0]?.day_id) {
 
-              // Reload the exact day snapshot after recalculation.
-              const refreshedSnap = await getDocs(
-                  query(
-                      collection(window.db, "days"),
-                      where("branch", "==", BRANCH),
-                      where("day_id", "==", Number(selectedDay.day_id))
-                  )
-              );
-
-              if (!refreshedSnap.empty) {
-                  window._daysData[index] =
-                      refreshedSnap.docs[0].data();
-              }
-
-              loadDaySummaryFirebase();
-          }
-      };
-
-      // 🔥 DEFAULT FIRST
-      if (window._daysData[0]?.day_id) {
-
-          window.selectedClosedDayId =
-              window._daysData[0].day_id;
-      }
-  }
+        window.selectedClosedDayId =
+            window._daysData[0].day_id;
+    }
+}
 
 loadDaySummaryFirebase();
 
