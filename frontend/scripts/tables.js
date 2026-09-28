@@ -531,22 +531,47 @@ refreshCurrentDayHistory();
 
 function listenEasyRealtime() {
 
-const q = query(
-    collection(window.db, "easypaisa"),
-    where("branch", "==", BRANCH)
-);
+    // 🔥 EASYPAISA BRANCH-SAFE LISTENER
+    // Rasson4 / rasson 4 / RASSON4 ko same branch samjho.
+    // Direct where("branch","==",BRANCH) ki wajah se formatting mismatch
+    // par entry Shift Snapshot / Day Close se miss ho sakti thi.
+    const q = query(
+        collection(window.db, "easypaisa")
+    );
 
     onSnapshot(q, (snapshot) => {
 
         firebaseEasy = [];
 
-        snapshot.forEach(doc => {
-            firebaseEasy.push(doc.data());
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+
+            const recordBranch =
+                String(data.branch || "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, "");
+
+            const currentBranch =
+                String(BRANCH || "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, "");
+
+            if (recordBranch !== currentBranch) {
+                return;
+            }
+
+            firebaseEasy.push(data);
         });
 
-        console.log("🔥 FIREBASE EASYPAISA:", firebaseEasy);
-      // 🔥 AUTO REFRESH DAY HISTORY
-refreshCurrentDayHistory();
+        console.log(
+            "🔥 FIREBASE EASYPAISA:",
+            firebaseEasy
+        );
+
+        // 🔥 AUTO REFRESH DAY HISTORY
+        refreshCurrentDayHistory();
     });
 }
 
