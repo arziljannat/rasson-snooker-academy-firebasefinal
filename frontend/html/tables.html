@@ -476,7 +476,7 @@
 <!-- TABLE HISTORY POPUP -->
 <div id="tableHistoryPopup" class="popup hidden">
     <div class="popup-box large-popup">
-        <h2>Table History</h2>
+        <h2 id="tableHistoryTitle">History - Table</h2>
 
         <label>Select Day Range:</label>
         <select id="tableHistoryDateSelect"></select>
@@ -485,28 +485,64 @@
         <select id="tableHistoryTableSelect"></select>
         <p id="tableHistoryBranch"></p>
 
-        <h3>Shift 1</h3>
-        
-        <div class="table-mobile-wrapper">
-        <table class="history-table neon-table">
-            <tbody id="tableShift1Body"></tbody>
-        </table>
+        <div class="history-summary-counters">
+            <div class="history-summary-box green">
+                <div class="history-title">Total Game</div>
+                <div class="history-line"><span>Shift 1</span><strong id="tableHistoryShift1Game">0</strong></div>
+                <div class="history-line"><span>Shift 2</span><strong id="tableHistoryShift2Game">0</strong></div>
+            </div>
+
+            <div class="history-summary-box green">
+                <div class="history-title">Guest Play</div>
+                <div class="history-line"><span>Shift 1</span><strong id="tableHistoryShift1Guest">0</strong></div>
+                <div class="history-line"><span>Shift 2</span><strong id="tableHistoryShift2Guest">0</strong></div>
+            </div>
+
+            <div class="history-summary-box gold">
+                <div class="history-title">Booking Play</div>
+                <div class="history-line"><span>Shift 1</span><strong id="tableHistoryShift1Booking">0</strong></div>
+                <div class="history-line"><span>Shift 2</span><strong id="tableHistoryShift2Booking">0</strong></div>
+            </div>
+
+            <div class="history-summary-box green">
+                <div class="history-title">Paid</div>
+                <div class="history-line"><span>Shift 1</span><strong id="tableHistoryShift1Paid">0</strong></div>
+                <div class="history-money" id="tableHistoryShift1PaidAmount">Rs.0</div>
+                <hr>
+                <div class="history-line"><span>Shift 2</span><strong id="tableHistoryShift2Paid">0</strong></div>
+                <div class="history-money" id="tableHistoryShift2PaidAmount">Rs.0</div>
+            </div>
+
+            <div class="history-summary-box red">
+                <div class="history-title">Unpaid</div>
+                <div class="history-line"><span>Shift 1</span><strong id="tableHistoryShift1Unpaid">0</strong></div>
+                <div class="history-money" id="tableHistoryShift1UnpaidAmount">Rs.0</div>
+                <hr>
+                <div class="history-line"><span>Shift 2</span><strong id="tableHistoryShift2Unpaid">0</strong></div>
+                <div class="history-money" id="tableHistoryShift2UnpaidAmount">Rs.0</div>
+            </div>
         </div>
 
-        <h3>Shift 2</h3>
-
         <div class="table-mobile-wrapper">
-        <table class="history-table neon-table">
-            <tbody id="tableShift2Body"></tbody>
-        </table>
-        </div>
-        
-        <h3>Combined</h3>
-
-        <div class="table-mobile-wrapper">
-        <table class="history-table neon-table">
-            <tbody id="tableCombinedBody"></tbody>
-        </table>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Check-in</th>
+                        <th>Checkout</th>
+                        <th>Play</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                        <th>Discount</th>
+                        <th>Canteen</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Select</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="tableHistoryDetailBody"></tbody>
+            </table>
         </div>
 
         <div class="popup-buttons">
