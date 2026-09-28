@@ -135,15 +135,9 @@ let tables = [];
 
 let shift1 = null;   // ✅ ADD
 let shift2 = null;   // ✅ ADD
-function loadShiftsFromFirebase() {
+let shiftsUnsubscribe = null;
 
-const q = query(
-    collection(window.db, "shifts"),
-    where("branch", "==", BRANCH),
-    where("day_id", "==", window.currentDayId)
-);
-
-onSnapshot(q, (snapshot) => {
+function applyShiftSnapshot(snapshot) {
 
     shift1 = null;
     shift2 = null;
@@ -151,111 +145,92 @@ onSnapshot(q, (snapshot) => {
     snapshot.forEach(docSnap => {
         const d = docSnap.data();
 
-        if (d.shift_number === 1 && !shift1) {
-            shift1 = {
-                openTime: d.open_time,
-                closeTime: d.close_time,
-                startMs: Number(d.start_ms) || 0,
-                endMs: Number(d.end_ms) || 0,
-                gameTotal: d.game_total,
-                canteenTotal: d.canteen_total,
-gameCollection: d.game_collection,
-canteenCollection: d.canteen_collection,
+        const mapped = {
+            openTime: d.open_time,
+            closeTime: d.close_time,
+            startMs: Number(d.start_ms) || 0,
+            endMs: Number(d.end_ms) || 0,
+            gameTotal: d.game_total,
+            canteenTotal: d.canteen_total,
+            gameCollection: d.game_collection,
+            canteenCollection: d.canteen_collection,
 
-              // 🔥 MANUAL SALE BREAKDOWN
-manualGameTotal:
-    d.manual_game_total || 0,
+            manualGameTotal: d.manual_game_total || 0,
+            manualGameCollection: d.manual_game_collection || 0,
+            manualGameBalance: d.manual_game_balance || 0,
 
-manualGameCollection:
-    d.manual_game_collection || 0,
+            manualCanteenTotal: d.manual_canteen_total || 0,
+            manualCanteenCollection: d.manual_canteen_collection || 0,
+            manualCanteenBalance: d.manual_canteen_balance || 0,
 
-manualGameBalance:
-    d.manual_game_balance || 0,
+            manualEasyPaisa: d.manual_easypaisa || 0,
+            advanceCollection: d.advance_collection || 0,
 
-manualCanteenTotal:
-    d.manual_canteen_total || 0,
+            expenses: d.expenses,
+            easypaisa: d.easypaisa || 0,
+            discount: d.discount || 0,
+            closingCash: d.closing_cash,
+            gameBalance: d.game_balance || 0,
+            canteenBalance: d.canteen_balance || 0
+        };
 
-manualCanteenCollection:
-    d.manual_canteen_collection || 0,
-
-manualCanteenBalance:
-    d.manual_canteen_balance || 0,
-
-manualEasyPaisa:
-    d.manual_easypaisa || 0,
-
-advanceCollection: d.advance_collection || 0,
-
-expenses: d.expenses,
-                easypaisa: d.easypaisa || 0,
-                discount: d.discount || 0,
-                closingCash: d.closing_cash,
-                gameBalance: d.game_balance || 0,
-               canteenBalance: d.canteen_balance || 0
-            };
+        if (Number(d.shift_number) === 1 && !shift1) {
+            shift1 = mapped;
         }
 
-        if (d.shift_number === 2 && !shift2) {
-            shift2 = {
-                openTime: d.open_time,
-                closeTime: d.close_time,
-                startMs: Number(d.start_ms) || 0,
-                endMs: Number(d.end_ms) || 0,
-                gameTotal: d.game_total,
-                canteenTotal: d.canteen_total,
-gameCollection: d.game_collection,
-canteenCollection: d.canteen_collection,
-
-              // 🔥 MANUAL SALE BREAKDOWN
-manualGameTotal:
-    d.manual_game_total || 0,
-
-manualGameCollection:
-    d.manual_game_collection || 0,
-
-manualGameBalance:
-    d.manual_game_balance || 0,
-
-manualCanteenTotal:
-    d.manual_canteen_total || 0,
-
-manualCanteenCollection:
-    d.manual_canteen_collection || 0,
-
-manualCanteenBalance:
-    d.manual_canteen_balance || 0,
-
-manualEasyPaisa:
-    d.manual_easypaisa || 0,
-
-advanceCollection: d.advance_collection || 0,
-
-expenses: d.expenses,
-                easypaisa: d.easypaisa || 0,
-                discount: d.discount || 0,
-                closingCash: d.closing_cash,
-                gameBalance: d.game_balance || 0,
-                canteenBalance: d.canteen_balance || 0
-            };
+        if (Number(d.shift_number) === 2 && !shift2) {
+            shift2 = mapped;
         }
     });
 
-    // 🔥 BUTTON AUTO UPDATE
     const btn = document.getElementById("shiftCloseBtn");
 
-    if (!shift1) {
-        btn.innerText = "Shift 1 Close";
-    }
-    else if (!shift2) {
-        btn.innerText = "Shift 2 Close";
-    }
-    else {
-        btn.innerText = "Day Close";
+    if (btn) {
+        if (!shift1) {
+            btn.innerText = "Shift 1 Close";
+        } else if (!shift2) {
+            btn.innerText = "Shift 2 Close";
+        } else {
+            btn.innerText = "Day Close";
+        }
     }
 
     console.log("🔥 REALTIME SHIFTS:", shift1, shift2);
+}
 
-});
+async function loadShiftsFromFirebase() {
+
+    if (!window.currentDayId) {
+        console.warn("⛔ Cannot load shifts: currentDayId missing");
+        return;
+    }
+
+    const q = query(
+        collection(window.db, "shifts"),
+        where("branch", "==", BRANCH),
+        where("day_id", "==", window.currentDayId)
+    );
+
+    const snapshot = await getDocs(q);
+
+    applyShiftSnapshot(snapshot);
+
+    return snapshot;
+}
+
+function listenShiftsRealtime() {
+
+    if (shiftsUnsubscribe) return;
+
+    const q = query(
+        collection(window.db, "shifts"),
+        where("branch", "==", BRANCH),
+        where("day_id", "==", window.currentDayId)
+    );
+
+    shiftsUnsubscribe = onSnapshot(q, (snapshot) => {
+        applyShiftSnapshot(snapshot);
+    });
 }
 
 
@@ -349,7 +324,8 @@ console.log("✅ DAY READY:", window.currentDayId);
 // Failure does NOT block existing Tables system
 await loadGlobalCustomersForTables();
 
-    loadShiftsFromFirebase();
+    await loadShiftsFromFirebase();
+    listenShiftsRealtime();
     listenExpensesRealtime();
     listenEasyRealtime();
     
@@ -3744,6 +3720,8 @@ async function openShiftSummary() {
     // ==========================================
     // ALWAYS REBUILD LATEST SESSION HISTORY
     // ==========================================
+    // 🔥 FRESH SHIFT READ: never trust a pending realtime snapshot
+    await loadShiftsFromFirebase();
     await rebuildHistoryFromSessions();
 
 
@@ -8437,6 +8415,14 @@ function printTableHistoryThermal() {
 
 async function rebuildHistoryFromSessions() {
 
+    // 🔥 Always use the latest operational day before rebuilding history
+    await initCurrentDay();
+
+    if (!window.currentDayId) {
+        console.warn("⛔ HISTORY ABORTED: currentDayId missing");
+        return;
+    }
+
     const q = query(
         collection(window.db, "sessions"),
         where("branch", "==", BRANCH)
@@ -8620,6 +8606,11 @@ canteenItems: s.canteen_items || {}
 
 // 🔥 LOAD ALL HISTORY FOR DAY RECALC
 async function rebuildSpecificDayHistory(dayId) {
+
+    if (!dayId) {
+        console.warn("⛔ SPECIFIC DAY HISTORY ABORTED: dayId missing");
+        return;
+    }
 
     const q = query(
         collection(window.db, "sessions"),
