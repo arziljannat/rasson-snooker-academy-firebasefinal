@@ -288,47 +288,46 @@ async function loadCurrentDayId() {
             );
 
 
-        // 🔥 IMPORTANT: system collection can contain multiple
-        // current_day records after previous Day Close operations.
-        // Always select the NEWEST record for this branch so EasyPaisa
-        // saves against the same operational day as tables.js.
-        let foundCurrentDay = null;
+        let foundCurrentDay =
+            null;
 
-        snap.forEach(docSnap => {
 
-            const data = docSnap.data();
+        snap.forEach(
+            docSnap => {
 
-            const dataBranch =
-                normalizeBranch(data.branch);
+                const data =
+                    docSnap.data();
 
-            if (
-                data.type !== "current_day" ||
-                dataBranch !== branch
-            ) {
-                return;
+
+                const dataBranch =
+                    normalizeBranch(
+                        data.branch
+                    );
+
+
+                if (
+
+                    data.type ===
+                    "current_day" &&
+
+                    dataBranch ===
+                    branch
+
+                ) {
+
+                    foundCurrentDay = {
+
+                        id:
+                            docSnap.id,
+
+                        ...data
+
+                    };
+
+                }
+
             }
-
-            const candidate = {
-                id: docSnap.id,
-                ...data
-            };
-
-            if (!foundCurrentDay) {
-                foundCurrentDay = candidate;
-                return;
-            }
-
-            const candidateTime =
-                getRecordDate(candidate.created_at)?.getTime() || 0;
-
-            const currentTime =
-                getRecordDate(foundCurrentDay.created_at)?.getTime() || 0;
-
-            if (candidateTime > currentTime) {
-                foundCurrentDay = candidate;
-            }
-
-        });
+        );
 
 
         if (
@@ -1356,17 +1355,6 @@ window.saveEasy = async () => {
 
                 day_id:
                     window.currentDayId,
-
-                // 🔥 SAVE THE SHIFT WITH THE EASYPAISA ENTRY
-                // Current operational day mein Shift 2 start ho chuki ho
-                // to entry Shift 2 mein jayegi, warna Shift 1.
-                shift_number:
-                    (
-                        currentDay.raw?.shift2?.startMs ||
-                        currentDay.raw?.shift2?.start_ms
-                    )
-                        ? 2
-                        : 1,
 
                 day_created_at:
                     currentDay.startDate,
