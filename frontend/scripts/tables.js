@@ -5697,19 +5697,11 @@ let easypaisa = firebaseEasy
         return false;
     }
 
-    // 🔥 If EasyPaisa has day_id, it MUST belong to current day
-    if (
-        e.day_id !== undefined &&
-        e.day_id !== null &&
-        Number(e.day_id) !== Number(dayId ?? window.currentDayId)
-    ) {
-        return false;
-    }
-
-    // 🔥 EASYPAISA SHIFT IS DETERMINED BY TIME RANGE.
-    // Do NOT trust shift_number here because older EasyPaisa entries
-    // may not have it, and a saved shift_number can become stale.
-    // day_id + created_at time range are the source of truth.
+    // 🔥 EASYPAISA DAY IS DETERMINED BY THE SHIFT TIME RANGE.
+    // Older entries may contain a stale/wrong day_id because duplicate
+    // system/current_day records existed. Since this function is already
+    // calculating a specific shift, created_at within that shift is the
+    // authoritative source. This also repairs historical Day Close data.
     return true;
 })
 .reduce(
