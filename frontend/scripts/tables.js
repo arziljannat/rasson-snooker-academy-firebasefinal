@@ -7400,73 +7400,179 @@ dateSel.innerHTML += `<option value="${i}">${operationalDate.getFullYear()}-${St
  ******************************************************/
 function loadSelectedTableHistory() {
 
-    let tableId = document.getElementById("tableHistoryTableSelect").value;
-    let t = tables.find(x => String(x.id) === String(tableId));
+    const tableId =
+        document.getElementById("tableHistoryTableSelect").value;
 
-    if (!t) return;
+    const t =
+        tables.find(x => String(x.id) === String(tableId));
 
+    const dayIndex =
+        document.getElementById("tableHistoryDateSelect").selectedIndex;
 
-let dayIndex = document.getElementById("tableHistoryDateSelect").selectedIndex;
-
-if (!window._daysData || dayIndex < 0 || !window._daysData[dayIndex]) {
-    console.log("⚠️ No day data found");
-    return;
-}
-
-let selectedDay = window._daysData[dayIndex];
-
-if (!selectedDay) return;
-
-// 🔥 find table from firebase day data
-let tableData = selectedDay.tables?.find(tb => tb.table_id === t.name);
-
-// agar data na mile
-if (!tableData) {
-    document.getElementById("tableShift1Body").innerHTML = buildTableHistoryRow(t, {});
-    document.getElementById("tableShift2Body").innerHTML = buildTableHistoryRow(t, {});
-    document.getElementById("tableCombinedBody").innerHTML = buildTableHistoryRow(t, {});
-    return;
-}
-
-// 🔥 calculate from history
-let t1 = { time:0, game:0, canteen:0, total:0 };
-let t2 = { time:0, game:0, canteen:0, total:0 };
-
-// 👉 simple version (full day same data)
-let s1 = selectedDay.shift1;
-let s2 = selectedDay.shift2;
-
-// 🔥 SHIFT 1 CALC
-tableData.history.forEach(h => {
-    if (s1 && h.checkin >= s1.startMs && h.checkout <= s1.endMs) {
-        t1.time += h.playSeconds || 0;
-        t1.game += h.amount || 0;
-        t1.canteen += h.canteenAmount || 0;
-        t1.total += h.total || 0;
+    if (!t || !window._daysData || dayIndex < 0 || !window._daysData[dayIndex]) {
+        return;
     }
-});
 
-// 🔥 SHIFT 2 CALC
-tableData.history.forEach(h => {
-    if (s2 && h.checkin >= s2.startMs && h.checkout <= s2.endMs) {
-        t2.time += h.playSeconds || 0;
-        t2.game += h.amount || 0;
-        t2.canteen += h.canteenAmount || 0;
-        t2.total += h.total || 0;
+    const selectedDay = window._daysData[dayIndex];
+
+    const tableData =
+        selectedDay.tables?.find(
+            tb => String(tb.table_id) === String(t.name)
+        );
+
+    const history =
+        Array.isArray(tableData?.history)
+            ? [...tableData.history].sort(
+                (a, b) => Number(b.checkout || 0) - Number(a.checkout || 0)
+            )
+            : [];
+
+    document.getElementById("tableHistoryTitle").innerText =
+        `History - ${t.name}`;
+
+    const getShiftHistory = (shift) =>
+        history.filter(h => Number(h.shiftNumber || 1) === shift);
+
+    const s1 = getShiftHistory(1);
+    const s2 = getShiftHistory(2);
+
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    const count = arr => arr.length;
+    const paidAmount = arr =>
+        arr.filter(h => h.paid)
+            .reduce((sum, h) => sum + Number(h.total || 0), 0);
+    const unpaidAmount = arr =>
+        arr.filter(h => !h.paid)
+            .reduce((sum, h) => sum + Number(h.total || 0), 0);
+
+    setText("tableHistoryShift1Game", count(s1));
+    setText("tableHistoryShift2Game", count(s2));
+
+    setText(
+        "tableHistoryShift1Guest",
+        s1.filter(h => !h.fromBooking).length
+    );
+    setText(
+        "tableHistoryShift2Guest",
+        s2.filter(h => !h.fromBooking).length
+    );
+
+    setText(
+        "tableHistoryShift1Booking",
+        s1.filter(h => h.fromBooking).length
+    );
+    setText(
+        "tableHistoryShift2Booking",
+        s2.filter(h => h.fromBooking).length
+    );
+
+    setText(
+        "tableHistoryShift1Paid",
+        s1.filter(h => h.paid).length
+    );
+    setText(
+        "tableHistoryShift2Paid",
+        s2.filter(h => h.paid).length
+    );
+    setText(
+        "tableHistoryShift1PaidAmount",
+        `Rs. ${paidAmount(s1).toLocaleString()}`
+    );
+    setText(
+        "tableHistoryShift2PaidAmount",
+        `Rs. ${paidAmount(s2).toLocaleString()}`
+    );
+
+    setText(
+        "tableHistoryShift1Unpaid",
+        s1.filter(h => !h.paid).length
+    );
+    setText(
+        "tableHistoryShift2Unpaid",
+        s2.filter(h => !h.paid).length
+    );
+    setText(
+        "tableHistoryShift1UnpaidAmount",
+        `Rs. ${unpaidAmount(s1).toLocaleString()}`
+    );
+    setText(
+        "tableHistoryShift2UnpaidAmount",
+        `Rs. ${unpaidAmount(s2).toLocaleString()}`
+    );
+
+    const body =
+        document.getElementById("tableHistoryDetailBody");
+
+    body.innerHTML = "";
+
+    if (history.length === 0) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="12" style="text-align:center;">
+                    No history found.
+                </td>
+            </tr>
+        `;
+        return;
     }
-});
 
-let combined = {
-    time: t1.time + t2.time,
-    game: t1.game + t2.game,
-    canteen: t1.canteen + t2.canteen,
-    total: t1.total + t2.total
-};
+    history.forEach((h, index) => {
 
-document.getElementById("tableShift1Body").innerHTML = buildTableHistoryRow(t, t1);
-document.getElementById("tableShift2Body").innerHTML = buildTableHistoryRow(t, t2);
-document.getElementById("tableCombinedBody").innerHTML = buildTableHistoryRow(t, combined);
-    
+        const totalDisplay =
+            h.fromBooking && Number(h.bookingAdvance || 0) > 0
+                ? `
+                    <div>${h.totalBillAmount || h.total || 0}</div>
+                    <small style="color:#00ff9d;">
+                        Advance: Rs ${h.bookingAdvance || 0}
+                    </small>
+                    <br>
+                    <small style="color:#ffd700;">
+                        Remaining: Rs ${h.remainingPayment || 0}
+                    </small>
+                  `
+                : `${h.total || 0}`;
+
+        body.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>
+                    ${formatTime(h.checkin)}
+                    ${h.fromBooking
+                        ? `
+                            <div style="
+                                margin-top:4px;
+                                display:inline-block;
+                                background:#d4af37;
+                                color:#000;
+                                padding:2px 7px;
+                                border-radius:5px;
+                                font-size:10px;
+                                font-weight:bold;
+                            ">BOOKING</div>
+                          `
+                        : ""}
+                </td>
+                <td>${formatTime(h.checkout)}</td>
+                <td>${formatSeconds(h.playSeconds)}</td>
+                <td>${h.rate || 0}</td>
+                <td>${h.originalAmount || h.amount || 0}</td>
+                <td>${h.discount || 0}</td>
+                <td>${h.canteenAmount || 0}</td>
+                <td>${totalDisplay}</td>
+                <td>
+                    ${h.paid
+                        ? '<button class="paid-btn" disabled>PAID</button>'
+                        : '<button class="unpaid-btn" disabled>UNPAID</button>'}
+                </td>
+                <td>${h.paid ? '<span style="opacity:0.4;">✓</span>' : '-'}</td>
+                <td>${ROLE === "admin" ? "-" : "-"}</td>
+            </tr>
+        `;
+    });
 }
 
 /******************************************************
