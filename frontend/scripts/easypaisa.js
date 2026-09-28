@@ -288,46 +288,47 @@ async function loadCurrentDayId() {
             );
 
 
-        let foundCurrentDay =
-            null;
+        // 🔥 IMPORTANT: system collection can contain multiple
+        // current_day records after previous Day Close operations.
+        // Always select the NEWEST record for this branch so EasyPaisa
+        // saves against the same operational day as tables.js.
+        let foundCurrentDay = null;
 
+        snap.forEach(docSnap => {
 
-        snap.forEach(
-            docSnap => {
+            const data = docSnap.data();
 
-                const data =
-                    docSnap.data();
+            const dataBranch =
+                normalizeBranch(data.branch);
 
-
-                const dataBranch =
-                    normalizeBranch(
-                        data.branch
-                    );
-
-
-                if (
-
-                    data.type ===
-                    "current_day" &&
-
-                    dataBranch ===
-                    branch
-
-                ) {
-
-                    foundCurrentDay = {
-
-                        id:
-                            docSnap.id,
-
-                        ...data
-
-                    };
-
-                }
-
+            if (
+                data.type !== "current_day" ||
+                dataBranch !== branch
+            ) {
+                return;
             }
-        );
+
+            const candidate = {
+                id: docSnap.id,
+                ...data
+            };
+
+            if (!foundCurrentDay) {
+                foundCurrentDay = candidate;
+                return;
+            }
+
+            const candidateTime =
+                getRecordDate(candidate.created_at)?.getTime() || 0;
+
+            const currentTime =
+                getRecordDate(foundCurrentDay.created_at)?.getTime() || 0;
+
+            if (candidateTime > currentTime) {
+                foundCurrentDay = candidate;
+            }
+
+        });
 
 
         if (
