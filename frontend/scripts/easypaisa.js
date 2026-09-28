@@ -1356,6 +1356,17 @@ window.saveEasy = async () => {
                 day_id:
                     window.currentDayId,
 
+                // 🔥 SAVE THE SHIFT WITH THE EASYPAISA ENTRY
+                // Current operational day mein Shift 2 start ho chuki ho
+                // to entry Shift 2 mein jayegi, warna Shift 1.
+                shift_number:
+                    (
+                        currentDay.raw?.shift2?.startMs ||
+                        currentDay.raw?.shift2?.start_ms
+                    )
+                        ? 2
+                        : 1,
+
                 day_created_at:
                     currentDay.startDate,
 
