@@ -531,21 +531,30 @@ refreshCurrentDayHistory();
 
 function listenEasyRealtime() {
 
-    // 🔥 RASSON4 BRANCH FORMAT FIX
-    // "rasson4" aur "rasson 4" ko same branch samjho.
-    // EasyPaisa page branch ko spaces remove karke save karta hai,
-    // jabke tables page mein BRANCH mein space reh sakta hai.
+    // 🔥 READ OPTIMIZATION
+    // Older EasyPaisa records can contain either "rasson4" or "rasson 4".
+    // Query only those exact branch values instead of downloading the entire
+    // easypaisa collection on every computer.
     const normalizeEasyBranch = (value) =>
         String(value || "")
             .trim()
             .toLowerCase()
-            .replace(/\\s+/g, "");
+            .replace(/\s+/g, "");
 
     const currentBranch =
         normalizeEasyBranch(BRANCH);
 
+    const branchVariants = [
+        ...new Set(
+            [BRANCH, currentBranch]
+                .map(v => String(v || "").trim().toLowerCase())
+                .filter(Boolean)
+        )
+    ];
+
     const q = query(
-        collection(window.db, "easypaisa")
+        collection(window.db, "easypaisa"),
+        where("branch", "in", branchVariants)
     );
 
     onSnapshot(q, (snapshot) => {
@@ -567,8 +576,8 @@ function listenEasyRealtime() {
         });
 
         console.log(
-            "🔥 FIREBASE EASYPAISA:",
-            firebaseEasy
+            "🔥 FIREBASE EASYPAISA (BRANCH ONLY):",
+            firebaseEasy.length
         );
 
         // 🔥 AUTO REFRESH DAY HISTORY
@@ -5251,9 +5260,13 @@ async function getBookingAdvanceCollection(
 
     try {
 
+        const effectiveDayId =
+            Number(targetDayId ?? window.currentDayId);
+
         const q = query(
             collection(window.db, "sessions"),
-            where("branch", "==", BRANCH)
+            where("branch", "==", BRANCH),
+            where("day_id", "==", effectiveDayId)
         );
 
         const snap = await getDocs(q);
@@ -8181,15 +8194,21 @@ function listenHistoryRealtime() {
 
     const q = query(
         collection(window.db, "sessions"),
-        where("branch", "==", BRANCH)
+        where("branch", "==", BRANCH),
+        where("day_id", "==", Number(window.currentDayId))
     );
 
-    onSnapshot(q, async () => {
+    onSnapshot(q, async (snapshot) => {
 
-        console.log("🔥 HISTORY REALTIME UPDATE");
+        console.log(
+            "🔥 HISTORY REALTIME UPDATE:",
+            snapshot.size,
+            "current-day sessions"
+        );
 
-        // 🔥 REBUILD HISTORY
-        await rebuildHistoryFromSessions();
+        // 🔥 REBUILD HISTORY USING THE SNAPSHOT WE ALREADY RECEIVED.
+        // This prevents a duplicate getDocs() read on every session update.
+        await rebuildHistoryFromSessions(snapshot);
 
         // 🔥 REFRESH UI
         renderTables();
@@ -8219,6 +8238,7 @@ function listenHistoryRealtime() {
         }
 
     });
+
 }
 
 
@@ -8568,10 +8588,12 @@ function printTableHistoryThermal() {
       }, 300);
 }
 
-async function rebuildHistoryFromSessions() {
+async function rebuildHistoryFromSessions(preloadedSnapshot = null) {
 
     // 🔥 Always use the latest operational day before rebuilding history
-    await initCurrentDay();
+    if (!window.currentDayId) {
+        await initCurrentDay();
+    }
 
     if (!window.currentDayId) {
         console.warn("⛔ HISTORY ABORTED: currentDayId missing");
@@ -8580,10 +8602,11 @@ async function rebuildHistoryFromSessions() {
 
     const q = query(
         collection(window.db, "sessions"),
-        where("branch", "==", BRANCH)
+        where("branch", "==", BRANCH),
+        where("day_id", "==", Number(window.currentDayId))
     );
 
-    const snap = await getDocs(q);
+    const snap = preloadedSnapshot || await getDocs(q);
 
     // 🔥 RESET ALL HISTORY
     tables.forEach(t => t.history = []);
@@ -8769,7 +8792,8 @@ async function rebuildSpecificDayHistory(dayId) {
 
     const q = query(
         collection(window.db, "sessions"),
-        where("branch", "==", BRANCH)
+        where("branch", "==", BRANCH),
+        where("day_id", "==", Number(dayId))
     );
 
     const snap = await getDocs(q);
@@ -8980,4 +9004,3 @@ async function softDeleteSession(tableId, historyIndex) {
     }
 }
 //fix deployment issues
-
