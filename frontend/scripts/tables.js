@@ -1616,9 +1616,20 @@ snap.forEach(d => {
 // 🔥 BOOKING DATA FOR LOCAL HISTORY
 let checkoutSessionData = null;
 
+// 🔥 FIX: preserve the session's original shift.
+// Never recalculate Shift 1/2 from the current UI state at checkout.
+let checkoutShiftNumber = getCurrentShiftNumber();
+
 if (latestSession) {
 
     checkoutSessionData = latestSession.data();
+
+    const storedShiftNumber =
+        Number(checkoutSessionData?.shift_number);
+
+    if (storedShiftNumber === 1 || storedShiftNumber === 2) {
+        checkoutShiftNumber = storedShiftNumber;
+    }
 
     // Exact same time session + booking dono ke liye
     const checkoutNow =
@@ -1627,7 +1638,7 @@ if (latestSession) {
   console.log("===== UPDATE DATA =====");
 console.log({
     day_id: window.currentDayId,
-    shift_number: getCurrentShiftNumber(),
+    shift_number: checkoutShiftNumber,
     table: t.name
 });
     await updateDoc(
@@ -1691,7 +1702,7 @@ day_id:
     window.currentDayId,
 
 shift_number:
-    getCurrentShiftNumber()
+    checkoutShiftNumber
         }
     );
 
@@ -1778,7 +1789,7 @@ if (
     t.history.push({
         sessionId: latestSession.id,
       shiftNumber:
-    shift2 ? 2 : 1,
+    checkoutShiftNumber,
 
     checkin: t.checkinTime,
     checkout: t.checkoutTime,
@@ -2859,7 +2870,11 @@ async function markSelectedHistoryPaid(tableId, indexes) {
 /******************************************************
  * OPEN HISTORY POPUP (FULL FIX)
  ******************************************************/
-function openHistory(id) {
+async function openHistory(id) {
+
+    // 🔥 ALWAYS rebuild from Firebase first.
+    // Firebase session.shift_number is the source of truth for Shift 1/2.
+    await rebuildHistoryFromSessions();
 
     let t = tables.find(x => String(x.id) === String(id));
 
@@ -4369,9 +4384,13 @@ if (!docRef?.id) {
 }
 
 await migrateOnlineBookingsToShift1();
-  
+
+// 🔥 Refresh table history after the shift snapshot is saved.
+await rebuildHistoryFromSessions();
+renderTables();
+
 alert("Shift 1 closed successfully ✅");
-  loadShiftsFromFirebase();
+await loadShiftsFromFirebase();
 }
 
 
@@ -4717,8 +4736,12 @@ closing_cash: shiftData.closingCash,
     created_at: new Date().toISOString()
 });
 
+// 🔥 Refresh table history after the shift snapshot is saved.
+await rebuildHistoryFromSessions();
+renderTables();
+
 alert("Shift 2 closed successfully ✅");
-  loadShiftsFromFirebase();
+await loadShiftsFromFirebase();
 }
 
 
@@ -8957,5 +8980,4 @@ async function softDeleteSession(tableId, historyIndex) {
     }
 }
 //fix deployment issues
-
 
