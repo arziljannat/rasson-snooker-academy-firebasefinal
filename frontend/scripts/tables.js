@@ -8221,7 +8221,7 @@ function listenHistoryRealtime(forceRestart = false) {
         where("day_id", "==", Number(window.currentDayId))
     );
 
-    onSnapshot(q, async (snapshot) => {
+    historyUnsubscribe = onSnapshot(q, async (snapshot) => {
 
         console.log(
             "🔥 HISTORY REALTIME UPDATE:",
