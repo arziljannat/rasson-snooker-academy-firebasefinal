@@ -136,6 +136,7 @@ let tables = [];
 let shift1 = null;   // ✅ ADD
 let shift2 = null;   // ✅ ADD
 let shiftsUnsubscribe = null;
+let historyUnsubscribe = null;
 
 function applyShiftSnapshot(snapshot) {
 
@@ -218,7 +219,12 @@ async function loadShiftsFromFirebase() {
     return snapshot;
 }
 
-function listenShiftsRealtime() {
+function listenShiftsRealtime(forceRestart = false) {
+
+    if (forceRestart && shiftsUnsubscribe) {
+        shiftsUnsubscribe();
+        shiftsUnsubscribe = null;
+    }
 
     if (shiftsUnsubscribe) return;
 
@@ -4964,6 +4970,10 @@ if (!existingDaySnap.empty) {
     window.currentDayId =
         newDayId;
 
+    // 🔥 DAY-SCOPED REALTIME LISTENERS MUST FOLLOW THE NEW DAY.
+    listenShiftsRealtime(true);
+    listenHistoryRealtime(true);
+
 
     console.log(
         "✅ DAY CLOSE RECOVERY COMPLETE:",
@@ -5166,6 +5176,10 @@ else {
 
 window.currentDayId =
     newDayId;
+
+// 🔥 DAY-SCOPED REALTIME LISTENERS MUST FOLLOW THE NEW DAY.
+listenShiftsRealtime(true);
+listenHistoryRealtime(true);
 
 console.log(
     "✅ CENTRAL DAY MOVED TO:",
@@ -8190,7 +8204,16 @@ setTimeout(() => {
 
 
 // 🔥 REALTIME HISTORY SYNC
-function listenHistoryRealtime() {
+function listenHistoryRealtime(forceRestart = false) {
+
+    if (forceRestart && historyUnsubscribe) {
+        historyUnsubscribe();
+        historyUnsubscribe = null;
+    }
+
+    if (historyUnsubscribe) {
+        return;
+    }
 
     const q = query(
         collection(window.db, "sessions"),
