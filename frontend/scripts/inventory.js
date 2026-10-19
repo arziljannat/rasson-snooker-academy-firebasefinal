@@ -11,7 +11,7 @@ import {
 
 console.log("INVENTORY JS LOADED");
 
-const currentBranch = localStorage.getItem("branch") || "rasson1";
+const currentBranch = sessionStorage.getItem("branch") || "rasson1";
 let inventoryData = [];
 let selectedItemId = null;
 
