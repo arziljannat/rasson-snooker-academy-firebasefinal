@@ -1330,7 +1330,11 @@ try {
 
         day_id: window.currentDayId,
 
-        is_deleted: false
+        is_deleted: false,
+
+        // Shift 2 already closed: this transaction belongs to next day's accounting.
+        post_shift2_close: !!shift2,
+        ...(shift2 ? { shift_number: 1 } : {})
     };
 
     // 👥 PLAYER NAMES
@@ -4581,10 +4585,42 @@ console.log(
   
     // cannot close if any table still running
 // ======================================================
+// 🔥 MARK ACTIVE SESSIONS FOR NEXT-DAY ACCOUNTING
+// Running sessions left open at Shift 2 Close belong to the
+// next business day when Day Close is completed.
+// Keep original start_time and player/session details intact.
+// ======================================================
+try {
+    const activeAtShift2Close = await getDocs(query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH),
+        where("end_time", "==", null)
+    ));
+
+    const markBatch = writeBatch(window.db);
+    let markedCount = 0;
+
+    activeAtShift2Close.forEach(sessionDoc => {
+        const data = sessionDoc.data();
+        if (data.is_deleted === true || !data.start_time) return;
+
+        markBatch.update(sessionDoc.ref, {
+            post_shift2_close: true
+        });
+        markedCount++;
+    });
+
+    if (markedCount > 0) await markBatch.commit();
+
+    console.log("✅ RUNNING SESSIONS MARKED FOR NEXT DAY:", markedCount);
+} catch (markError) {
+    console.error("❌ COULD NOT MARK RUNNING SESSIONS:", markError);
+    alert("Shift 2 Close roki gayi: running sessions ko next-day accounting ke liye mark nahi kar sake. Dobara try karein.");
+    return;
+}
+
+// ======================================================
 // 🔥 SHIFT 2 CLOSE — RUNNING TABLES ALLOWED
-// Active/running games ko checkout nahi karna.
-// Sirf Shift 2 close hogi.
-// Running table ka timer/session continue rahega.
 // ======================================================
 
 const runningTables = tables.filter(t => t.isRunning);
@@ -4761,6 +4797,63 @@ await loadShiftsFromFirebase();
 
 
 
+// ======================================================
+// MOVE CARRY-FORWARD SESSIONS TO THE NEW BUSINESS DAY
+// Includes running sessions and sessions checked out after
+// Shift 2 Close but before Day Close. One document is updated;
+// no new session/bill is created.
+// ======================================================
+async function carryForwardSessionsToDay(oldDayId, newDayId) {
+    const [activeSnap, postShift2Snap] = await Promise.all([
+        getDocs(query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("end_time", "==", null)
+        )),
+        getDocs(query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", Number(oldDayId)),
+            where("post_shift2_close", "==", true)
+        ))
+    ]);
+
+    const sessionsToMove = new Map();
+
+    activeSnap.forEach(sessionDoc => {
+        const data = sessionDoc.data();
+        if (data.is_deleted !== true && data.start_time && data.end_time == null) {
+            sessionsToMove.set(sessionDoc.id, sessionDoc);
+        }
+    });
+
+    postShift2Snap.forEach(sessionDoc => {
+        const data = sessionDoc.data();
+        if (data.is_deleted !== true && data.start_time) {
+            sessionsToMove.set(sessionDoc.id, sessionDoc);
+        }
+    });
+
+    const sessionDocs = Array.from(sessionsToMove.values());
+    for (let i = 0; i < sessionDocs.length; i += 450) {
+        const batch = writeBatch(window.db);
+        sessionDocs.slice(i, i + 450).forEach(sessionDoc => {
+            batch.update(sessionDoc.ref, {
+                day_id: Number(newDayId),
+                shift_number: 1,
+                post_shift2_close: false
+            });
+        });
+        await batch.commit();
+    }
+
+    console.log("✅ NEXT-DAY SESSIONS MOVED:", sessionDocs.length, {
+        oldDayId,
+        newDayId
+    });
+    return sessionDocs.length;
+}
+
 /******************************************************
  * DAY CLOSE — RESET EVERYTHING + NEW DAY START
  ******************************************************/
@@ -4875,7 +4968,8 @@ const safeShift2 = JSON.parse(JSON.stringify(s2 || {}));
 const safeTables = JSON.parse(JSON.stringify(
     tables.map(t => ({
         table_id: t.name,
-        history: t.history || []
+        // Sessions marked after Shift 2 Close are assigned to the next day.
+        history: (t.history || []).filter(h => h.postShift2Close !== true)
     }))
 ));
 const safeCombined = JSON.parse(JSON.stringify(combined || {}));
@@ -4969,6 +5063,13 @@ if (!existingDaySnap.empty) {
 
     window.currentDayId =
         newDayId;
+
+    try {
+        await carryForwardSessionsToDay(oldDayId, newDayId);
+    } catch (carryError) {
+        console.error("❌ RECOVERY CARRY-FORWARD FAILED:", carryError);
+        alert("New day started, lekin kuch sessions move nahi ho sake. Console/error check karna zaroori hai.");
+    }
 
     // 🔥 DAY-SCOPED REALTIME LISTENERS MUST FOLLOW THE NEW DAY.
     listenShiftsRealtime(true);
@@ -5178,61 +5279,19 @@ window.currentDayId =
     newDayId;
 
 // ======================================================
-// 🔥 CARRY FORWARD ACTIVE SESSIONS INTO THE NEW DAY
-// Keep the original start_time so the timer and total play
-// duration continue from the original check-in.
-// This runs only AFTER the previous day's summary is saved.
+// ======================================================
+// 🔥 CARRY FORWARD RUNNING + POST-SHIFT2 SESSIONS
+// Running timers keep their original start_time. Sessions
+// already checked out after Shift 2 Close also move to the
+// new day so their bill is included in next-day history.
 // ======================================================
 try {
-    const activeSessionsQuery = query(
-        collection(window.db, "sessions"),
-        where("branch", "==", BRANCH),
-        where("end_time", "==", null),
-        where("is_deleted", "==", false)
-    );
-
-    const activeSessionsSnap = await getDocs(activeSessionsQuery);
-
-    if (!activeSessionsSnap.empty) {
-        const carryForwardBatch = writeBatch(window.db);
-        let carriedCount = 0;
-
-        activeSessionsSnap.forEach(sessionDoc => {
-            const sessionData = sessionDoc.data();
-
-            // Preserve the original start time and all game/player data.
-            // Only move the active session's day ownership forward.
-            if (
-                sessionData.end_time == null &&
-                sessionData.is_deleted !== true &&
-                sessionData.start_time
-            ) {
-                carryForwardBatch.update(sessionDoc.ref, {
-                    day_id: newDayId
-                });
-                carriedCount++;
-            }
-        });
-
-        if (carriedCount > 0) {
-            await carryForwardBatch.commit();
-        }
-
-        console.log(
-            "✅ ACTIVE SESSIONS CARRIED INTO NEW DAY:",
-            carriedCount,
-            "Original start_time preserved."
-        );
-    }
+    await carryForwardSessionsToDay(oldDayId, newDayId);
 } catch (carryForwardError) {
-    console.error(
-        "❌ ACTIVE SESSION CARRY-FORWARD FAILED:",
-        carryForwardError
-    );
-
+    console.error("❌ SESSION CARRY-FORWARD FAILED:", carryForwardError);
     alert(
-        "New day started, but running tables could not be moved automatically. " +
-        "Please do not restart or check out those tables yet. Check the console/error before continuing."
+        "New day started, but some running/post-Shift-2 sessions could not be moved. " +
+        "Please check the console/error before continuing."
     );
 }
 
@@ -8757,9 +8816,12 @@ if (alreadyExists) {
 
         t.history.push({
             sessionId: sessionDocId,
-        
+
+            dayId: Number(s.day_id || 0),
+            postShift2Close: s.post_shift2_close === true,
+
             shiftNumber: Number(s.shift_number || 1),
-        
+
             checkin: new Date(s.start_time).getTime(),
             checkout: new Date(s.end_time).getTime(),
 
