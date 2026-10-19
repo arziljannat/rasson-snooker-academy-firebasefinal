@@ -2,7 +2,7 @@
 // GLOBAL ROLE ACCESS SYSTEM
 // ===========================================
 
-let ROLE = localStorage.getItem("role") || "";
+let ROLE = sessionStorage.getItem("role") || "";
 
 // ===============================
 // APPLY UI ACCESS
