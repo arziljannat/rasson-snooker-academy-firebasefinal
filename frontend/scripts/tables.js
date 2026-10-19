@@ -1334,6 +1334,7 @@ try {
 
         // Shift 2 already closed: this transaction belongs to next day's accounting.
         post_shift2_close: !!shift2,
+        carry_forward_from_shift2: !!shift2,
         ...(shift2 ? { shift_number: 1 } : {})
     };
 
@@ -4844,7 +4845,8 @@ async function carryForwardSessionsToDay(oldDayId, newDayId) {
             batch.update(sessionDoc.ref, {
                 day_id: Number(newDayId),
                 shift_number: 1,
-                post_shift2_close: false
+                post_shift2_close: false,
+                carry_forward_from_shift2: true
             });
         });
         await batch.commit();
@@ -5608,6 +5610,9 @@ function calculateShiftSnapshot(
     let canteenBalance = 0;
     let discount = 0;
 
+    const targetAccountingDayId =
+        Number(dayId ?? window.currentDayId);
+
         // =========================
     // 🔥 MANUAL SALE ACCOUNTING
     // =========================
@@ -5637,7 +5642,16 @@ let c = Number(h.canteenAmount || 0);
 let d = Number(h.discount || 0);
 
  
- if (h.checkout >= startTime && h.checkout <= endTime) {
+ const carriedIntoShift1 =
+    h.carryForwardFromShift2 === true &&
+    Number(h.dayId) === targetAccountingDayId &&
+    Number(h.shiftNumber) === 1 &&
+    Number(shiftNumber) === 1;
+
+ if (
+    (h.checkout >= startTime && h.checkout <= endTime) ||
+    carriedIntoShift1
+ ) {
 discount += d;
 
             // =========================
@@ -5663,9 +5677,18 @@ discount += d;
 // =========================
 if (h.paid && h.paidTime) {
 
+    const carriedPaymentIntoShift1 =
+        h.carryForwardFromShift2 === true &&
+        Number(h.dayId) === targetAccountingDayId &&
+        Number(h.shiftNumber) === 1 &&
+        Number(shiftNumber) === 1;
+
     if (
-        h.paidTime >= (startTime - 1000) &&
-        h.paidTime <= endTime
+        (
+            h.paidTime >= (startTime - 1000) &&
+            h.paidTime <= endTime
+        ) ||
+        carriedPaymentIntoShift1
     ) {
 
         // ==========================================
@@ -8822,6 +8845,7 @@ if (alreadyExists) {
 
             dayId: Number(s.day_id || 0),
             postShift2Close: s.post_shift2_close === true,
+            carryForwardFromShift2: s.carry_forward_from_shift2 === true,
 
             shiftNumber: Number(s.shift_number || 1),
 
