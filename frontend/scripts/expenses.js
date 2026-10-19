@@ -62,7 +62,7 @@ function normalizeBranch(value) {
 
 const branch =
     normalizeBranch(
-        localStorage.getItem(
+        sessionStorage.getItem(
             "branch"
         )
     );
@@ -70,7 +70,7 @@ const branch =
 
 const role =
     String(
-        localStorage.getItem(
+        sessionStorage.getItem(
             "role"
         ) || ""
     )
