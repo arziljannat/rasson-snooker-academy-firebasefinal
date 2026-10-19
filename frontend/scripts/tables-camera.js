@@ -101,7 +101,7 @@ const cameraWatchdogs = {};
         }
 
         return String(
-            localStorage.getItem("branch") || ""
+            sessionStorage.getItem("branch") || ""
         )
             .toLowerCase()
             .trim();
@@ -115,7 +115,7 @@ const cameraWatchdogs = {};
     function isCameraAdmin() {
 
         const role = String(
-            localStorage.getItem("role") || ""
+            sessionStorage.getItem("role") || ""
         )
             .toLowerCase()
             .trim();
