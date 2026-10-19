@@ -4875,6 +4875,15 @@ async function closeDay() {
 
     window._dayCloseInProgress = true;
 
+    // Capture the previous operational day before any Firestore day ID changes.
+    const oldDayId = Number(window.currentDayId);
+    if (!Number.isFinite(oldDayId) || oldDayId <= 0) {
+        console.error("❌ DAY CLOSE ABORTED: invalid oldDayId", window.currentDayId);
+        alert("Day Close rok diya gaya: purane business day ki ID valid nahi hai. Firebase current_day record check karein.");
+        window._dayCloseInProgress = false;
+        return;
+    }
+
     const today =
         new Date().toLocaleDateString("en-CA"); // ✅ FIX
     let s1 = shift1;
@@ -4982,9 +4991,6 @@ const safeCombined = JSON.parse(JSON.stringify(combined || {}));
 // =====================================================
 // 🔒 DUPLICATE DAY CLOSE PROTECTION + RECOVERY
 // =====================================================
-
-const oldDayId =
-    Number(window.currentDayId);
 
 const existingDayQuery = query(
     collection(window.db, "days"),
