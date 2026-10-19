@@ -10,8 +10,8 @@ import {
 console.log("USERS FIREBASE FINAL LOADED");
 
 // ==========================
-const role = localStorage.getItem("role");
-const branch = localStorage.getItem("branch");
+const role = sessionStorage.getItem("role");
+const branch = sessionStorage.getItem("branch");
 
 let users = [];
 let selectedId = null;
