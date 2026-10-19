@@ -2,14 +2,14 @@
 console.log("NAVBAR JS LOADED");
 
 // 🔒 PAGE PROTECTION (ADD HERE)
-const username = localStorage.getItem("username");
+const username = sessionStorage.getItem("username");
 
 if (!username) {
     alert("Session expired, login again");
     window.location.href = "../index.html";
 }
 // ✅ DEFAULT BRANCH FIX (SAFE ADD)
-let savedBranch = localStorage.getItem("branch");
+let savedBranch = sessionStorage.getItem("branch");
 
 if (!savedBranch) {
     console.warn("No branch found → redirecting to login");
@@ -17,8 +17,8 @@ if (!savedBranch) {
 }
 document.addEventListener("DOMContentLoaded", () => {
 
-    let role = (localStorage.getItem("role") || "").trim().toLowerCase();
-    let branch = localStorage.getItem("branch");
+    let role = (sessionStorage.getItem("role") || "").trim().toLowerCase();
+    let branch = sessionStorage.getItem("branch");
 
     // ✅ FIRST define, then use
     if (!branch) {
@@ -71,7 +71,7 @@ if (branchSelect) {
             }
 
             // ✅ SAVE + RELOAD (FINAL FIX)
-            localStorage.setItem("branch", selected);
+            sessionStorage.setItem("branch", selected);
             window.location.reload();
         }
     });
@@ -95,15 +95,18 @@ function goTo(page) {
 }
 
 // ⏰ AUTO LOGOUT (12 hours)
-const loginTime = localStorage.getItem("loginTime");
+const loginTime = sessionStorage.getItem("loginTime");
 
 if (!loginTime) {
-    localStorage.setItem("loginTime", Date.now());
+    sessionStorage.setItem("loginTime", Date.now());
 } else {
     let diff = Date.now() - Number(loginTime);
 
     if (diff > 12 * 60 * 60 * 1000) {
-        localStorage.clear();
+        sessionStorage.removeItem("username");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("branch");
+        sessionStorage.removeItem("loginTime");
         alert("Session expired");
         window.location.href = "../index.html";
     }
