@@ -72,8 +72,8 @@ async function autoRefreshUI() {
     renderTables();
 }
 
-const BRANCH = (localStorage.getItem("branch") || "").toLowerCase();
-const ROLE = localStorage.getItem("role"); // admin / staff
+const BRANCH = (sessionStorage.getItem("branch") || "").toLowerCase();
+const ROLE = sessionStorage.getItem("role"); // admin / staff
 let inventoryItems = [];
 
 
