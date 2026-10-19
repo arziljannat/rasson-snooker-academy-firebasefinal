@@ -5177,6 +5177,65 @@ else {
 window.currentDayId =
     newDayId;
 
+// ======================================================
+// 🔥 CARRY FORWARD ACTIVE SESSIONS INTO THE NEW DAY
+// Keep the original start_time so the timer and total play
+// duration continue from the original check-in.
+// This runs only AFTER the previous day's summary is saved.
+// ======================================================
+try {
+    const activeSessionsQuery = query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH),
+        where("end_time", "==", null),
+        where("is_deleted", "==", false)
+    );
+
+    const activeSessionsSnap = await getDocs(activeSessionsQuery);
+
+    if (!activeSessionsSnap.empty) {
+        const carryForwardBatch = writeBatch(window.db);
+        let carriedCount = 0;
+
+        activeSessionsSnap.forEach(sessionDoc => {
+            const sessionData = sessionDoc.data();
+
+            // Preserve the original start time and all game/player data.
+            // Only move the active session's day ownership forward.
+            if (
+                sessionData.end_time == null &&
+                sessionData.is_deleted !== true &&
+                sessionData.start_time
+            ) {
+                carryForwardBatch.update(sessionDoc.ref, {
+                    day_id: newDayId
+                });
+                carriedCount++;
+            }
+        });
+
+        if (carriedCount > 0) {
+            await carryForwardBatch.commit();
+        }
+
+        console.log(
+            "✅ ACTIVE SESSIONS CARRIED INTO NEW DAY:",
+            carriedCount,
+            "Original start_time preserved."
+        );
+    }
+} catch (carryForwardError) {
+    console.error(
+        "❌ ACTIVE SESSION CARRY-FORWARD FAILED:",
+        carryForwardError
+    );
+
+    alert(
+        "New day started, but running tables could not be moved automatically. " +
+        "Please do not restart or check out those tables yet. Check the console/error before continuing."
+    );
+}
+
 // 🔥 DAY-SCOPED REALTIME LISTENERS MUST FOLLOW THE NEW DAY.
 listenShiftsRealtime(true);
 listenHistoryRealtime(true);
