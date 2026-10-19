@@ -12,7 +12,7 @@ from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 document.addEventListener("DOMContentLoaded", async () => {
 
     const branch =
-        (localStorage.getItem("branch") || "")
+        (sessionStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ======================================================
 
 const role =
-    (localStorage.getItem("role") || "")
+    (sessionStorage.getItem("role") || "")
     .toLowerCase();
 
 
@@ -282,7 +282,7 @@ function getRecordDate(value){
 function resolveCurrentOperationalDay(){
 
     const branch =
-        (localStorage.getItem("branch") || "")
+        (sessionStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
@@ -438,7 +438,7 @@ function getCurrentOperationalDayDebug(){
                 null,
 
             branch:
-                localStorage.getItem("branch"),
+                sessionStorage.getItem("branch"),
 
             found:
                 false
@@ -634,7 +634,7 @@ async function loadOperationalDays(){
 function getMonthlyOperationalAccounting(){
 
     const branch =
-        (localStorage.getItem("branch") || "")
+        (sessionStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
@@ -945,7 +945,7 @@ async function loadDashboardRealtime(){
 
     const branch =
 
-        (localStorage.getItem("branch") || "")
+        (sessionStorage.getItem("branch") || "")
         .toLowerCase()
         .trim();
 
@@ -2142,8 +2142,7 @@ let operationalMonthDays =
         {
 
             branch:
-                localStorage.getItem(
-                    "branch"
+                sessionStorage.getItem("branch"
                 ),
 
             currentDayId,
