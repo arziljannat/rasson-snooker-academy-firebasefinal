@@ -69,15 +69,14 @@ const branchInput = document.getElementById("branchCode").value.trim().toLowerCa
         // ==========================
         // SAVE SESSION
         // ==========================
-        localStorage.setItem("username", userData.username);
-        localStorage.setItem("role", userData.role);
-        localStorage.setItem(
-    "branch",
+        sessionStorage.setItem("username", userData.username);
+        sessionStorage.setItem("role", userData.role);
+        sessionStorage.setItem("branch",
     String(userData.branch || "")
         .toLowerCase()
         .replace(/\s+/g, "")
 );
-        localStorage.setItem("loginTime", Date.now());
+        sessionStorage.setItem("loginTime", Date.now());
 
         console.log("LOGIN SUCCESS:", userData);
 
