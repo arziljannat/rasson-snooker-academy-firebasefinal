@@ -11,7 +11,7 @@ import {
 const db = window.db;
 
 const CURRENT_BRANCH = (
-    localStorage.getItem("branch") || ""
+    sessionStorage.getItem("branch") || ""
 )
 .replace(/\s+/g, "")
 .toLowerCase();
