@@ -15,8 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initializeNavbar() {
 
-    let role = (localStorage.getItem("role") || "").trim().toLowerCase();
-    let branch = localStorage.getItem("branch");
+    let role = (sessionStorage.getItem("role") || "").trim().toLowerCase();
+    let branch = sessionStorage.getItem("branch");
 
     if (!branch) {
         console.error("No branch → redirect login");
@@ -56,7 +56,7 @@ function initializeNavbar() {
                 return;
             }
 
-            localStorage.setItem("branch", selected);
+            sessionStorage.setItem("branch", selected);
             location.reload();
         });
     }
@@ -78,7 +78,10 @@ function initializeNavbar() {
 
     // ✅ LOGOUT
     document.getElementById("logoutBtn").addEventListener("click", () => {
-        localStorage.clear();
+        sessionStorage.removeItem("username");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("branch");
+        sessionStorage.removeItem("loginTime");
         window.location.href = "../index.html";
     });
 
@@ -163,7 +166,7 @@ function startBookingNotificationListener() {
 
     const branch =
         (
-            localStorage.getItem("branch") || ""
+            sessionStorage.getItem("branch") || ""
         )
         .replace(/\s+/g,"")
         .toLowerCase();
