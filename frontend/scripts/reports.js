@@ -120,7 +120,7 @@ async function loadOperationalDays() {
 
     const currentBranch =
         String(
-            localStorage.getItem("branch") || ""
+            sessionStorage.getItem("branch") || ""
         )
         .trim();
 
@@ -951,7 +951,7 @@ async function loadReport(days) {
 
     const branch =
     String(
-        localStorage.getItem("branch") || ""
+        sessionStorage.getItem("branch") || ""
     ).trim();
 
     let box =
@@ -2824,7 +2824,7 @@ function printReportThermal() {
 
 
     const branch =
-        localStorage.getItem("branch") ||
+        sessionStorage.getItem("branch") ||
         "Branch";
 
 
@@ -3267,7 +3267,7 @@ async function loadInventoryReport() {
     if (!dates) return;
 
     let branch =
-        localStorage.getItem("branch");
+        sessionStorage.getItem("branch");
 
     let box =
         document.getElementById("reportOutput");
