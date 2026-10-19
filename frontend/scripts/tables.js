@@ -4813,8 +4813,7 @@ async function carryForwardSessionsToDay(oldDayId, newDayId) {
         getDocs(query(
             collection(window.db, "sessions"),
             where("branch", "==", BRANCH),
-            where("day_id", "==", Number(oldDayId)),
-            where("post_shift2_close", "==", true)
+            where("day_id", "==", Number(oldDayId))
         ))
     ]);
 
@@ -4829,7 +4828,11 @@ async function carryForwardSessionsToDay(oldDayId, newDayId) {
 
     postShift2Snap.forEach(sessionDoc => {
         const data = sessionDoc.data();
-        if (data.is_deleted !== true && data.start_time) {
+        if (
+            data.post_shift2_close === true &&
+            data.is_deleted !== true &&
+            data.start_time
+        ) {
             sessionsToMove.set(sessionDoc.id, sessionDoc);
         }
     });
