@@ -17,7 +17,7 @@ import {
    ========================================================= */
 
 const BRANCH = (
-    localStorage.getItem("branch") || ""
+    sessionStorage.getItem("branch") || ""
 )
 .replace(/\s+/g, "")
 .toLowerCase();
