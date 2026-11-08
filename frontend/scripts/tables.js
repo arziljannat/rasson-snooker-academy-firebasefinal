@@ -2872,11 +2872,48 @@ async function markSelectedHistoryPaid(tableId, indexes) {
  ******************************************************/
 async function openHistory(id) {
 
-    // Table History is a cross-day display. Accounting snapshots continue
-    // to use the current-day-only rebuildHistoryFromSessions() function.
-    await rebuildAllTableHistoryFromSessions();
+    // Open immediately so a slow/pending Firestore read cannot make the
+    // History button appear unresponsive.
+    const historyPopup = document.getElementById("historyPopup");
+    const historyTitle = document.getElementById("historyTableTitle");
+    const historyBody = document.getElementById("historyTableBody");
+    const initialTable = tables.find(x => String(x.id) === String(id));
+
+    if (!historyPopup || !historyBody || !historyTitle) {
+        console.error("❌ HISTORY POPUP ELEMENTS MISSING", {
+            popup: !!historyPopup,
+            body: !!historyBody,
+            title: !!historyTitle
+        });
+        alert("History popup page elements missing. Please refresh and contact admin.");
+        return;
+    }
+
+    historyTitle.innerText = initialTable
+        ? `History - ${initialTable.name}`
+        : "Table History";
+    historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:25px;">Loading history...</td></tr>';
+    historyPopup.classList.remove("hidden");
+
+    console.log("📖 HISTORY OPEN REQUEST:", id);
+
+    try {
+        // Table History is a cross-day display. Accounting snapshots continue
+        // to use the current-day-only rebuildHistoryFromSessions() function.
+        await rebuildAllTableHistoryFromSessions();
+    } catch (historyLoadError) {
+        console.error("❌ ALL-DAYS HISTORY LOAD FAILED:", historyLoadError);
+        historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#ff6b6b;padding:25px;">History could not be loaded. Check connection and retry.</td></tr>';
+        return;
+    }
 
     let t = tables.find(x => String(x.id) === String(id));
+
+    if (!t) {
+        console.error("❌ HISTORY TABLE NOT FOUND:", id);
+        historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#ff6b6b;padding:25px;">Table not found.</td></tr>';
+        return;
+    }
 
 
         // ==========================================
