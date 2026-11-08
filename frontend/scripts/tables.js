@@ -7,7 +7,6 @@ import {
   doc,
   query,
   where,
-  startAfter,
   onSnapshot,
   deleteDoc,
   writeBatch
@@ -2893,17 +2892,11 @@ async function markSelectedHistoryPaid(tableId, indexes) {
  ******************************************************/
 async function openHistory(id) {
 
-    // Table History is a cross-day display. Accounting snapshots continue
-    // to use the current-day-only rebuildHistoryFromSessions() function.
-    await rebuildAllTableHistoryFromSessions();
+    // 🔥 ALWAYS rebuild from Firebase first.
+    // Firebase session.shift_number is the source of truth for Shift 1/2.
+    await rebuildHistoryFromSessions();
 
     let t = tables.find(x => String(x.id) === String(id));
-
-    if (!t) {
-        console.error("❌ HISTORY TABLE NOT FOUND:", id);
-        historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#ff6b6b;padding:25px;">Table not found.</td></tr>';
-        return;
-    }
 
 
         // ==========================================
@@ -2914,6 +2907,15 @@ async function openHistory(id) {
         ? t.history
         : [];
 
+  console.table(
+    historyList.map(h => ({
+        shift: h.shiftNumber,
+        paid: h.paid,
+        total: h.total,
+        booking: h.fromBooking
+    }))
+);
+  
 
   const shift1History = historyList.filter(h => Number(h.shiftNumber || 1) === 1);
 const shift2History = historyList.filter(h => Number(h.shiftNumber || 1) === 2);
@@ -8760,14 +8762,6 @@ function printTableHistoryThermal() {
 }
 
 async function rebuildHistoryFromSessions(preloadedSnapshot = null) {
-    return rebuildSessionsForHistory(preloadedSnapshot, { currentDayOnly: true });
-}
-
-async function rebuildAllTableHistoryFromSessions() {
-    return rebuildSessionsForHistory(null, { currentDayOnly: false });
-}
-
-async function rebuildSessionsForHistory(preloadedSnapshot = null, options = {}) {
 
     // 🔥 Always use the latest operational day before rebuilding history
     if (!window.currentDayId) {
@@ -8779,57 +8773,13 @@ async function rebuildSessionsForHistory(preloadedSnapshot = null, options = {})
         return;
     }
 
-    // Display history can span multiple business days. Shift accounting
-    // continues to call rebuildHistoryFromSessions(), which remains scoped
-    // to the active business day. Do not change Firestore session day_id here.
-    // Read sessions in small Firestore pages instead of one large query.
-    // This keeps the browser responsive for branches with thousands of records.
-    const HISTORY_PAGE_SIZE = 200;
-    let historyDocs = [];
+    const q = query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH),
+        where("day_id", "==", Number(window.currentDayId))
+    );
 
-    if (preloadedSnapshot) {
-        historyDocs = preloadedSnapshot.docs || [];
-    } else {
-        let lastHistoryDoc = null;
-        let hasMoreHistory = true;
-
-        while (hasMoreHistory) {
-            const constraints = options.currentDayOnly
-                ? [
-                    where("branch", "==", BRANCH),
-                    where("day_id", "==", Number(window.currentDayId))
-                ]
-                : [where("branch", "==", BRANCH)];
-
-            if (lastHistoryDoc) {
-                constraints.push(startAfter(lastHistoryDoc));
-            }
-            constraints.push(limit(HISTORY_PAGE_SIZE));
-
-            const pageQuery = query(
-                collection(window.db, "sessions"),
-                ...constraints
-            );
-            const pageSnap = await getDocs(pageQuery);
-
-            if (pageSnap.empty) {
-                hasMoreHistory = false;
-                break;
-            }
-
-            historyDocs.push(...pageSnap.docs);
-            lastHistoryDoc = pageSnap.docs[pageSnap.docs.length - 1];
-            hasMoreHistory = pageSnap.size === HISTORY_PAGE_SIZE;
-
-            // Yield to the browser between page reads.
-            await new Promise(resolve => setTimeout(resolve, 0));
-        }
-    }
-
-    // Preserve the existing processing path below.
-    const snap = {
-        forEach: callback => historyDocs.forEach(callback)
-    };
+    const snap = preloadedSnapshot || await getDocs(q);
 
     // 🔥 RESET ALL HISTORY
     tables.forEach(t => t.history = []);
@@ -8843,22 +8793,26 @@ if (s.is_deleted === true) {
     return;
 }
 
+        console.log("🔥 SESSION:", s);
 
-        // Table history only lists completed sessions.
-        // Running sessions remain represented by the live table timer.
+        // ❌ ignore running sessions
         if (!s.end_time) return;
 
         const currentDayId = String(window.currentDayId || "").trim();
         const sessionDayId = String(s.day_id || "").trim();
 
-        if (!sessionDayId) {
-            console.warn("⛔ SESSION SKIPPED: day_id missing", sessionDocId);
-            return;
-        }
+// ✅ STRICT CURRENT DAY FILTER
+// Sirf current open day ke sessions allow honge.
+// Missing day_id aur kisi doosre day ke sessions reject honge.
 
-        if (options.currentDayOnly && (!currentDayId || sessionDayId !== currentDayId)) {
-            return;
-        }
+if (!currentDayId) {
+    console.warn("⛔ CURRENT DAY ID MISSING");
+    return;
+}
+
+if (!sessionDayId || sessionDayId !== currentDayId) {
+    return;
+}
 
         let t = tables.find(x => x.name === s.table_id);
       
@@ -8884,6 +8838,13 @@ if (alreadyExists) {
     );
     return;
 }
+      console.log(
+    "SESSION SHIFT:",
+    s.table_id,
+    s.shift_number,
+    s.start_time,
+    s.end_time
+);
 
         t.history.push({
             sessionId: sessionDocId,
@@ -8985,14 +8946,17 @@ playType:
 canteenItems: s.canteen_items || {}
         });
 
+      console.log(
+    "HISTORY SHIFT:",
+    t.name,
+    Number(s.shift_number || 1)
+);
+
+        console.log("✅ HISTORY PUSHED:", t.name);
 
     });
 
-    console.log(
-        options.currentDayOnly
-            ? "🔥 CURRENT DAY HISTORY LOADED"
-            : "🔥 ALL-DAYS TABLE HISTORY LOADED"
-    );
+    console.log("🔥 ONLY TODAY HISTORY LOADED");
 }
 
 // 🔥 LOAD ALL HISTORY FOR DAY RECALC
