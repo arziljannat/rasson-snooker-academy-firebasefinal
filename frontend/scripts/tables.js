@@ -2892,9 +2892,9 @@ async function markSelectedHistoryPaid(tableId, indexes) {
  ******************************************************/
 async function openHistory(id) {
 
-    // 🔥 ALWAYS rebuild from Firebase first.
-    // Firebase session.shift_number is the source of truth for Shift 1/2.
-    await rebuildHistoryFromSessions();
+    // Table History is a cross-day display. Accounting snapshots continue
+    // to use the current-day-only rebuildHistoryFromSessions() function.
+    await rebuildAllTableHistoryFromSessions();
 
     let t = tables.find(x => String(x.id) === String(id));
 
@@ -8762,6 +8762,14 @@ function printTableHistoryThermal() {
 }
 
 async function rebuildHistoryFromSessions(preloadedSnapshot = null) {
+    return rebuildSessionsForHistory(preloadedSnapshot, { currentDayOnly: true });
+}
+
+async function rebuildAllTableHistoryFromSessions() {
+    return rebuildSessionsForHistory(null, { currentDayOnly: false });
+}
+
+async function rebuildSessionsForHistory(preloadedSnapshot = null, options = {}) {
 
     // 🔥 Always use the latest operational day before rebuilding history
     if (!window.currentDayId) {
@@ -8773,11 +8781,19 @@ async function rebuildHistoryFromSessions(preloadedSnapshot = null) {
         return;
     }
 
-    const q = query(
-        collection(window.db, "sessions"),
-        where("branch", "==", BRANCH),
-        where("day_id", "==", Number(window.currentDayId))
-    );
+    // Display history can span multiple business days. Shift accounting
+    // continues to call rebuildHistoryFromSessions(), which remains scoped
+    // to the active business day. Do not change Firestore session day_id here.
+    const q = options.currentDayOnly
+        ? query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH),
+            where("day_id", "==", Number(window.currentDayId))
+        )
+        : query(
+            collection(window.db, "sessions"),
+            where("branch", "==", BRANCH)
+        );
 
     const snap = preloadedSnapshot || await getDocs(q);
 
@@ -8795,24 +8811,21 @@ if (s.is_deleted === true) {
 
         console.log("🔥 SESSION:", s);
 
-        // ❌ ignore running sessions
+        // Table history only lists completed sessions.
+        // Running sessions remain represented by the live table timer.
         if (!s.end_time) return;
 
         const currentDayId = String(window.currentDayId || "").trim();
         const sessionDayId = String(s.day_id || "").trim();
 
-// ✅ STRICT CURRENT DAY FILTER
-// Sirf current open day ke sessions allow honge.
-// Missing day_id aur kisi doosre day ke sessions reject honge.
+        if (!sessionDayId) {
+            console.warn("⛔ SESSION SKIPPED: day_id missing", sessionDocId);
+            return;
+        }
 
-if (!currentDayId) {
-    console.warn("⛔ CURRENT DAY ID MISSING");
-    return;
-}
-
-if (!sessionDayId || sessionDayId !== currentDayId) {
-    return;
-}
+        if (options.currentDayOnly && (!currentDayId || sessionDayId !== currentDayId)) {
+            return;
+        }
 
         let t = tables.find(x => x.name === s.table_id);
       
@@ -8956,7 +8969,11 @@ canteenItems: s.canteen_items || {}
 
     });
 
-    console.log("🔥 ONLY TODAY HISTORY LOADED");
+    console.log(
+        options.currentDayOnly
+            ? "🔥 CURRENT DAY HISTORY LOADED"
+            : "🔥 ALL-DAYS TABLE HISTORY LOADED"
+    );
 }
 
 // 🔥 LOAD ALL HISTORY FOR DAY RECALC
