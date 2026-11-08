@@ -7,6 +7,7 @@ import {
   doc,
   query,
   where,
+  startAfter,
   onSnapshot,
   deleteDoc,
   writeBatch
@@ -8781,18 +8782,54 @@ async function rebuildSessionsForHistory(preloadedSnapshot = null, options = {})
     // Display history can span multiple business days. Shift accounting
     // continues to call rebuildHistoryFromSessions(), which remains scoped
     // to the active business day. Do not change Firestore session day_id here.
-    const q = options.currentDayOnly
-        ? query(
-            collection(window.db, "sessions"),
-            where("branch", "==", BRANCH),
-            where("day_id", "==", Number(window.currentDayId))
-        )
-        : query(
-            collection(window.db, "sessions"),
-            where("branch", "==", BRANCH)
-        );
+    // Read sessions in small Firestore pages instead of one large query.
+    // This keeps the browser responsive for branches with thousands of records.
+    const HISTORY_PAGE_SIZE = 200;
+    let historyDocs = [];
 
-    const snap = preloadedSnapshot || await getDocs(q);
+    if (preloadedSnapshot) {
+        historyDocs = preloadedSnapshot.docs || [];
+    } else {
+        let lastHistoryDoc = null;
+        let hasMoreHistory = true;
+
+        while (hasMoreHistory) {
+            const constraints = options.currentDayOnly
+                ? [
+                    where("branch", "==", BRANCH),
+                    where("day_id", "==", Number(window.currentDayId))
+                ]
+                : [where("branch", "==", BRANCH)];
+
+            if (lastHistoryDoc) {
+                constraints.push(startAfter(lastHistoryDoc));
+            }
+            constraints.push(limit(HISTORY_PAGE_SIZE));
+
+            const pageQuery = query(
+                collection(window.db, "sessions"),
+                ...constraints
+            );
+            const pageSnap = await getDocs(pageQuery);
+
+            if (pageSnap.empty) {
+                hasMoreHistory = false;
+                break;
+            }
+
+            historyDocs.push(...pageSnap.docs);
+            lastHistoryDoc = pageSnap.docs[pageSnap.docs.length - 1];
+            hasMoreHistory = pageSnap.size === HISTORY_PAGE_SIZE;
+
+            // Yield to the browser between page reads.
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+    }
+
+    // Preserve the existing processing path below.
+    const snap = {
+        forEach: callback => historyDocs.forEach(callback)
+    };
 
     // 🔥 RESET ALL HISTORY
     tables.forEach(t => t.history = []);
