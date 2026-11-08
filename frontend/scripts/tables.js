@@ -2784,18 +2784,17 @@ async function markSelectedHistoryPaid(tableId, indexes) {
         return;
     }
 
-    const t = tables.find(x => String(x.id) === String(tableId));
+    const t = tables.find(
+        x => String(x.id) === String(tableId)
+    );
+
     if (!t) {
         alert("Table not found ❌");
         return;
     }
 
-    const uniqueIndexes = [...new Set(
-        (indexes || []).map(Number).filter(Number.isInteger)
-    )];
-
-    const selected = uniqueIndexes
-        .map(index => t.history[index])
+    const selected = indexes
+        .map(index => t.history[Number(index)])
         .filter(h => h && h.paid !== true && h.sessionId);
 
     if (selected.length === 0) {
@@ -2803,21 +2802,32 @@ async function markSelectedHistoryPaid(tableId, indexes) {
         return;
     }
 
-    const confirmed = confirm(`Mark ${selected.length} selected games as PAID?`);
+    const confirmed = confirm(
+        `Mark ${selected.length} selected games as PAID?`
+    );
+
     if (!confirmed) return;
 
     try {
+
         const batch = writeBatch(window.db);
         const paidAt = new Date().toISOString();
-        let updateCount = 0;
 
         for (const h of selected) {
-            const sessionRef = doc(window.db, "sessions", h.sessionId);
+
+            const sessionRef = doc(
+                window.db,
+                "sessions",
+                h.sessionId
+            );
+
             const sessionSnap = await getDoc(sessionRef);
+
             if (!sessionSnap.exists()) continue;
 
             const sessionData = sessionSnap.data();
-            if (sessionData.is_deleted === true || sessionData.paid === true) continue;
+
+            if (sessionData.paid === true) continue;
 
             const fullGameAmount = Number(
                 sessionData.final_game_amount ??
@@ -2841,30 +2851,40 @@ async function markSelectedHistoryPaid(tableId, indexes) {
                 : fullGameAmount;
 
             batch.update(sessionRef, {
-                paid: true,
-                paid_time: paidAt,
-                game_collection_amount: collectedGameAmount
-            });
-            updateCount++;
-        }
 
-        if (updateCount === 0) {
-            alert("Selected games already paid or no longer available.");
-            await openHistory(tableId);
-            return;
+                paid: true,
+
+                paid_time: paidAt,
+
+                game_collection_amount:
+                    collectedGameAmount
+
+            });
         }
 
         await batch.commit();
-        // Refresh all-days display only; day_id and shift accounting remain unchanged.
-        await rebuildAllTableHistoryFromSessions();
+
+        await rebuildHistoryFromSessions();
+
         renderTables();
-        await openHistory(tableId);
-        alert(`${updateCount} games marked as paid ✅`);
+
+        openHistory(tableId);
+
+        alert(
+            `${selected.length} games marked as paid ✅`
+        );
+
     } catch (error) {
-        console.error("❌ BULK PAYMENT ERROR:", error);
+
+        console.error(
+            "❌ BULK PAYMENT ERROR:",
+            error
+        );
+
         alert("Bulk payment failed ❌");
     }
 }
+
 
 
 /******************************************************
@@ -2872,40 +2892,9 @@ async function markSelectedHistoryPaid(tableId, indexes) {
  ******************************************************/
 async function openHistory(id) {
 
-    // Open immediately so a slow/pending Firestore read cannot make the
-    // History button appear unresponsive.
-    const historyPopup = document.getElementById("historyPopup");
-    const historyTitle = document.getElementById("historyTableTitle");
-    const historyBody = document.getElementById("historyTableBody");
-    const initialTable = tables.find(x => String(x.id) === String(id));
-
-    if (!historyPopup || !historyBody || !historyTitle) {
-        console.error("❌ HISTORY POPUP ELEMENTS MISSING", {
-            popup: !!historyPopup,
-            body: !!historyBody,
-            title: !!historyTitle
-        });
-        alert("History popup page elements missing. Please refresh and contact admin.");
-        return;
-    }
-
-    historyTitle.innerText = initialTable
-        ? `History - ${initialTable.name}`
-        : "Table History";
-    historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:25px;">Loading history...</td></tr>';
-    historyPopup.classList.remove("hidden");
-
-    console.log("📖 HISTORY OPEN REQUEST:", id);
-
-    try {
-        // Table History is a cross-day display. Accounting snapshots continue
-        // to use the current-day-only rebuildHistoryFromSessions() function.
-        await rebuildAllTableHistoryFromSessions();
-    } catch (historyLoadError) {
-        console.error("❌ ALL-DAYS HISTORY LOAD FAILED:", historyLoadError);
-        historyBody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#ff6b6b;padding:25px;">History could not be loaded. Check connection and retry.</td></tr>';
-        return;
-    }
+    // Table History is a cross-day display. Accounting snapshots continue
+    // to use the current-day-only rebuildHistoryFromSessions() function.
+    await rebuildAllTableHistoryFromSessions();
 
     let t = tables.find(x => String(x.id) === String(id));
 
@@ -3168,30 +3157,6 @@ value="${index}"
     }
 
     document.getElementById("historyPopup").classList.remove("hidden");
-
-    // Select-all controls only unpaid payment checkboxes in the current table.
-    const selectAllPay = document.getElementById("selectAllHistoryPay");
-    const getPayChecks = () => [
-        ...document.querySelectorAll("#historyTableBody .historyPayCheck")
-    ];
-
-    if (selectAllPay) {
-        const syncSelectAll = () => {
-            const checks = getPayChecks();
-            const checkedCount = checks.filter(ch => ch.checked).length;
-            selectAllPay.checked = checks.length > 0 && checkedCount === checks.length;
-            selectAllPay.indeterminate = checkedCount > 0 && checkedCount < checks.length;
-        };
-
-        selectAllPay.checked = false;
-        selectAllPay.indeterminate = false;
-        selectAllPay.onchange = () => {
-            getPayChecks().forEach(ch => { ch.checked = selectAllPay.checked; });
-            syncSelectAll();
-        };
-
-        getPayChecks().forEach(ch => ch.addEventListener("change", syncSelectAll));
-    }
 
     document.getElementById("closeHistoryBtn").onclick =
         () => document.getElementById("historyPopup").classList.add("hidden");
