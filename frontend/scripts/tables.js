@@ -3150,6 +3150,37 @@ value="${index}"
         });
     }
 
+    // Select All only toggles the existing unpaid-game checkboxes.
+    // It does not perform or change any payment/accounting operation.
+    const selectAllHistoryPay = document.getElementById("selectAllHistoryPay");
+    const getUnpaidHistoryChecks = () =>
+        [...document.querySelectorAll("#historyTableBody .historyPayCheck")];
+
+    if (selectAllHistoryPay) {
+        const syncSelectAllHistoryPay = () => {
+            const checks = getUnpaidHistoryChecks();
+            const checkedCount = checks.filter(check => check.checked).length;
+
+            selectAllHistoryPay.checked =
+                checks.length > 0 && checkedCount === checks.length;
+            selectAllHistoryPay.indeterminate =
+                checkedCount > 0 && checkedCount < checks.length;
+        };
+
+        selectAllHistoryPay.checked = false;
+        selectAllHistoryPay.indeterminate = false;
+        selectAllHistoryPay.onchange = () => {
+            getUnpaidHistoryChecks().forEach(check => {
+                check.checked = selectAllHistoryPay.checked;
+            });
+            syncSelectAllHistoryPay();
+        };
+
+        getUnpaidHistoryChecks().forEach(check => {
+            check.addEventListener("change", syncSelectAllHistoryPay);
+        });
+    }
+
     document.getElementById("historyPopup").classList.remove("hidden");
 
     document.getElementById("closeHistoryBtn").onclick =
