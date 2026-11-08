@@ -2913,15 +2913,6 @@ async function openHistory(id) {
         ? t.history
         : [];
 
-  console.table(
-    historyList.map(h => ({
-        shift: h.shiftNumber,
-        paid: h.paid,
-        total: h.total,
-        booking: h.fromBooking
-    }))
-);
-  
 
   const shift1History = historyList.filter(h => Number(h.shiftNumber || 1) === 1);
 const shift2History = historyList.filter(h => Number(h.shiftNumber || 1) === 2);
@@ -8815,7 +8806,6 @@ if (s.is_deleted === true) {
     return;
 }
 
-        console.log("🔥 SESSION:", s);
 
         // Table history only lists completed sessions.
         // Running sessions remain represented by the live table timer.
@@ -8857,13 +8847,6 @@ if (alreadyExists) {
     );
     return;
 }
-      console.log(
-    "SESSION SHIFT:",
-    s.table_id,
-    s.shift_number,
-    s.start_time,
-    s.end_time
-);
 
         t.history.push({
             sessionId: sessionDocId,
@@ -8965,13 +8948,6 @@ playType:
 canteenItems: s.canteen_items || {}
         });
 
-      console.log(
-    "HISTORY SHIFT:",
-    t.name,
-    Number(s.shift_number || 1)
-);
-
-        console.log("✅ HISTORY PUSHED:", t.name);
 
     });
 
