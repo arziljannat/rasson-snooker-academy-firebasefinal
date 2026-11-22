@@ -106,39 +106,38 @@
     "
 >
 
-<label
+<!-- Keep the zero-value input for existing billing JavaScript compatibility. -->
+<input type="hidden" id="discountInput" value="0">
+
+<div
+    role="note"
+    aria-label="No Discount and No Credit"
     style="
-        color:#00ffcc;
-        font-weight:bold;
+        width:100%;
+        box-sizing:border-box;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:12px;
+        padding:16px 18px;
+        border:1px solid rgba(0,255,204,0.55);
+        border-radius:14px;
+        background:linear-gradient(135deg, #102a2a 0%, #101820 52%, #252013 100%);
+        box-shadow:0 0 18px rgba(0,255,204,0.13), inset 0 1px 0 rgba(255,255,255,0.08);
+        color:#f5fffc;
+        text-align:center;
+        font-size:17px;
+        font-weight:800;
+        letter-spacing:1.1px;
+        text-transform:uppercase;
     "
 >
-    Discount
-</label>
+    <span aria-hidden="true" style="font-size:21px;color:#00ffcc;">✦</span>
+    <span>No Discount <span style="color:#d8b76a;">&amp;</span> No Credit</span>
+    <span aria-hidden="true" style="font-size:21px;color:#00ffcc;">✦</span>
+</div>
 
-<input
-    type="number"
-    id="discountInput"
-    min="0"
-    value="0"
-    style="
-        padding:10px;
-        border-radius:10px;
-        border:2px solid #00ffcc;
-        background:#111;
-        color:#00ffcc;
-        font-size:18px;
-        width:120px;
-        height:40px;
-    "
->
-
-<button
-    id="applyDiscountBtn"
-    class="neon-btn"
-    disabled
->
-    <b>No Discount & No Credit</b>
-</button>
+<button id="applyDiscountBtn" type="button" disabled hidden aria-hidden="true">No Discount</button>
 
 </div>
 
