@@ -4221,3 +4221,19 @@ and (max-width: 900px) {
 }
 
 
+
+
+/* SHIFT SUMMARY: keep the original summary and the new breakdown in one vertical scroll area */
+#shiftSummaryPopup .popup-box {
+    height: auto !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+#shiftSummaryPopup #shiftTableBreakdown {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 22px !important;
+}
