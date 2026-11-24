@@ -4237,3 +4237,30 @@ and (max-width: 900px) {
     width: 100% !important;
     margin-top: 22px !important;
 }
+
+
+/* Preserve the original full shift snapshot as the first visible section */
+#shiftSummaryPopup #shiftSnapshotSection {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+#shiftSummaryPopup #shiftSnapshotSection .table-mobile-wrapper {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+#shiftSummaryPopup #shiftSnapshotSection table {
+    display: table !important;
+    visibility: visible !important;
+}
+#shiftSummaryPopup #shiftTableBreakdown {
+    display: block !important;
+    visibility: visible !important;
+    clear: both !important;
+}
