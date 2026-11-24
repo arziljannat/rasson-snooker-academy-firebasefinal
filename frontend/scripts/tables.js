@@ -4257,6 +4257,11 @@ if (breakdownHost) {
     breakdownHost.innerHTML = details.join("");
 }
 
+// Always open the Shift Summary at the top; the complete old summary stays above the breakdown.
+const shiftPopupBox = document.querySelector("#shiftSummaryPopup .popup-box");
+if (shiftPopupBox) {
+    shiftPopupBox.scrollTop = 0;
+}
 showPopup("shiftSummaryPopup");
 }
 
