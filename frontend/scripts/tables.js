@@ -4243,6 +4243,20 @@ ${combined ? `
 `;
 
 
+const breakdownHost = document.getElementById("shiftTableBreakdown");
+if (breakdownHost) {
+    const details = [];
+    if (s1) {
+        const totals = calculateShiftTableGameTotals(s1.startMs, s1.endMs, 1, window.currentDayId);
+        details.push(buildShiftTableBreakdownHtml("Shift 1", totals, s1.expenses));
+    }
+    if (s2) {
+        const totals = calculateShiftTableGameTotals(s2.startMs, s2.endMs, 2, window.currentDayId);
+        details.push(buildShiftTableBreakdownHtml("Shift 2", totals, s2.expenses));
+    }
+    breakdownHost.innerHTML = details.join("");
+}
+
 showPopup("shiftSummaryPopup");
 }
 
@@ -4374,10 +4388,7 @@ shiftData.closingCash =
 // 🔥 FIREBASE SAVE SHIFT 1
 // 🔥 FIREBASE SAVE SHIFT 1
 const docRef = await addDoc(collection(window.db, "shifts"), {
-    tables: tables.map(t => ({
-        table_id: t.name,
-        total: t.history.reduce((sum, h) => sum + (h.total || 0), 0)
-    })),
+    tables: calculateShiftTableGameTotals(shift1.startMs, shift1.endMs, 1, window.currentDayId),
     shift_number: 1,
     branch: BRANCH,
 
@@ -4765,10 +4776,7 @@ shiftData.closingCash =
 
 // 🔥 FIREBASE SAVE SHIFT 2
 await addDoc(collection(window.db, "shifts"), {
-    tables: tables.map(t => ({
-        table_id: t.name,
-        total: t.history.reduce((sum, h) => sum + (h.total || 0), 0)
-    })),
+    tables: calculateShiftTableGameTotals(shift2.startMs, shift2.endMs, 2, window.currentDayId),
     shift_number: 2,
     branch: BRANCH,
 
@@ -5631,6 +5639,35 @@ function getGameTotal() {
 
 function getTotalCollection() {
     return tables.reduce((sum, t) => sum + (t.liveAmount + t.canteenTotal), 0);
+}
+
+// SHIFT TABLE-WISE GAME BILL TOTALS (canteen excluded)
+function calculateShiftTableGameTotals(startTime, endTime, shiftNumber, dayId) {
+    const targetDayId = Number(dayId ?? window.currentDayId);
+    return tables.map(t => {
+        const total = (t.history || []).reduce((sum, h) => {
+            const checkout = Number(h.checkout || 0);
+            const carriedIntoShift1 = h.carryForwardFromShift2 === true && Number(h.dayId) === targetDayId && Number(h.shiftNumber) === 1 && Number(shiftNumber) === 1;
+            const belongsToShift = (checkout >= Number(startTime) && checkout <= Number(endTime)) || carriedIntoShift1;
+            return belongsToShift ? sum + Number(h.originalAmount || h.amount || 0) : sum;
+        }, 0);
+        return { table_id: t.name, total };
+    });
+}
+
+function buildShiftTableBreakdownHtml(shiftLabel, tableTotals, expenses) {
+    const rows = (tableTotals || []).map(item => '<tr><td>' + item.table_id + '</td><td style="text-align:right">' + Number(item.total || 0).toLocaleString('en-PK') + '</td></tr>').join('');
+    const grandTotal = (tableTotals || []).reduce((sum, item) => sum + Number(item.total || 0), 0);
+    const expenseTotal = Number(expenses || 0);
+    const netCash = grandTotal - expenseTotal;
+    return '<section style="margin-top:18px;padding:14px;border:1px solid rgba(0,220,190,.35);border-radius:12px;background:rgba(0,0,0,.16)">' +
+      '<h3 style="margin:0 0 10px;color:#20d9c0">' + shiftLabel + ' — Table-wise Game Bill</h3>' +
+      '<div class="table-mobile-wrapper"><table class="history-table neon-table"><thead><tr><th>Table</th><th style="text-align:right">Game Bill</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody><tfoot>' +
+      '<tr><th>Grand Total</th><th style="text-align:right">' + grandTotal.toLocaleString('en-PK') + '</th></tr>' +
+      '<tr><td>Total Expenses</td><td style="text-align:right">− ' + expenseTotal.toLocaleString('en-PK') + '</td></tr>' +
+      '<tr><th>Net Cash</th><th style="text-align:right;color:#20d9c0">' + netCash.toLocaleString('en-PK') + '</th></tr>' +
+      '</tfoot></table></div></section>';
 }
 
 function calculateShiftSnapshot(
