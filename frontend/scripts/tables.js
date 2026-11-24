@@ -4258,11 +4258,14 @@ if (breakdownHost) {
 }
 
 // Always open the Shift Summary at the top; the complete old summary stays above the breakdown.
+showPopup("shiftSummaryPopup");
+
+// Keep the original full Shift 1 / Shift 2 / Combined snapshot at the top.
+// The table-wise breakdown remains separately below it.
 const shiftPopupBox = document.querySelector("#shiftSummaryPopup .popup-box");
 if (shiftPopupBox) {
     shiftPopupBox.scrollTop = 0;
 }
-showPopup("shiftSummaryPopup");
 }
 
 /******************************************************
