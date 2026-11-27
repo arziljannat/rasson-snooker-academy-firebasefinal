@@ -7046,7 +7046,7 @@ document.getElementById(
 
     showPopup("dayHistoryPopup");
 }
-function loadDaySummaryFirebase() {
+async function loadDaySummaryFirebase() {
 
     const index =
         document.getElementById(
@@ -7061,6 +7061,89 @@ function loadDaySummaryFirebase() {
     const s1 = d.shift1 || {};
     const s2 = d.shift2 || {};
     const c  = d.combined || {};
+
+    // Load historical table-wise GAME bills for the selected operational day.
+    // This is read-only and follows the same checkout-window rules as Shift Snap.
+    const selectedDayId = Number(d.day_id);
+    const sessionsQuery = query(
+        collection(window.db, "sessions"),
+        where("branch", "==", BRANCH),
+        where("day_id", "==", selectedDayId)
+    );
+    const sessionsSnap = await getDocs(sessionsQuery);
+    const shift1Totals = new Map();
+    const shift2Totals = new Map();
+
+    sessionsSnap.forEach(sessionDoc => {
+        const session = sessionDoc.data();
+
+        if (session.is_deleted === true || !session.end_time) return;
+
+        const checkoutMs = new Date(session.end_time).getTime();
+        if (!Number.isFinite(checkoutMs)) return;
+
+        const gameAmount = Number(
+            session.original_game_amount ||
+            session.final_amount ||
+            0
+        );
+        const tableName = session.table_id || "Unknown Table";
+
+        const carriedIntoShift1 =
+            session.carry_forward_from_shift2 === true;
+
+        if (
+            (checkoutMs >= Number(s1.startMs || 0) &&
+             checkoutMs <= Number(s1.endMs || 0)) ||
+            carriedIntoShift1
+        ) {
+            shift1Totals.set(
+                tableName,
+                (shift1Totals.get(tableName) || 0) + gameAmount
+            );
+        } else if (
+            checkoutMs >= Number(s2.startMs || 0) &&
+            checkoutMs <= Number(s2.endMs || 0)
+        ) {
+            shift2Totals.set(
+                tableName,
+                (shift2Totals.get(tableName) || 0) + gameAmount
+            );
+        }
+    });
+
+    const makeDayTableTotals = totalsMap => {
+        const names = (tables || []).map(table => table.name);
+        totalsMap.forEach((value, name) => {
+            if (!names.includes(name)) names.push(name);
+        });
+        return names.map(name => ({
+            table_id: name,
+            total: Number(totalsMap.get(name) || 0)
+        }));
+    };
+
+    const dayShift1TableTotals = makeDayTableTotals(shift1Totals);
+    const dayShift2TableTotals = makeDayTableTotals(shift2Totals);
+
+    const shift1BreakdownHost = document.getElementById("dayShift1TableBreakdown");
+    const shift2BreakdownHost = document.getElementById("dayShift2TableBreakdown");
+
+    if (shift1BreakdownHost) {
+        shift1BreakdownHost.innerHTML = buildShiftTableBreakdownHtml(
+            "Shift 1",
+            dayShift1TableTotals,
+            s1.expenses || 0
+        );
+    }
+
+    if (shift2BreakdownHost) {
+        shift2BreakdownHost.innerHTML = buildShiftTableBreakdownHtml(
+            "Shift 2",
+            dayShift2TableTotals,
+            s2.expenses || 0
+        );
+    }
 
 
     // =====================================================
