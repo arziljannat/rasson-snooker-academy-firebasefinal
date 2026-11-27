@@ -5650,9 +5650,28 @@ function getTotalCollection() {
 }
 
 // SHIFT TABLE-WISE GAME BILL TOTALS (canteen excluded)
+function sortGameBillLocations(items) {
+    const getGroup = name => {
+        const label = String(name || "").trim().toLowerCase();
+        if (/^(room|rooms)\\b/.test(label)) return 1;
+        if (/^(pool|pools)\\b/.test(label)) return 2;
+        return 0;
+    };
+
+    return [...(items || [])].sort((a, b) => {
+        const groupDifference = getGroup(a.table_id) - getGroup(b.table_id);
+        if (groupDifference !== 0) return groupDifference;
+
+        const numberA = Number(String(a.table_id || "").match(/\\d+/)?.[0] || 0);
+        const numberB = Number(String(b.table_id || "").match(/\\d+/)?.[0] || 0);
+        if (numberA && numberB && numberA !== numberB) return numberA - numberB;
+        return String(a.table_id || "").localeCompare(String(b.table_id || ""), undefined, { numeric: true });
+    });
+}
+
 function calculateShiftTableGameTotals(startTime, endTime, shiftNumber, dayId) {
     const targetDayId = Number(dayId ?? window.currentDayId);
-    return tables.map(t => {
+    const totals = tables.map(t => {
         const total = (t.history || []).reduce((sum, h) => {
             const checkout = Number(h.checkout || 0);
             const carriedIntoShift1 = h.carryForwardFromShift2 === true && Number(h.dayId) === targetDayId && Number(h.shiftNumber) === 1 && Number(shiftNumber) === 1;
@@ -5661,10 +5680,11 @@ function calculateShiftTableGameTotals(startTime, endTime, shiftNumber, dayId) {
         }, 0);
         return { table_id: t.name, total };
     });
+    return sortGameBillLocations(totals);
 }
 
 function buildShiftTableBreakdownHtml(shiftLabel, tableTotals, expenses) {
-    const rows = (tableTotals || []).map(item => '<tr><td>' + item.table_id + '</td><td style="text-align:right">' + Number(item.total || 0).toLocaleString('en-PK') + '</td></tr>').join('');
+    const rows = sortGameBillLocations(tableTotals).map(item => '<tr><td>' + item.table_id + '</td><td style="text-align:right">' + Number(item.total || 0).toLocaleString('en-PK') + '</td></tr>').join('');
     const grandTotal = (tableTotals || []).reduce((sum, item) => sum + Number(item.total || 0), 0);
     const expenseTotal = Number(expenses || 0);
     const netCash = grandTotal - expenseTotal;
@@ -7117,10 +7137,10 @@ async function loadDaySummaryFirebase() {
         totalsMap.forEach((value, name) => {
             if (!names.includes(name)) names.push(name);
         });
-        return names.map(name => ({
+        return sortGameBillLocations(names.map(name => ({
             table_id: name,
             total: Number(totalsMap.get(name) || 0)
-        }));
+        })));
     };
 
     const dayShift1TableTotals = makeDayTableTotals(shift1Totals);
