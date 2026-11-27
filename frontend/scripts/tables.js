@@ -7785,8 +7785,11 @@ dateSel.innerHTML += `<option value="${i}">${operationalDate.getFullYear()}-${St
     });
 
     let tableSel = document.getElementById("tableHistoryTableSelect");
-    tableSel.innerHTML = tables
-        .map(t => `<option value="${t.id}">${t.name}</option>`)
+    const sortedHistoryTables = sortGameBillLocations(
+        tables.map(t => ({ table_id: t.name, table: t }))
+    );
+    tableSel.innerHTML = sortedHistoryTables
+        .map(item => `<option value="${item.table.id}">${item.table.name}</option>`)
         .join("");
 
     document.getElementById("tableHistoryBranch").innerText =
